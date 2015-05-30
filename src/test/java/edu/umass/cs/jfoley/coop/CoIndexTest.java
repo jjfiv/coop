@@ -27,6 +27,7 @@ public class CoIndexTest {
         }
       }
 
+      System.err.println(tmpdir.children());
 
     }
 

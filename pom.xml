@@ -47,6 +47,12 @@
     </dependency>
 
     <dependency>
+      <groupId>jfoley.waltz</groupId>
+      <artifactId>waltz-galago-io</artifactId>
+      <version>${waltzVersion}</version>
+    </dependency>
+
+    <dependency>
       <groupId>edu.umass.cs.ciir.jfoley</groupId>
       <artifactId>chai-core</artifactId>
       <version>${chaiVersion}</version>
