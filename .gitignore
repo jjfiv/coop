@@ -1,0 +1,8 @@
+*.iml
+.idea
+target
+*.galago
+*.zip
+*.out
+*.err
+data/
