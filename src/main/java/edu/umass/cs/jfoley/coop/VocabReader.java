@@ -1,5 +1,7 @@
 package edu.umass.cs.jfoley.coop;
 
+import ciir.jfoley.chai.collections.list.IntList;
+import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.archive.ZipArchive;
 import edu.umass.cs.ciir.waltz.coders.GenKeyDiskMap;
@@ -10,11 +12,14 @@ import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.feature.Feature;
+import edu.umass.cs.ciir.waltz.feature.MoverFeature;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.index.AbstractIndex;
+import edu.umass.cs.ciir.waltz.index.mem.CountsOfPositionsMover;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,6 +38,7 @@ public class VocabReader extends AbstractIndex implements Closeable {
   final IdMaps.Reader<String> vocab;
   final GenKeyDiskMap.Reader<List<Integer>> termIdCorpus;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
+  final Parameters meta;
 
   public VocabReader(Directory indexDir) throws IOException {
     this.indexDir = indexDir;
@@ -52,6 +58,7 @@ public class VocabReader extends AbstractIndex implements Closeable {
     this.vocab = IdMaps.openReader(indexDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8Raw);
     tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
     termIdCorpus = GenKeyDiskMap.Reader.openFiles(indexDir.childPath("termIdCorpus"), new ListCoder<>(VarUInt.instance));
+    meta = Parameters.parseFile(indexDir.child("meta.json"));
   }
 
   @Override
@@ -62,45 +69,72 @@ public class VocabReader extends AbstractIndex implements Closeable {
     names.close();
     vocab.close();
     termIdCorpus.close();
+    positions.close();
   }
 
   @Override
   public int getCollectionLength() {
-    return 0;
+    return meta.getInt("collectionLength");
   }
 
   @Override
   public int getDocumentCount() {
-    return 0;
+    return meta.getInt("documentCount");
   }
 
   @Override
   public List<Integer> getAllDocumentIds() {
-    return null;
+    try {
+      return IterableFns.collect(names.forwardReader.keys(), new IntList());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public PostingMover<Integer> getCountsMover(String term) {
-    return null;
+    PostingMover<PositionsList> mover = getPositionsMover(term);
+    if(mover == null) return null;
+    return new CountsOfPositionsMover(mover);
   }
 
   @Override
   public PostingMover<PositionsList> getPositionsMover(String term) {
-    return null;
+    try {
+      Integer termId = vocab.reverseReader.get(term);
+      if(termId == null) return null;
+      return positions.get(termId);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public String getDocumentName(int id) {
-    return null;
+    try {
+      return vocab.forwardReader.get(id);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public int getDocumentId(String documentName) {
-    return 0;
+    try {
+      Integer id = vocab.reverseReader.get(documentName);
+      if(id == null) return -1;
+      return id;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public Feature<Integer> getLengths() {
-    return null;
+    try {
+      return new MoverFeature<>(lengths.get("doc"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

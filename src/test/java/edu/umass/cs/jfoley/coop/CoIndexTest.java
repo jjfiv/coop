@@ -58,8 +58,7 @@ public class CoIndexTest {
         System.err.println(IterableFns.intoList(reader.vocab.reverseReader.keys()));
 
         for (String term : reader.vocab.reverseReader.keys()) {
-          int termId = reader.vocab.reverseReader.get(term);
-          PostingMover<PositionsList> pf = reader.positions.get(termId);
+          PostingMover<PositionsList> pf = reader.getPositionsMover(term);
           int totalCount = 0;
           for(; !pf.isDone(); pf.next()) {
             int count = pf.getCurrentPosting().size();
@@ -67,7 +66,7 @@ public class CoIndexTest {
           }
 
           if(totalCount > 1) {
-            System.err.println(term + " " + termId + " " + totalCount);
+            System.err.println(term + " " + totalCount);
           }
         }
 

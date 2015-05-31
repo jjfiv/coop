@@ -4,9 +4,11 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
+import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipArchive;
 import ciir.jfoley.chai.io.archive.ZipArchiveEntry;
 import ciir.jfoley.chai.io.archive.ZipWriter;
+import ciir.jfoley.chai.lang.Builder;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.ciir.waltz.coders.GenKeyDiskMap;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
@@ -20,6 +22,7 @@ import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
+import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.Flushable;
@@ -30,7 +33,7 @@ import java.util.*;
 /**
  * @author jfoley.
  */
-public class VocabBuilder implements Closeable, Flushable {
+public class VocabBuilder implements Closeable, Flushable, Builder<VocabReader> {
   private final Directory outputDir;
   private final ZipWriter rawCorpusWriter;
   private final TagTokenizer tokenizer;
@@ -151,10 +154,24 @@ public class VocabBuilder implements Closeable, Flushable {
     }
     termIdCorpus.close();
     positionsBuilder.close();
+
+    IO.spit(Parameters.parseArray(
+        "collectionLength", collectionLength,
+        "documentCount", documentId
+    ).toPrettyString(), outputDir.child("meta.json"));
   }
 
   @Override
   public void flush() throws IOException {
 
+  }
+
+  @Override
+  public VocabReader getOutput() {
+    try {
+      return new VocabReader(outputDir);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
