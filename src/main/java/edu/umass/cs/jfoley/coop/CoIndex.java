@@ -13,9 +13,12 @@ import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
+import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
+import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
+import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
@@ -45,6 +48,7 @@ public class CoIndex {
     private final IdMaps.Writer<String> names;
     private final IdMaps.Writer<String> vocab;
     private final GenKeyDiskMap.Writer<List<Integer>> termIdCorpus;
+    private final StreamingPostingBuilder<Integer,PositionsList> positionsBuilder;
     private int documentId = 0;
 
     public VocabBuilder(Directory outputDir) throws IOException {
@@ -59,9 +63,14 @@ public class CoIndex {
       );
       this.names = IdMaps.openWriter(outputDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
       this.vocab = IdMaps.openWriter(outputDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8Raw);
-      tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
-      tokenCounts = new TObjectIntHashMap<>();
-      termIdCorpus = GenKeyDiskMap.Writer.createNew(outputDir.childPath("termIdCorpus"), new ListCoder<>(VarUInt.instance));
+      this.tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
+      this.tokenCounts = new TObjectIntHashMap<>();
+      this.termIdCorpus = GenKeyDiskMap.Writer.createNew(outputDir.childPath("termIdCorpus"), new ListCoder<>(VarUInt.instance));
+      this.positionsBuilder = new StreamingPostingBuilder<>(
+          FixedSize.ints,
+          new PositionsListCoder(),
+          //GenKeyDiskMap.Writer.createNew(outputDir.childPath("positions", ))
+          GalagoIO.getRawIOMapWriter(outputDir.childPath("positions")));
     }
 
     public void addDocument(String name, String text) throws IOException {
@@ -127,15 +136,73 @@ public class CoIndex {
               tokenVector.add(termRanks.get(term));
             }
           }
+
+          // with each document:
+          // collection position vectors:
+          Map<Integer, IntList> data = new HashMap<>();
+          for (int i = 0; i < tokenVector.size(); i++) {
+            MapFns.extendCollectionInMap(data, tokenVector.get(i), i, new IntList());
+          }
+          // Add position vectors to builder:
+          for (Map.Entry<Integer, IntList> kv : data.entrySet()) {
+            this.positionsBuilder.add(
+                kv.getKey(),
+                docId,
+                new SimplePositionsList(kv.getValue()));
+          }
+
           termIdCorpus.put((long) docId, tokenVector);
         }
       }
       termIdCorpus.close();
+      positionsBuilder.close();
     }
 
     @Override
     public void flush() throws IOException {
 
+    }
+  }
+
+  public static class VocabReader implements Closeable {
+    final Directory indexDir;
+    final ZipArchive rawCorpus;
+    final ZipArchive tokensCorpus;
+    final ListCoder<String> tokensCodec;
+    final IOMap<String, PostingMover<Integer>> lengths;
+    final IdMaps.Reader<String> names;
+    final IdMaps.Reader<String> vocab;
+    final GenKeyDiskMap.Reader<List<Integer>> termIdCorpus;
+    final IOMap<Integer, PostingMover<PositionsList>> positions;
+
+    public VocabReader(Directory indexDir) throws IOException {
+      this.indexDir = indexDir;
+      this.rawCorpus = ZipArchive.open(indexDir.child("raw.zip"));
+      this.tokensCorpus = ZipArchive.open(indexDir.child("tokens.zip"));
+      this.lengths = GalagoIO.openIOMap(
+          CharsetCoders.utf8Raw,
+          new SimplePostingListFormat.PostingCoder<>(VarUInt.instance),
+          indexDir.childPath("lengths")
+      );
+      this.positions = GalagoIO.openIOMap(
+          FixedSize.ints,
+          new SimplePostingListFormat.PostingCoder<>(new PositionsListCoder()),
+          indexDir.childPath("positions")
+      );
+      this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
+      this.vocab = IdMaps.openReader(indexDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8Raw);
+      tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
+      termIdCorpus = GenKeyDiskMap.Reader.openFiles(indexDir.childPath("termIdCorpus"), new ListCoder<>(VarUInt.instance));
+    }
+
+    @Override
+    public void close() throws IOException {
+      rawCorpus.close();
+      tokensCorpus.close();
+      lengths.close();
+      names.close();
+      vocab.close();
+      termIdCorpus.close();
     }
   }
 

@@ -1,8 +1,11 @@
 package edu.umass.cs.jfoley.coop;
 
 import ciir.jfoley.chai.Spawn;
+import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.TemporaryDirectory;
+import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
+import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -49,6 +52,26 @@ public class CoIndexTest {
 
       System.err.println(tmpdir.children());
       Spawn.doProcess("/bin/ls", tmpdir.getPath(), "-ltr");
+
+      try (CoIndex.VocabReader reader = new CoIndex.VocabReader(tmpdir)) {
+        System.err.println(IterableFns.intoList(reader.names.reverseReader.keys()));
+        System.err.println(IterableFns.intoList(reader.vocab.reverseReader.keys()));
+
+        for (String term : reader.vocab.reverseReader.keys()) {
+          int termId = reader.vocab.reverseReader.get(term);
+          PostingMover<PositionsList> pf = reader.positions.get(termId);
+          int totalCount = 0;
+          for(; !pf.isDone(); pf.next()) {
+            int count = pf.getCurrentPosting().size();
+            totalCount+=count;
+          }
+
+          if(totalCount > 1) {
+            System.err.println(term + " " + termId + " " + totalCount);
+          }
+        }
+
+      }
 
     }
 

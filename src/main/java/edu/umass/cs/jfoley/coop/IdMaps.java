@@ -53,7 +53,7 @@ public class IdMaps {
     );
   }
 
-  public static class Reader<V extends Comparable<V>> {
+  public static class Reader<V extends Comparable<V>> implements Closeable {
     public final IOMap<Integer, V> forwardReader;
     public final IOMap<V, Integer> reverseReader;
 
@@ -62,6 +62,11 @@ public class IdMaps {
       this.reverseReader = reverseReader;
     }
 
+    @Override
+    public void close() throws IOException {
+      this.forwardReader.close();
+      this.reverseReader.close();
+    }
   }
 
 }
