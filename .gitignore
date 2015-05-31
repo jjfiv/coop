@@ -2,6 +2,7 @@
 .idea
 target
 *.galago
+*.index
 *.zip
 *.out
 *.err

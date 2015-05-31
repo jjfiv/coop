@@ -13,6 +13,7 @@ public class Main {
   static {
     functions.add(new InteractiveQueries());
     functions.add(new PhraseFinder());
+    functions.add(new BuildIndex());
   }
 
   public static void printHelpAndDie() {

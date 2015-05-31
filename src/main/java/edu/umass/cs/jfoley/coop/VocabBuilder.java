@@ -9,7 +9,6 @@ import ciir.jfoley.chai.io.archive.ZipArchive;
 import ciir.jfoley.chai.io.archive.ZipArchiveEntry;
 import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.lang.Builder;
-import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.ciir.waltz.coders.GenKeyDiskMap;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
@@ -71,7 +70,6 @@ public class VocabBuilder implements Closeable, Flushable, Builder<VocabReader> 
   }
 
   public void addDocument(String name, String text) throws IOException {
-    System.out.println("+doc:\t" + name + "\t" + StrUtil.preview(text, 60));
     List<String> terms = tokenizer.tokenize(text).terms;
     int currentId = documentId++;
 
@@ -110,6 +108,7 @@ public class VocabBuilder implements Closeable, Flushable, Builder<VocabReader> 
 
   @Override
   public void close() throws IOException {
+    System.err.println("Begin closing writers!");
     rawCorpusWriter.close();
     lengthWriter.close();
     names.close();
@@ -125,6 +124,7 @@ public class VocabBuilder implements Closeable, Flushable, Builder<VocabReader> 
     }
     vocab.close();
 
+    System.err.println("Begin positions pass!");
     try (ZipArchive tokensCorpus = ZipArchive.open(outputDir.child("tokens.zip"))) {
       for (ZipArchiveEntry entry : tokensCorpus.listFileEntries()) {
         int docId = Integer.parseInt(entry.getName());
