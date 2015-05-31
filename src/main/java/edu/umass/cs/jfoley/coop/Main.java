@@ -12,6 +12,7 @@ public class Main {
   public static List<AppFunction> functions = new ArrayList<>();
   static {
     functions.add(new InteractiveQueries());
+    functions.add(new PhraseFinder());
   }
 
   public static void printHelpAndDie() {
@@ -35,7 +36,7 @@ public class Main {
         return;
       }
     }
-    System.err.println("--fn= "+fn+" not found!");
+    System.err.println("--fn= " + fn + " not found!");
     printHelpAndDie();
   }
 }

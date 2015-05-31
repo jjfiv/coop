@@ -18,7 +18,6 @@ import java.util.List;
  */
 public class CoIndexTest {
 
-
   @Test
   public void testCoIndex() throws IOException {
     List<String> docs = new ArrayList<>(Arrays.asList(IO.resource("/gettysburg_address.txt").split("\n+")));
