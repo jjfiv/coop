@@ -16,7 +16,9 @@ import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
+import edu.umass.cs.ciir.waltz.feature.Feature;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
+import edu.umass.cs.ciir.waltz.index.AbstractIndex;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
@@ -50,6 +52,7 @@ public class CoIndex {
     private final GenKeyDiskMap.Writer<List<Integer>> termIdCorpus;
     private final StreamingPostingBuilder<Integer,PositionsList> positionsBuilder;
     private int documentId = 0;
+    private int collectionLength = 0;
 
     public VocabBuilder(Directory outputDir) throws IOException {
       this.outputDir = outputDir;
@@ -84,6 +87,7 @@ public class CoIndex {
       lengthWriter.add("doc", currentId, terms.size());
       names.put(currentId, name);
 
+      collectionLength += terms.size();
       for (String term : terms) {
         tokenCounts.adjustOrPutValue(term, 1, 1);
       }
@@ -164,7 +168,7 @@ public class CoIndex {
     }
   }
 
-  public static class VocabReader implements Closeable {
+  public static class VocabReader extends AbstractIndex implements Closeable {
     final Directory indexDir;
     final ZipArchive rawCorpus;
     final ZipArchive tokensCorpus;
@@ -203,6 +207,46 @@ public class CoIndex {
       names.close();
       vocab.close();
       termIdCorpus.close();
+    }
+
+    @Override
+    public int getCollectionLength() {
+      return 0;
+    }
+
+    @Override
+    public int getDocumentCount() {
+      return 0;
+    }
+
+    @Override
+    public List<Integer> getAllDocumentIds() {
+      return null;
+    }
+
+    @Override
+    public PostingMover<Integer> getCountsMover(String term) {
+      return null;
+    }
+
+    @Override
+    public PostingMover<PositionsList> getPositionsMover(String term) {
+      return null;
+    }
+
+    @Override
+    public String getDocumentName(int id) {
+      return null;
+    }
+
+    @Override
+    public int getDocumentId(String documentName) {
+      return 0;
+    }
+
+    @Override
+    public Feature<Integer> getLengths() {
+      return null;
     }
   }
 
