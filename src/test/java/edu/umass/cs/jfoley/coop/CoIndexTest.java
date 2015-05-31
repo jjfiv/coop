@@ -43,7 +43,7 @@ public class CoIndexTest {
     List<String> docs = new ArrayList<>(Arrays.asList(IO.resource("/gettysburg_address.txt").split("\n+")));
 
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
-      try (CoIndex.VocabBuilder builder = new CoIndex.VocabBuilder(tmpdir)) {
+      try (VocabBuilder builder = new VocabBuilder(tmpdir)) {
         for (int i = 0; i < docs.size(); i++) {
           String doc = docs.get(i);
           builder.addDocument(String.format("ga.p%d", i), doc);
@@ -53,7 +53,7 @@ public class CoIndexTest {
       System.err.println(tmpdir.children());
       Spawn.doProcess("/bin/ls", tmpdir.getPath(), "-ltr");
 
-      try (CoIndex.VocabReader reader = new CoIndex.VocabReader(tmpdir)) {
+      try (VocabReader reader = new VocabReader(tmpdir)) {
         System.err.println(IterableFns.intoList(reader.names.reverseReader.keys()));
         System.err.println(IterableFns.intoList(reader.vocab.reverseReader.keys()));
 
