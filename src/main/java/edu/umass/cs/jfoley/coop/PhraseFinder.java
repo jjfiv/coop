@@ -42,19 +42,6 @@ public class PhraseFinder extends AppFunction {
     }
   }
 
-  /**
-   * Store a corpus-global positional hit.
-   */
-  public static class DocumentAndPosition {
-    public final int documentId;
-    public final int matchPosition;
-
-    public DocumentAndPosition(int documentId, int matchPosition) {
-      this.documentId = documentId;
-      this.matchPosition = matchPosition;
-    }
-  }
-
   public static List<DocumentAndPosition> easyFindPhrase(VocabReader index, List<String> terms) {
     switch (terms.size()) {
       case 0: throw new IllegalArgumentException("Didn't specify any terms to search!");
