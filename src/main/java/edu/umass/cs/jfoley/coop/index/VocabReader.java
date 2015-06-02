@@ -164,9 +164,12 @@ public class VocabReader extends AbstractIndex implements Closeable {
    * @return a list of term ids corresponding to the data in the given slice.
    */
   public IntList pullTermIdSlice(TermSlice slice) {
-    return new IntList(termIdCorpus.get(slice.document).subList(slice.start, slice.end));
+    return new IntList(
+        ListFns.slice(
+            termIdCorpus.get(slice.document),
+            slice.start,
+            slice.end));
   }
-
 
   @Override
   public Feature<Integer> getLengths() {

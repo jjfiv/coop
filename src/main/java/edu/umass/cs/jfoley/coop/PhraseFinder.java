@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop;
 
 import ciir.jfoley.chai.Timing;
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.errors.FatalError;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.string.StrUtil;
@@ -33,22 +34,24 @@ public class PhraseFinder extends AppFunction {
     return makeHelpStr(
         "index", "path to VocabReader index.",
         "width", "kwic width [default=5]",
+        "limit", "limit the number of results: [default=10,000]",
         "query", "a term or phrase query");
   }
 
   @Override
   public void run(Parameters p, PrintStream output) throws Exception {
     int width = p.get("width", 5);
+    int limit = p.get("limit", 10000);
 
     try (VocabReader index = new VocabReader(new Directory(p.getString("index")))) {
       Tokenizer tokenizer = new TagTokenizer();
       List<String> query = tokenizer.tokenize(p.getString("query")).terms;
 
       Pair<Long, List<DocumentAndPosition>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, query));
-      System.out.println("Run query in "+hits.left+" ms.");
+      System.err.println("Run query in "+hits.left+" ms. "+hits.right.size()+" hits found!");
 
       List<TermSlice> slices = new ArrayList<>();
-      for (DocumentAndPosition hit : hits.right) {
+      for (DocumentAndPosition hit : ListFns.take(hits.right, limit)) {
         slices.add(hit.asSlice(width));
       }
 
@@ -60,7 +63,7 @@ public class PhraseFinder extends AppFunction {
         }
       });
 
-      System.out.println("Pull result data in "+kwic.left+" ms.");
+      System.err.println("Pull result data in "+kwic.left+" ms.");
 
       for (Pair<TermSlice, List<String>> data : kwic.right) {
         TermSlice info = data.left;
