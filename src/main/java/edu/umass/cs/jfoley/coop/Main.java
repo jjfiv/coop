@@ -12,9 +12,9 @@ public class Main {
 
   public static List<AppFunction> functions = new ArrayList<>();
   static {
-    functions.add(new InteractiveQueries());
     functions.add(new FindKWIC());
     functions.add(new BuildIndex());
+    functions.add(new RankTerms());
   }
 
   public static void printHelpAndDie() {

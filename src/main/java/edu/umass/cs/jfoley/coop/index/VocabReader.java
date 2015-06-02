@@ -179,4 +179,33 @@ public class VocabReader extends AbstractIndex implements Closeable {
       throw new RuntimeException(e);
     }
   }
+
+  public int collectionFrequency(String term) throws IOException {
+    Integer x = vocab.reverseReader.get(term);
+    if(x == null) return 0;
+    return collectionFrequency(x);
+  }
+
+  public int collectionFrequency(int termId) throws IOException {
+    if(termId < 0) return 0;
+    PostingMover<PositionsList> mover = positions.get(termId);
+    int count = 0;
+    for(; mover.hasNext(); mover.next()) {
+      count += mover.getCurrentPosting().size();
+    }
+    return count;
+  }
+
+  public IntList getTermIds(List<String> terms) throws IOException {
+    Map<String, Integer> lookup = MapFns.fromPairs(vocab.reverseReader.getInBulk(terms));
+    IntList results = new IntList(terms.size());
+    for (String term : terms) {
+      results.add(MapFns.getOrElse(lookup, term, -1));
+    }
+    return results;
+  }
+
+  public String getTerm(int termId) throws IOException {
+    return vocab.forwardReader.get(termId);
+  }
 }

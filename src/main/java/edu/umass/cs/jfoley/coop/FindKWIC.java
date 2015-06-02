@@ -53,7 +53,10 @@ public class FindKWIC extends AppFunction {
 
       List<TermSlice> slices = new ArrayList<>();
       for (DocumentAndPosition hit : ListFns.take(hits.right, limit)) {
-        slices.add(new TermSlice(hit.documentId, hit.matchPosition - width, hit.matchPosition + query.size() + width));
+        slices.add(new TermSlice(
+            hit.documentId,
+            hit.matchPosition - width,
+            hit.matchPosition + query.size() + width));
       }
 
       Pair<Long, List<Pair<TermSlice, List<String>>>> kwic = Timing.milliseconds(() -> {
