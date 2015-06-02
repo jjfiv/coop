@@ -11,4 +11,11 @@ public class DocumentAndPosition {
     this.documentId = documentId;
     this.matchPosition = matchPosition;
   }
+
+  public TermSlice asSlice(int width) {
+    if(width < 0) {
+      throw new IllegalArgumentException("Can't make a slice of negative width.");
+    }
+    return new TermSlice(documentId, matchPosition - width, matchPosition + width);
+  }
 }

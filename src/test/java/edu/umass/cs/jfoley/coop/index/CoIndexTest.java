@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop;
+package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.Spawn;
 import ciir.jfoley.chai.collections.util.IterableFns;
@@ -6,9 +6,6 @@ import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.jfoley.coop.index.CoIndex;
-import edu.umass.cs.jfoley.coop.index.VocabBuilder;
-import edu.umass.cs.jfoley.coop.index.VocabReader;
 import org.junit.Test;
 
 import java.io.IOException;

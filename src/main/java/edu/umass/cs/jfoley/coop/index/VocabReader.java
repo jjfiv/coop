@@ -1,7 +1,10 @@
 package edu.umass.cs.jfoley.coop.index;
 
+import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
+import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.archive.ZipArchive;
 import edu.umass.cs.ciir.waltz.coders.GenKeyDiskMap;
@@ -19,11 +22,12 @@ import edu.umass.cs.ciir.waltz.index.mem.CountsOfPositionsMover;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author jfoley.
@@ -128,6 +132,41 @@ public class VocabReader extends AbstractIndex implements Closeable {
       throw new RuntimeException(e);
     }
   }
+
+  public List<Pair<TermSlice, List<String>>> pullTermSlices(List<TermSlice> requests) throws IOException {
+    List<IntList> sliceIds = new ArrayList<>();
+    Set<Integer> vocabOfInterest = new HashSet<>();
+    for (TermSlice request : requests) {
+      IntList termvec = pullTermIdSlice(request);
+      sliceIds.add(termvec);
+      vocabOfInterest.addAll(termvec);
+    }
+
+    // lookup necessary vocab:
+    Map<Integer, String> terms = MapFns.fromPairs(vocab.forwardReader.getInBulk(new IntList(vocabOfInterest)));
+
+    // translate pre-loaded list:
+    List<List<String>> translatedSlices = new ArrayList<>();
+    for (IntList sliceId : sliceIds) {
+      List<String> slice = new ArrayList<>(sliceId.size());
+      for (int termId : sliceId) {
+        slice.add(terms.get(termId));
+      }
+      translatedSlices.add(slice);
+    }
+
+    return ListFns.zip(requests, translatedSlices);
+  }
+
+  /**
+   * Raw access to corpus structure.
+   * @param slice the coordinates of the data to pull.
+   * @return a list of term ids corresponding to the data in the given slice.
+   */
+  public IntList pullTermIdSlice(TermSlice slice) {
+    return new IntList(termIdCorpus.get(slice.document).subList(slice.start, slice.end));
+  }
+
 
   @Override
   public Feature<Integer> getLengths() {
