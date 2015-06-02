@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop;
+package edu.umass.cs.jfoley.coop.querying;
 
 /**
  * Store a corpus-global positional hit.
