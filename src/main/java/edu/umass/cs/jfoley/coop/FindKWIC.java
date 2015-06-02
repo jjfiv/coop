@@ -21,12 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Render a KWIC view for a term or phrase query.
  * @author jfoley.
  */
-public class PhraseFinder extends AppFunction {
+public class FindKWIC extends AppFunction {
   @Override
   public String getName() {
-    return "phrase-finder";
+    return "find-kwic";
   }
 
   @Override
@@ -52,7 +53,7 @@ public class PhraseFinder extends AppFunction {
 
       List<TermSlice> slices = new ArrayList<>();
       for (DocumentAndPosition hit : ListFns.take(hits.right, limit)) {
-        slices.add(hit.asSlice(width));
+        slices.add(new TermSlice(hit.documentId, hit.matchPosition - width, hit.matchPosition + query.size() + width));
       }
 
       Pair<Long, List<Pair<TermSlice, List<String>>>> kwic = Timing.milliseconds(() -> {

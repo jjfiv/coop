@@ -13,7 +13,7 @@ public class Main {
   public static List<AppFunction> functions = new ArrayList<>();
   static {
     functions.add(new InteractiveQueries());
-    functions.add(new PhraseFinder());
+    functions.add(new FindKWIC());
     functions.add(new BuildIndex());
   }
 
