@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop;
+package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.string.StrUtil;

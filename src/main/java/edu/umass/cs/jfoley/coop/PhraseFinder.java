@@ -6,6 +6,7 @@ import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsIterator;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import edu.umass.cs.jfoley.coop.index.VocabReader;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.tokenize.Tokenizer;
 import org.lemurproject.galago.utility.Parameters;

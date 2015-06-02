@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop;
+package edu.umass.cs.jfoley.coop.index;
 
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;

@@ -1,38 +1,28 @@
-package edu.umass.cs.jfoley.coop;
+package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
-import ciir.jfoley.chai.io.archive.ZipArchive;
-import ciir.jfoley.chai.io.archive.ZipArchiveEntry;
 import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.string.StrUtil;
-import edu.umass.cs.ciir.waltz.coders.GenKeyDiskMap;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
-import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
-import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
-import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
-import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
-import edu.umass.cs.ciir.waltz.feature.Feature;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
-import edu.umass.cs.ciir.waltz.index.AbstractIndex;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
-import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
-import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.tokenize.Tokenizer;
 
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author jfoley.

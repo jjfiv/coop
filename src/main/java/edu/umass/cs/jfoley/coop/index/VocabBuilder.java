@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop;
+package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
