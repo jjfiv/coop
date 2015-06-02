@@ -134,6 +134,8 @@ public class RankTerms extends AppFunction {
     long scoringTime = Timing.milliseconds(() -> {
       // Now lookup collection frequencies, this is p_x to termProxCounts p_xy
       termProxCounts.forEachEntry((termId, frequency) -> {
+        // skip query itself.
+        if(qIds.contains(termId)) return true;
         try {
           topTerms.add(new PMITerm(
               termId,
@@ -150,7 +152,7 @@ public class RankTerms extends AppFunction {
     System.err.println("Scored " + termProxCounts.size() + " candidates in " + scoringTime + " ms.");
 
     for (PMITerm pmiTerm : topTerms.getSorted()) {
-      System.out.printf("%s(%d) %1.4f\n", index.getTerm(pmiTerm.termId), pmiTerm.termId, pmiTerm.pmi());
+      System.out.printf("%-20s %1.4f\n", StrUtil.replaceUnicodeQuotes(index.getTerm(pmiTerm.termId)), pmiTerm.pmi());
     }
 
   }
