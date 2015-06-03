@@ -7,17 +7,16 @@ import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.lang.Builder;
-import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
-import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
-import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
+import edu.umass.cs.ciir.waltz.coders.kinds.*;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
+import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
@@ -42,10 +41,23 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   private final StreamingPostingBuilder<String, PositionsList> positionsBuilder;
   private int documentId = 0;
   private int collectionLength = 0;
-  private Map<String, DocVarSchema> fieldSchema = Collections.emptyMap();
+  private final Map<String, DocVarSchema> fieldSchema;
+  private final DocumentLabelIndex.Writer doclabelWriter;
 
   public IndexBuilder(CoopTokenizer tok, Directory outputDir) throws IOException {
+    this(tok, outputDir, Collections.emptyMap());
+  }
+  public IndexBuilder(CoopTokenizer tok, Directory outputDir, Map<String, DocVarSchema> fieldSchema) throws IOException {
     this.outputDir = outputDir;
+    this.fieldSchema = fieldSchema;
+
+    doclabelWriter = new DocumentLabelIndex.Writer(
+        GalagoIO.getIOMapWriter(
+            DocumentLabelIndex.NamespacedLabel.coder,
+            new DeltaIntListCoder(),
+            outputDir.childPath("doclabels")
+        )
+    );
     this.rawCorpusWriter = new ZipWriter(outputDir.childPath("raw.zip"));
     this.tokensCorpusWriter = new ZipWriter(outputDir.childPath("tokens.zip"));
     this.tokenizer = tok;
@@ -69,10 +81,6 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     addDocument(document);
   }
 
-  public void setFieldSchema(Map<String, DocVarSchema> fieldSchema) {
-    this.fieldSchema = fieldSchema;
-  }
-
   public void addDocument(CoopDoc doc) throws IOException {
     List<String> terms = doc.getTerms();
     int currentId = documentId++;
@@ -85,6 +93,15 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     names.put(currentId, doc.getName());
 
     collectionLength += terms.size();
+
+    // collect variables:
+    for (DocVar docVar : doc.getVariables()) {
+      if(docVar.getSchema() instanceof CategoricalVarSchema) {
+        String field = docVar.getName();
+        String label = (String) docVar.get();
+        doclabelWriter.add(field, label, currentId);
+      }
+    }
 
     // collection position vectors:
     Map<String, IntList> data = new HashMap<>();
@@ -111,6 +128,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     System.err.println("Begin closing writers!");
     rawCorpusWriter.close();
     lengthWriter.close();
+    doclabelWriter.close();
     names.close();
     tokensCorpusWriter.close();
     positionsBuilder.close();

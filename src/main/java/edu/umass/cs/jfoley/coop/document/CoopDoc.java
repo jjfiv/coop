@@ -4,10 +4,7 @@ import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * My pet peeve are java classes named Document.
@@ -97,5 +94,9 @@ public class CoopDoc implements Comparable<CoopDoc> {
     }
 
     return new CoopDoc(name, terms, UNKNOWN_DOCID, vars);
+  }
+
+  public Collection<DocVar> getVariables() {
+    return variables.values();
   }
 }

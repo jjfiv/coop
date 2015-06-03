@@ -26,13 +26,6 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
     return name;
   }
 
-  public int indexOf(String id) {
-    return values.list.indexOf(id);
-  }
-  public String get(int index) {
-    return values.list.get(index);
-  }
-
   @Override
   public Class<String> getInnerClass() {
     return String.class;

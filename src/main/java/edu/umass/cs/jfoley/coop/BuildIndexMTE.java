@@ -92,9 +92,7 @@ public class BuildIndexMTE extends AppFunction {
 
   public static void buildIndexFromDataFile(Parameters argp, Map<String, DocVarSchema> varSchemas, File dataFile, Directory outputDir) throws IOException {
     CoopTokenizer tok = CoopTokenizer.create(argp);
-    try(IndexBuilder builder = new IndexBuilder(tok, outputDir)) {
-      builder.setFieldSchema(varSchemas);
-
+    try(IndexBuilder builder = new IndexBuilder(tok, outputDir, varSchemas)) {
       try (LinesIterable input = LinesIterable.fromFile(dataFile)) {
         for (String line : input) {
           Parameters data = Parameters.parseString(line);

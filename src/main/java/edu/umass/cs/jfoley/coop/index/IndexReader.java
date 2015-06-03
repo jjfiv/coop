@@ -22,14 +22,13 @@ import edu.umass.cs.ciir.waltz.index.mem.CountsOfPositionsMover;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author jfoley.
@@ -43,11 +42,20 @@ public class IndexReader extends AbstractIndex implements Closeable {
   final IdMaps.Reader<String> names;
   final IOMap<String, PostingMover<PositionsList>> positions;
   final CoopTokenizer tokenizer;
+  final Map<String, DocVarSchema> fieldSchema;
+  final DocumentLabelIndex.Reader docLabels;
   final Parameters meta;
 
   public IndexReader(Directory indexDir) throws IOException {
     this.indexDir = indexDir;
     this.meta = Parameters.parseFile(indexDir.child("meta.json"));
+
+    this.fieldSchema = new HashMap<>();
+    for (String field : meta.get("schema", Parameters.create()).keySet()) {
+      this.fieldSchema.put(field, DocVarSchema.create(field, meta.getMap(field)));
+    }
+    this.docLabels = new DocumentLabelIndex.Reader(indexDir.childPath("doclabels"));
+
     this.tokenizer = CoopTokenizer.create(meta);
     this.rawCorpus = ZipArchive.open(indexDir.child("raw.zip"));
     this.tokensCorpus = ZipArchive.open(indexDir.child("tokens.zip"));
@@ -62,7 +70,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
         indexDir.childPath("positions")
     );
     this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
-    tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
+    this.tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
   }
 
   public CoopTokenizer getTokenizer() {
