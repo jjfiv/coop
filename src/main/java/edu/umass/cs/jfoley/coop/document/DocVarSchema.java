@@ -12,6 +12,12 @@ public abstract class DocVarSchema<T> {
   }
   public String getName() { return name; }
   public abstract Coder<T> getCoder();
+  public abstract Class<T> getInnerClass();
+
+  @Override
+  public String toString() {
+    return "DocVarSchema("+name+", "+getInnerClass().getSimpleName();
+  }
 
   @Override
   public boolean equals(Object other) {

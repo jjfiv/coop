@@ -16,4 +16,9 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
   public Coder<Integer> getCoder() {
     return VarInt.instance;
   }
+
+  @Override
+  public Class<Integer> getInnerClass() {
+    return Integer.class;
+  }
 }

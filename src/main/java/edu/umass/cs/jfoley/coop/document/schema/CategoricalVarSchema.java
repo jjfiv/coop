@@ -4,7 +4,9 @@ import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.MappingCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
+import org.lemurproject.galago.utility.Parameters;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,5 +35,18 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
     return new MappingCoder<>(
         VarUInt.instance,
         values::indexOf, values::get);
+  }
+
+  @Override
+  public Class<String> getInnerClass() {
+    return String.class;
+  }
+
+  public static DocVarSchema create(String name, Parameters args) {
+    List<String> values = new ArrayList<>();
+    if (args.isList("values")) {
+      values.addAll(args.getAsList("values", String.class));
+    }
+    return new CategoricalVarSchema(name, values);
   }
 }

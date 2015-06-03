@@ -1,5 +1,7 @@
 package edu.umass.cs.jfoley.coop.document;
 
+import org.lemurproject.galago.utility.Parameters;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +44,13 @@ public class CoopDoc implements Comparable<CoopDoc> {
     throw new RuntimeException("Couldn't find a variable for schema, but found one with the same name! schema="+schema.getClass().getName()+" name="+schema.getName()+" found="+variable.getSchema()+" value="+variable.get());
   }
 
+  public Parameters getJSONVars() {
+    Parameters output = Parameters.create();
+    for (String s : variables.keySet()) {
+      output.put(s, variables.get(s).get());
+    }
+    return output;
+  }
 
   @Override
   public int compareTo(CoopDoc o) {
