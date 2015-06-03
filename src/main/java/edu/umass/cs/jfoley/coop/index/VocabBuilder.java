@@ -3,6 +3,7 @@ package edu.umass.cs.jfoley.coop.index;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.MapFns;
+import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipArchive;
@@ -115,7 +116,8 @@ public class VocabBuilder implements Closeable, Flushable, Builder<VocabReader> 
     tokensCorpusWriter.close();
 
     List<Pair<String, Integer>> localVocab = extractVocabularyAndSort();
-    TObjectIntHashMap<String> termRanks = new TObjectIntHashMap<>();
+    HashMap<String,Integer> termRanks = new HashMap<>();
+    //TObjectIntHashMap<String> termRanks = new TObjectIntHashMap<>();
     // save vocabulary ids:
     for (int rank = 0; rank < localVocab.size(); rank++) {
       Pair<String, Integer> kv = localVocab.get(rank);
@@ -124,23 +126,33 @@ public class VocabBuilder implements Closeable, Flushable, Builder<VocabReader> 
     }
     vocab.close();
 
+    System.err.println(termRanks.size());
+
     System.err.println("Begin positions pass!");
     try (ZipArchive tokensCorpus = ZipArchive.open(outputDir.child("tokens.zip"))) {
       for (ZipArchiveEntry entry : tokensCorpus.listFileEntries()) {
         int docId = Integer.parseInt(entry.getName());
-        IntList tokenVector = new IntList();
+        System.err.println("readDocument:"+docId);
+        List<String> termVector;
         try (InputStream stream = entry.getInputStream()) {
-          for (String term : tokensCodec.read(stream)) {
-            tokenVector.add(termRanks.get(term));
-          }
+          termVector = tokensCodec.read(stream);
         }
 
-        // with each document:
-        // collection position vectors:
+        System.err.println("translateDocument:"+docId);
+        System.err.println("  collect position vectors:"+docId);
+        // collection position vectors and translate the document:
         Map<Integer, IntList> data = new HashMap<>();
-        for (int i = 0; i < tokenVector.size(); i++) {
-          MapFns.extendCollectionInMap(data, tokenVector.get(i), i, new IntList());
+        IntList tokenVector = new IntList();
+        tokenVector.resize(termVector.size());
+        for (int i = 0, termVectorSize = termVector.size(); i < termVectorSize; i++) {
+          if (i % 10000 == 0) {
+            System.err.println(i);
+          }
+          String term = termVector.get(i);
+          tokenVector.add(termRanks.get(term));
+          MapFns.extendCollectionInMap(data, termRanks.get(term), i, (GenerateFn<IntList>) IntList::new);
         }
+        System.err.println("  add position vectors to builder:"+docId);
         // Add position vectors to builder:
         for (Map.Entry<Integer, IntList> kv : data.entrySet()) {
           this.positionsBuilder.add(
@@ -149,10 +161,13 @@ public class VocabBuilder implements Closeable, Flushable, Builder<VocabReader> 
               new SimplePositionsList(kv.getValue()));
         }
 
+        System.err.println("  add to termIdCorpus:"+docId);
         termIdCorpus.put((long) docId, tokenVector);
       }
     }
+    System.err.println("termIdCorpus.close()!");
     termIdCorpus.close();
+    System.err.println("positionsBuilder.close()!");
     positionsBuilder.close();
 
     IO.spit(Parameters.parseArray(
