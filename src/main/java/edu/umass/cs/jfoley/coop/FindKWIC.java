@@ -61,7 +61,7 @@ public class FindKWIC extends AppFunction {
 
       Pair<Long, List<Pair<TermSlice, List<String>>>> kwic = Timing.milliseconds(() -> {
         try {
-          return index.pullTermSlices(slices);
+          return index.pullTermSlices1(slices);
         } catch (IOException e) {
           throw new FatalError(e);
         }

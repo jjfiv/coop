@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * @author jfoley.
  */
-public class IndexBuilder implements Closeable, Flushable, Builder<VocabReader> {
+public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> {
   private final Directory outputDir;
   private final ZipWriter rawCorpusWriter;
   private final TagTokenizer tokenizer;
@@ -113,9 +113,9 @@ public class IndexBuilder implements Closeable, Flushable, Builder<VocabReader> 
   }
 
   @Override
-  public VocabReader getOutput() {
+  public IndexReader getOutput() {
     try {
-      return new VocabReader(outputDir);
+      return new IndexReader(outputDir);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

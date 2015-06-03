@@ -39,6 +39,7 @@ public class RankTerms extends AppFunction {
         "index", "path to VocabReader index.",
         "leftWidth", "width of left candidates, [default=5]",
         "rightWidth", "width of right candidates, [default=5]",
+        "hitLimit", "number of candidate query-hits to process, [default=None]",
         "limit", "number of terms to print out, [default=20]",
         // todo stop results
         // todo sample values instead of doing them all
@@ -94,6 +95,8 @@ public class RankTerms extends AppFunction {
     assert(rightWidth >= 0);
     int limit = p.get("limit", 20);
     assert(limit > 0);
+    int hitLimit = p.get("hitLimit", Integer.MAX_VALUE);
+    assert(hitLimit > 0);
 
     Tokenizer tokenizer = new TagTokenizer();
     List<String> query = tokenizer.tokenize(p.getString("query")).terms;
@@ -106,7 +109,7 @@ public class RankTerms extends AppFunction {
 
     // build slices from the results, based on arguments to this file:
     List<TermSlice> slices = new ArrayList<>();
-    for (DocumentAndPosition hit : ListFns.take(hits.right, limit)) {
+    for (DocumentAndPosition hit : ListFns.take(hits.right, hitLimit)) {
       slices.add(new TermSlice(
           hit.documentId,
           hit.matchPosition - leftWidth,
@@ -116,11 +119,14 @@ public class RankTerms extends AppFunction {
     // Now score the nearby terms!
     final TObjectIntHashMap<String> termProxCounts = new TObjectIntHashMap<>();
     long candidateFindingTime = Timing.milliseconds(() -> {
-      for (TermSlice slice : slices) {
+      index.forTermInSlice(slices, (term) ->  {
+        termProxCounts.adjustOrPutValue(term, 1, 1);
+      });
+      /*for (TermSlice slice : slices) {
         for (String term : index.pullTermIdSlice(slice)) {
           termProxCounts.adjustOrPutValue(term, 1, 1);
         }
-      }
+      }*/
     });
     System.err.println("Found "+termProxCounts.size() + " candidates in "+candidateFindingTime+" ms.");
 

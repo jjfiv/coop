@@ -4,6 +4,7 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.fn.SinkFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.archive.ZipArchive;
 import ciir.jfoley.chai.io.archive.ZipArchiveEntry;
@@ -27,6 +28,7 @@ import org.lemurproject.galago.utility.Parameters;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -133,6 +135,52 @@ public class IndexReader extends AbstractIndex implements Closeable {
     }
     return ListFns.zip(requests, slices);
   }
+
+  /**
+   * Only pull each document once.
+   */
+  public List<Pair<TermSlice, List<String>>> pullTermSlices1(List<TermSlice> requests) throws IOException {
+    // sort by document.
+    Collections.sort(requests);
+
+    // cache a document a time in memory so we don't pull it twice.
+    List<String> currentDocTerms = null;
+    int currentDocId = -1;
+
+    // slices:
+    List<List<String>> slices = new ArrayList<>();
+    for (TermSlice request : requests) {
+      if(request.document != currentDocId) {
+        currentDocId = request.document;
+        currentDocTerms = pullTokens(currentDocId);
+      }
+      // make a copy here so that the documents don't end up leaked into memory via subList.
+      slices.add(new ArrayList<>(ListFns.slice(currentDocTerms, request.start, request.end)));
+    }
+    return ListFns.zip(requests, slices);
+  }
+
+  public void forTermInSlice(List<TermSlice> requests, SinkFn<String> onTerm) {
+    // sort by document.
+    Collections.sort(requests);
+
+    // cache a document a time in memory so we don't pull it twice.
+    List<String> currentDocTerms = null;
+    int currentDocId = -1;
+
+    // slices:
+    List<List<String>> slices = new ArrayList<>();
+    for (TermSlice request : requests) {
+      if(request.document != currentDocId) {
+        currentDocId = request.document;
+        currentDocTerms = pullTokens(currentDocId);
+      }
+      for (String term : ListFns.slice(currentDocTerms, request.start, request.end)) {
+        onTerm.process(term);
+      }
+    }
+  }
+
 
   public List<String> pullTokens(int document) {
     ZipArchiveEntry entry = tokensCorpus.getByName(Integer.toString(document));
