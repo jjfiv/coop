@@ -7,8 +7,6 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
-import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
-import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.IndexBuilder;
 import org.lemurproject.galago.utility.Parameters;
@@ -80,16 +78,9 @@ public class BuildIndexMTE extends AppFunction {
         throw new RuntimeException("Can't figure out how to parse schema field: " + fieldName + " " + schema.get(fieldName));
       }
 
-      switch (type) {
-        case "categorical":
-          varSchemas.put(fieldName, CategoricalVarSchema.create(fieldName, typeP));
-          break;
-        case "numeric:":
-          varSchemas.put(fieldName, new IntegerVarSchema(fieldName));
-          break;
-      }
+      typeP.set("type", type);
+      varSchemas.put(fieldName, DocVarSchema.create(fieldName, typeP));
     }
-    System.out.println(varSchemas);
 
     if(dataFile.exists()) {
       buildIndexFromDataFile(argp, varSchemas, dataFile, outputDir);
@@ -102,6 +93,8 @@ public class BuildIndexMTE extends AppFunction {
   public static void buildIndexFromDataFile(Parameters argp, Map<String, DocVarSchema> varSchemas, File dataFile, Directory outputDir) throws IOException {
     CoopTokenizer tok = CoopTokenizer.create(argp);
     try(IndexBuilder builder = new IndexBuilder(tok, outputDir)) {
+      builder.setFieldSchema(varSchemas);
+
       try (LinesIterable input = LinesIterable.fromFile(dataFile)) {
         for (String line : input) {
           Parameters data = Parameters.parseString(line);

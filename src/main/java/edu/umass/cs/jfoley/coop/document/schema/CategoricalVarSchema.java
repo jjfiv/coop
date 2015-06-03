@@ -1,8 +1,10 @@
 package edu.umass.cs.jfoley.coop.document.schema;
 
+import ciir.jfoley.chai.collections.ListBasedOrderedSet;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.MappingCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
+import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import org.lemurproject.galago.utility.Parameters;
 
@@ -13,12 +15,12 @@ import java.util.List;
  * @author jfoley
  */
 public class CategoricalVarSchema extends DocVarSchema<String> {
-  private final List<String> values;
+  private final ListBasedOrderedSet<String> values;
   private final boolean definedInAdvance;
 
   public CategoricalVarSchema(String name, List<String> values, boolean definedInAdvance) {
     super(name);
-    this.values = values;
+    this.values = new ListBasedOrderedSet<>(values);
     this.definedInAdvance = definedInAdvance;
   }
 
@@ -27,17 +29,39 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
     return name;
   }
 
+  public int indexOf(String id) {
+    return values.list.indexOf(id);
+  }
+  public String get(int index) {
+    return values.list.get(index);
+  }
+
   @Override
   public Coder<String> getCoder() {
     // Maps to/from index in values array, encodes as a VarUInt
     return new MappingCoder<>(
         VarUInt.instance,
-        values::indexOf, values::get);
+        this::indexOf, this::get);
   }
 
   @Override
   public Class<String> getInnerClass() {
     return String.class;
+  }
+
+  @Override
+  public DocVar<String> createValue(Object obj) {
+    if(obj instanceof String) {
+      return new DocVar<>(this, (String) obj);
+    }
+    return null;
+  }
+
+  @Override
+  public Parameters toJSON() {
+    return Parameters.parseArray(
+        "values", values.toList()
+    );
   }
 
   @Override

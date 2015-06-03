@@ -17,11 +17,13 @@ import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   private final StreamingPostingBuilder<String, PositionsList> positionsBuilder;
   private int documentId = 0;
   private int collectionLength = 0;
+  private Map<String, DocVarSchema> fieldSchema = Collections.emptyMap();
 
   public IndexBuilder(CoopTokenizer tok, Directory outputDir) throws IOException {
     this.outputDir = outputDir;
@@ -64,6 +67,10 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     CoopDoc document = new CoopDoc(name, tokenizer.tokenize(text));
     document.setRawText(text);
     addDocument(document);
+  }
+
+  public void setFieldSchema(Map<String, DocVarSchema> fieldSchema) {
+    this.fieldSchema = fieldSchema;
   }
 
   public void addDocument(CoopDoc doc) throws IOException {
@@ -108,9 +115,15 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     tokensCorpusWriter.close();
     positionsBuilder.close();
 
+    Parameters fieldSchemaJSON = Parameters.create();
+    for (String field : fieldSchema.keySet()) {
+      fieldSchemaJSON.put(field, fieldSchema.get(field).toJSON());
+    }
+
     IO.spit(Parameters.parseArray(
         "collectionLength", collectionLength,
         "documentCount", documentId,
+        "schema", fieldSchemaJSON,
         "tokenizer", tokenizer.getClass().getName()
     ).toPrettyString(), outputDir.child("meta.json"));
   }

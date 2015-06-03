@@ -1,6 +1,8 @@
 package edu.umass.cs.jfoley.coop.document;
 
 import edu.umass.cs.ciir.waltz.coders.Coder;
+import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
+import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.util.HashMap;
@@ -16,6 +18,9 @@ public abstract class DocVarSchema<T> {
   public String getName() { return name; }
   public abstract Coder<T> getCoder();
   public abstract Class<T> getInnerClass();
+  public abstract DocVar<T> createValue(Object obj);
+
+  public abstract Parameters toJSON();
 
   @Override
   public String toString() {
@@ -39,7 +44,6 @@ public abstract class DocVarSchema<T> {
     return name.hashCode() ^ getClass().hashCode();
   }
 
-  @SuppressWarnings("unchecked")
   public void extract(Parameters json, HashMap<String, DocVar> vars) {
     Object value = json.get(name);
     if(value == null) {
@@ -47,12 +51,23 @@ public abstract class DocVarSchema<T> {
       return;
     }
 
-    // This if statement checks to see if the value is of type T or not:
-    if(getInnerClass().isAssignableFrom(value.getClass())) {
-      this.encounterValue((T) value);
-      vars.put(name, new DocVar<>(this, (T) value));
-    } else {
-      throw new RuntimeException("Bad class for schema value found in document value="+value+" for schema "+toString());
+    DocVar<T> val = this.createValue(value);
+    if(val == null) {
+      throw new RuntimeException("Unacceptable schema value found in document value="+value+" for schema "+toString());
+    }
+    this.encounterValue(val.get());
+    vars.put(name, val);
+  }
+
+  public static DocVarSchema create(String name, Parameters argp) {
+    switch(argp.getString("type")) {
+      case "categorical":
+        return CategoricalVarSchema.create(name, argp);
+      case "numeric:":
+      case "number":
+        return IntegerVarSchema.create(name, argp);
+      default:
+        throw new UnsupportedOperationException("DocVarSchema.type="+argp.getString("type"));
     }
   }
 }
