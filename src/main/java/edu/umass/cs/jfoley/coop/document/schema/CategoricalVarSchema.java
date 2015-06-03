@@ -14,14 +14,12 @@ import java.util.List;
  */
 public class CategoricalVarSchema extends DocVarSchema<String> {
   private final List<String> values;
+  private final boolean definedInAdvance;
 
-  public CategoricalVarSchema(String name, List<String> values) {
+  public CategoricalVarSchema(String name, List<String> values, boolean definedInAdvance) {
     super(name);
     this.values = values;
-  }
-
-  public String instance(int index) {
-    return values.get(index);
+    this.definedInAdvance = definedInAdvance;
   }
 
   @Override
@@ -42,11 +40,21 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
     return String.class;
   }
 
-  public static DocVarSchema create(String name, Parameters args) {
-    List<String> values = new ArrayList<>();
-    if (args.isList("values")) {
-      values.addAll(args.getAsList("values", String.class));
+  @Override
+  public void encounterValue(String value) {
+    if(definedInAdvance) {
+      if(!values.contains(value)) {
+        throw new RuntimeException("Schema error, found categorical value for "+name+" in corpus of: ``"+value+"'' that was not defined in the schema yet!");
+      }
+    } else {
+      values.add(value);
     }
-    return new CategoricalVarSchema(name, values);
+  }
+
+  public static DocVarSchema create(String name, Parameters args) {
+    if (args.isList("values")) {
+      return new CategoricalVarSchema(name, args.getAsList("values", String.class), true);
+    }
+    return new CategoricalVarSchema(name, new ArrayList<>(), false);
   }
 }

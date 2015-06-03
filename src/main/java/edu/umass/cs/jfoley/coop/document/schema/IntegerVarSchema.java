@@ -21,4 +21,9 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
   public Class<Integer> getInnerClass() {
     return Integer.class;
   }
+
+  @Override
+  public void encounterValue(Integer value) {
+
+  }
 }

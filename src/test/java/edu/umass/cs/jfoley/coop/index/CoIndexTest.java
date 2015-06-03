@@ -23,7 +23,7 @@ public class CoIndexTest {
     List<String> docs = new ArrayList<>(Arrays.asList(IO.resource("/gettysburg_address.txt").split("\n+")));
 
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
-      try (IndexBuilder builder = new IndexBuilder(tmpdir)) {
+      try (IndexBuilder builder = new IndexBuilder(CoopTokenizer.create(), tmpdir)) {
         for (int i = 0; i < docs.size(); i++) {
           String doc = docs.get(i);
           builder.addDocument(String.format("ga.p%d", i), doc);

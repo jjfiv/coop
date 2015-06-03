@@ -42,10 +42,13 @@ public class IndexReader extends AbstractIndex implements Closeable {
   final IOMap<String, PostingMover<Integer>> lengths;
   final IdMaps.Reader<String> names;
   final IOMap<String, PostingMover<PositionsList>> positions;
+  final CoopTokenizer tokenizer;
   final Parameters meta;
 
   public IndexReader(Directory indexDir) throws IOException {
     this.indexDir = indexDir;
+    this.meta = Parameters.parseFile(indexDir.child("meta.json"));
+    this.tokenizer = CoopTokenizer.create(meta);
     this.rawCorpus = ZipArchive.open(indexDir.child("raw.zip"));
     this.tokensCorpus = ZipArchive.open(indexDir.child("tokens.zip"));
     this.lengths = GalagoIO.openIOMap(
@@ -60,7 +63,10 @@ public class IndexReader extends AbstractIndex implements Closeable {
     );
     this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
     tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
-    meta = Parameters.parseFile(indexDir.child("meta.json"));
+  }
+
+  public CoopTokenizer getTokenizer() {
+    return tokenizer;
   }
 
   @Override

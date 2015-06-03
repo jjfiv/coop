@@ -1,16 +1,21 @@
-package edu.umass.cs.jfoley.coop.index;
+package edu.umass.cs.jfoley.coop;
 
 import ciir.jfoley.chai.io.Directory;
+import ciir.jfoley.chai.io.LinesIterable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
+import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
+import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
+import edu.umass.cs.jfoley.coop.index.IndexBuilder;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.AppFunction;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,9 +38,9 @@ public class BuildIndexMTE extends AppFunction {
   }
 
   @Override
-  public void run(Parameters p, PrintStream output) throws Exception {
-    Directory inputDir = new Directory(p.getString("input"));
-    Directory outputDir = new Directory(p.getString("output"));
+  public void run(Parameters argp, PrintStream output) throws Exception {
+    Directory inputDir = new Directory(argp.getString("input"));
+    Directory outputDir = new Directory(argp.getString("output"));
 
     Config conf = null;
     for (File file : inputDir.children()) {
@@ -86,5 +91,25 @@ public class BuildIndexMTE extends AppFunction {
     }
     System.out.println(varSchemas);
 
+    if(dataFile.exists()) {
+      buildIndexFromDataFile(argp, varSchemas, dataFile, outputDir);
+    } else {
+      throw new UnsupportedOperationException("JustNERFile");
+    }
+
+  }
+
+  public static void buildIndexFromDataFile(Parameters argp, Map<String, DocVarSchema> varSchemas, File dataFile, Directory outputDir) throws IOException {
+    CoopTokenizer tok = CoopTokenizer.create(argp);
+    try(IndexBuilder builder = new IndexBuilder(tok, outputDir)) {
+      try (LinesIterable input = LinesIterable.fromFile(dataFile)) {
+        for (String line : input) {
+          Parameters data = Parameters.parseFile(line);
+          CoopDoc doc = CoopDoc.createMTE(tok, data, varSchemas);
+          doc.setRawText(data.toString());
+          builder.addDocument(doc);
+        }
+      }
+    }
   }
 }

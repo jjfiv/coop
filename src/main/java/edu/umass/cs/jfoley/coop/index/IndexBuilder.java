@@ -16,7 +16,7 @@ import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
-import org.lemurproject.galago.core.parse.TagTokenizer;
+import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
@@ -32,7 +32,7 @@ import java.util.Map;
 public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> {
   private final Directory outputDir;
   private final ZipWriter rawCorpusWriter;
-  private final TagTokenizer tokenizer;
+  private final CoopTokenizer tokenizer;
   private final ZipWriter tokensCorpusWriter;
   private final StreamingPostingBuilder<String, Integer> lengthWriter;
   private final ListCoder<String> tokensCodec;
@@ -41,11 +41,11 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   private int documentId = 0;
   private int collectionLength = 0;
 
-  public IndexBuilder(Directory outputDir) throws IOException {
+  public IndexBuilder(CoopTokenizer tok, Directory outputDir) throws IOException {
     this.outputDir = outputDir;
     this.rawCorpusWriter = new ZipWriter(outputDir.childPath("raw.zip"));
     this.tokensCorpusWriter = new ZipWriter(outputDir.childPath("tokens.zip"));
-    this.tokenizer = new TagTokenizer();
+    this.tokenizer = tok;
     this.lengthWriter = new StreamingPostingBuilder<>(
         CharsetCoders.utf8Raw,
         VarUInt.instance,
@@ -61,14 +61,21 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   }
 
   public void addDocument(String name, String text) throws IOException {
-    List<String> terms = tokenizer.tokenize(text).terms;
+    CoopDoc document = new CoopDoc(name, tokenizer.tokenize(text));
+    document.setRawText(text);
+    addDocument(document);
+  }
+
+  public void addDocument(CoopDoc doc) throws IOException {
+    List<String> terms = doc.getTerms();
     int currentId = documentId++;
+    doc.setIdentifier(currentId);
 
     // corpus
-    rawCorpusWriter.writeUTF8(name, text);
+    rawCorpusWriter.writeUTF8(doc.getName(), doc.getRawText());
     // write length to flat lengths file.
     lengthWriter.add("doc", currentId, terms.size());
-    names.put(currentId, name);
+    names.put(currentId, doc.getName());
 
     collectionLength += terms.size();
 
@@ -103,7 +110,8 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
 
     IO.spit(Parameters.parseArray(
         "collectionLength", collectionLength,
-        "documentCount", documentId
+        "documentCount", documentId,
+        "tokenizer", tokenizer.getClass().getName()
     ).toPrettyString(), outputDir.child("meta.json"));
   }
 
@@ -120,4 +128,5 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
       throw new RuntimeException(e);
     }
   }
+
 }

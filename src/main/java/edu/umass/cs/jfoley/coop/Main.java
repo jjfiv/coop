@@ -2,7 +2,6 @@ package edu.umass.cs.jfoley.coop;
 
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.index.BuildIndex;
-import edu.umass.cs.jfoley.coop.index.BuildIndexMTE;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.AppFunction;
 

@@ -33,8 +33,9 @@ public class BuildIndex extends AppFunction {
   @Override
   public void run(Parameters argp, PrintStream output) throws Exception {
     List<DocumentSplit> splits = DocumentSource.processFile(new File(argp.getString("input")), argp);
-    try (IndexBuilder builder = new IndexBuilder(new Directory(argp.getString("output")))) {
+    CoopTokenizer tok = CoopTokenizer.create(argp);
 
+    try (IndexBuilder builder = new IndexBuilder(tok, new Directory(argp.getString("output")))) {
       int x = 0;
       for (DocumentSplit split : splits) {
         try (DocumentStreamParser parser = DocumentStreamParser.create(split, argp)) {

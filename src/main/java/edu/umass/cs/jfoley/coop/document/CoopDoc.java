@@ -1,5 +1,7 @@
 package edu.umass.cs.jfoley.coop.document;
 
+import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.util.ArrayList;
@@ -12,15 +14,18 @@ import java.util.Map;
  * @author jfoley
  */
 public class CoopDoc implements Comparable<CoopDoc> {
+  public static final int UNKNOWN_DOCID = -1;
+
   private String name;
   private List<String> terms;
   private int identifier;
   private Map<String, DocVar> variables;
+  private String rawText = null;
 
   public CoopDoc(String name) {
     this.name = name;
     this.terms = new ArrayList<>();
-    this.identifier = -1;
+    this.identifier = UNKNOWN_DOCID;
     this.variables = new HashMap<>();
   }
   public CoopDoc(String name, List<String> terms, int identifier, Map<String, DocVar> variables) {
@@ -28,6 +33,13 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.terms = terms;
     this.identifier = identifier;
     this.variables = variables;
+  }
+
+  public CoopDoc(String name, List<String> terms) {
+    this.name = name;
+    this.terms = terms;
+    this.identifier = UNKNOWN_DOCID;
+    this.variables = new HashMap<>();
   }
 
   public String getName() { return name; }
@@ -57,5 +69,33 @@ public class CoopDoc implements Comparable<CoopDoc> {
     int cmp = Integer.compare(this.identifier, o.identifier);
     if(cmp != 0) return cmp;
     return name.compareTo(o.name);
+  }
+
+  public void setIdentifier(int identifier) {
+    this.identifier = identifier;
+  }
+
+  public void setRawText(String rawText) {
+    this.rawText = rawText;
+  }
+
+  public String getRawText() {
+    if(rawText == null) {
+      return StrUtil.join(terms, " ");
+    }
+    return rawText;
+  }
+
+  public static CoopDoc createMTE(CoopTokenizer tok, Parameters document, Map<String, DocVarSchema> varSchemas) {
+    String text = document.getString("text");
+    String name = document.getString("docid");
+    List<String> terms = tok.tokenize(text);
+
+    HashMap<String,DocVar> vars = new HashMap<>();
+    for (DocVarSchema docVarSchema : varSchemas.values()) {
+      docVarSchema.extract(document, vars);
+    }
+
+    return new CoopDoc(name, terms, UNKNOWN_DOCID, vars);
   }
 }
