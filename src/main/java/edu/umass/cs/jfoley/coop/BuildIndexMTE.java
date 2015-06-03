@@ -104,7 +104,7 @@ public class BuildIndexMTE extends AppFunction {
     try(IndexBuilder builder = new IndexBuilder(tok, outputDir)) {
       try (LinesIterable input = LinesIterable.fromFile(dataFile)) {
         for (String line : input) {
-          Parameters data = Parameters.parseFile(line);
+          Parameters data = Parameters.parseString(line);
           CoopDoc doc = CoopDoc.createMTE(tok, data, varSchemas);
           doc.setRawText(data.toString());
           builder.addDocument(doc);

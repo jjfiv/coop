@@ -65,7 +65,9 @@ public interface CoopTokenizer {
       List<CoreLabel> coreLabels = ann.get(CoreAnnotations.TokensAnnotation.class);
       List<String> terms = new ArrayList<>(coreLabels.size());
       for (CoreLabel coreLabel : coreLabels) {
-        terms.add(coreLabel.getString(CoreAnnotations.TextAnnotation.class));
+        String rawTerm = coreLabel.getString(CoreAnnotations.TextAnnotation.class);
+        // HACK: lowercase stanford nlp stuff
+        terms.add(rawTerm.toLowerCase());
       }
       return terms;
     }
