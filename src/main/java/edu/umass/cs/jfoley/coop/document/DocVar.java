@@ -1,7 +1,6 @@
 package edu.umass.cs.jfoley.coop.document;
 
 import ciir.jfoley.chai.fn.GenerateFn;
-import edu.umass.cs.ciir.waltz.coders.Coder;
 
 /**
  * @author jfoley
@@ -17,10 +16,6 @@ public class DocVar<T> implements GenerateFn<T> {
 
   public String getName() {
     return schema.getName();
-  }
-
-  public Coder<T> getCoder() {
-    return schema.getCoder();
   }
 
   public DocVarSchema<T> getSchema() {

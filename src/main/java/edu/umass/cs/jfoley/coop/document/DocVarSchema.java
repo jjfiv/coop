@@ -1,6 +1,5 @@
 package edu.umass.cs.jfoley.coop.document;
 
-import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
 import org.lemurproject.galago.utility.Parameters;
@@ -16,7 +15,6 @@ public abstract class DocVarSchema<T> {
     this.name = name;
   }
   public String getName() { return name; }
-  public abstract Coder<T> getCoder();
   public abstract Class<T> getInnerClass();
   public abstract DocVar<T> createValue(Object obj);
 

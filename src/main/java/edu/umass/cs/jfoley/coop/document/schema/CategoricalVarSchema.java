@@ -1,9 +1,6 @@
 package edu.umass.cs.jfoley.coop.document.schema;
 
 import ciir.jfoley.chai.collections.ListBasedOrderedSet;
-import edu.umass.cs.ciir.waltz.coders.Coder;
-import edu.umass.cs.ciir.waltz.coders.kinds.MappingCoder;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import org.lemurproject.galago.utility.Parameters;
@@ -34,14 +31,6 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
   }
   public String get(int index) {
     return values.list.get(index);
-  }
-
-  @Override
-  public Coder<String> getCoder() {
-    // Maps to/from index in values array, encodes as a VarUInt
-    return new MappingCoder<>(
-        VarUInt.instance,
-        this::indexOf, this::get);
   }
 
   @Override

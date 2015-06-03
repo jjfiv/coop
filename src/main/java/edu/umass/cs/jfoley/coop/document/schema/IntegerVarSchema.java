@@ -1,8 +1,6 @@
 package edu.umass.cs.jfoley.coop.document.schema;
 
 import ciir.jfoley.chai.IntMath;
-import edu.umass.cs.ciir.waltz.coders.Coder;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarInt;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import org.lemurproject.galago.utility.Parameters;
@@ -20,11 +18,6 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
      this.minValue = minValue;
      this.frequency = frequency;
    }
-
-  @Override
-  public Coder<Integer> getCoder() {
-    return VarInt.instance;
-  }
 
   @Override
   public Class<Integer> getInnerClass() {
