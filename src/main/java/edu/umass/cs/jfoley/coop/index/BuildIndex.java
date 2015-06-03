@@ -33,7 +33,7 @@ public class BuildIndex extends AppFunction {
   @Override
   public void run(Parameters argp, PrintStream output) throws Exception {
     List<DocumentSplit> splits = DocumentSource.processFile(new File(argp.getString("input")), argp);
-    try (VocabBuilder builder = new VocabBuilder(new Directory(argp.getString("output")))) {
+    try (IndexBuilder builder = new IndexBuilder(new Directory(argp.getString("output")))) {
 
       int x = 0;
       for (DocumentSplit split : splits) {

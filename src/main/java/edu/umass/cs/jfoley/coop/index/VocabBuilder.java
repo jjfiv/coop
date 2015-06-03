@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.util.*;
 
 /**
+ * TODO; this is massively inefficient. To translate the corpus, we might try generating TermPos and TermId streams and joining them to produce a TermIdPos stream.
  * @author jfoley.
  */
 public class VocabBuilder implements Closeable, Flushable, Builder<VocabReader> {

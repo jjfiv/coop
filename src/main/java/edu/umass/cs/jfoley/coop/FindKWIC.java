@@ -6,7 +6,7 @@ import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.errors.FatalError;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.string.StrUtil;
-import edu.umass.cs.jfoley.coop.index.VocabReader;
+import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.querying.DocumentAndPosition;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
@@ -44,7 +44,7 @@ public class FindKWIC extends AppFunction {
     int width = p.get("width", 5);
     int limit = p.get("limit", 10000);
 
-    try (VocabReader index = new VocabReader(new Directory(p.getString("index")))) {
+    try (IndexReader index = new IndexReader(new Directory(p.getString("index")))) {
       Tokenizer tokenizer = new TagTokenizer();
       List<String> query = tokenizer.tokenize(p.getString("query")).terms;
 

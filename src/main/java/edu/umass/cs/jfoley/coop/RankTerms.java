@@ -3,18 +3,17 @@ package edu.umass.cs.jfoley.coop;
 import ciir.jfoley.chai.Timing;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
-import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.Comparing;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.errors.FatalError;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.lang.LazyPtr;
 import ciir.jfoley.chai.string.StrUtil;
-import edu.umass.cs.jfoley.coop.index.VocabReader;
+import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.querying.DocumentAndPosition;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
-import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.tokenize.Tokenizer;
 import org.lemurproject.galago.utility.Parameters;
@@ -48,15 +47,15 @@ public class RankTerms extends AppFunction {
   }
 
   public static class PMITerm implements Comparable<PMITerm> {
-    public final int termId;
+    public final String term;
     public final int termFrequency; // px, py
     public final int queryFrequency; // py
     public final int queryProxFrequency; // pxy
     public final double collectionLength;
     private final LazyPtr<Double> cachedPMI;
 
-    public PMITerm(int termId, int termFrequency, int queryFrequency, int queryProxFrequency, double collectionLength) {
-      this.termId = termId;
+    public PMITerm(String term, int termFrequency, int queryFrequency, int queryProxFrequency, double collectionLength) {
+      this.term = term;
       this.termFrequency = termFrequency;
       this.queryFrequency = queryFrequency;
       this.queryProxFrequency = queryProxFrequency;
@@ -88,7 +87,7 @@ public class RankTerms extends AppFunction {
 
   @Override
   public void run(Parameters p, PrintStream output) throws Exception {
-    VocabReader index = new VocabReader(new Directory(p.getString("index")));
+    IndexReader index = new IndexReader(new Directory(p.getString("index")));
     int leftWidth = p.get("leftWidth", 5);
     assert(leftWidth >= 0);
     int rightWidth = p.get("rightWidth", 5);
@@ -98,9 +97,7 @@ public class RankTerms extends AppFunction {
 
     Tokenizer tokenizer = new TagTokenizer();
     List<String> query = tokenizer.tokenize(p.getString("query")).terms;
-    IntList qIds = index.getTermIds(query);
     System.err.println("I parsed your query as the following terms: "+ StrUtil.join(query, " "));
-    System.err.println(" for giggles, their ids are: "+ qIds);
 
 
     Pair<Long, List<DocumentAndPosition>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, query));
@@ -117,11 +114,11 @@ public class RankTerms extends AppFunction {
     }
 
     // Now score the nearby terms!
-    final TIntIntHashMap termProxCounts = new TIntIntHashMap();
+    final TObjectIntHashMap<String> termProxCounts = new TObjectIntHashMap<>();
     long candidateFindingTime = Timing.milliseconds(() -> {
       for (TermSlice slice : slices) {
-        for (int id : index.pullTermIdSlice(slice)) {
-          termProxCounts.adjustOrPutValue(id, 1, 1);
+        for (String term : index.pullTermIdSlice(slice)) {
+          termProxCounts.adjustOrPutValue(term, 1, 1);
         }
       }
     });
@@ -133,13 +130,13 @@ public class RankTerms extends AppFunction {
 
     long scoringTime = Timing.milliseconds(() -> {
       // Now lookup collection frequencies, this is p_x to termProxCounts p_xy
-      termProxCounts.forEachEntry((termId, frequency) -> {
+      termProxCounts.forEachEntry((term, frequency) -> {
         // skip query itself.
-        if(qIds.contains(termId)) return true;
+        if(query.contains(term)) return true;
         try {
           topTerms.add(new PMITerm(
-              termId,
-              index.collectionFrequency(termId),
+              term,
+              index.collectionFrequency(term),
               queryFrequency,
               frequency,
               collectionLength));
@@ -152,7 +149,7 @@ public class RankTerms extends AppFunction {
     System.err.println("Scored " + termProxCounts.size() + " candidates in " + scoringTime + " ms.");
 
     for (PMITerm pmiTerm : topTerms.getSorted()) {
-      System.out.printf("%-20s %1.4f\n", StrUtil.replaceUnicodeQuotes(index.getTerm(pmiTerm.termId)), pmiTerm.pmi());
+      System.out.printf("%-20s %1.4f\n", StrUtil.replaceUnicodeQuotes(pmiTerm.term), pmiTerm.pmi());
     }
 
   }

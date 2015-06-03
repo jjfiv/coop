@@ -4,10 +4,9 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
-import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.archive.ZipArchive;
-import edu.umass.cs.ciir.waltz.coders.GenKeyDiskMap;
+import ciir.jfoley.chai.io.archive.ZipArchiveEntry;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
@@ -27,24 +26,23 @@ import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author jfoley.
  */
-public class VocabReader extends AbstractIndex implements Closeable {
+public class IndexReader extends AbstractIndex implements Closeable {
   final Directory indexDir;
   final ZipArchive rawCorpus;
   final ZipArchive tokensCorpus;
   final ListCoder<String> tokensCodec;
   final IOMap<String, PostingMover<Integer>> lengths;
   final IdMaps.Reader<String> names;
-  final IdMaps.Reader<String> vocab;
-  final GenKeyDiskMap.Reader<List<Integer>> termIdCorpus;
-  final IOMap<Integer, PostingMover<PositionsList>> positions;
+  final IOMap<String, PostingMover<PositionsList>> positions;
   final Parameters meta;
 
-  public VocabReader(Directory indexDir) throws IOException {
+  public IndexReader(Directory indexDir) throws IOException {
     this.indexDir = indexDir;
     this.rawCorpus = ZipArchive.open(indexDir.child("raw.zip"));
     this.tokensCorpus = ZipArchive.open(indexDir.child("tokens.zip"));
@@ -54,14 +52,12 @@ public class VocabReader extends AbstractIndex implements Closeable {
         indexDir.childPath("lengths")
     );
     this.positions = GalagoIO.openIOMap(
-        FixedSize.ints,
+        CharsetCoders.utf8Raw,
         new SimplePostingListFormat.PostingCoder<>(new PositionsListCoder()),
         indexDir.childPath("positions")
     );
     this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
-    this.vocab = IdMaps.openReader(indexDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8Raw);
     tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
-    termIdCorpus = GenKeyDiskMap.Reader.openFiles(indexDir.childPath("termIdCorpus"), new ListCoder<>(VarUInt.instance));
     meta = Parameters.parseFile(indexDir.child("meta.json"));
   }
 
@@ -71,8 +67,6 @@ public class VocabReader extends AbstractIndex implements Closeable {
     tokensCorpus.close();
     lengths.close();
     names.close();
-    vocab.close();
-    termIdCorpus.close();
     positions.close();
   }
 
@@ -105,9 +99,7 @@ public class VocabReader extends AbstractIndex implements Closeable {
   @Override
   public PostingMover<PositionsList> getPositionsMover(String term) {
     try {
-      Integer termId = vocab.reverseReader.get(term);
-      if(termId == null) return null;
-      return positions.get(termId);
+      return positions.get(term);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -134,28 +126,22 @@ public class VocabReader extends AbstractIndex implements Closeable {
   }
 
   public List<Pair<TermSlice, List<String>>> pullTermSlices(List<TermSlice> requests) throws IOException {
-    List<IntList> sliceIds = new ArrayList<>();
-    Set<Integer> vocabOfInterest = new HashSet<>();
+    List<List<String>> slices = new ArrayList<>();
     for (TermSlice request : requests) {
-      IntList termvec = pullTermIdSlice(request);
-      sliceIds.add(termvec);
-      vocabOfInterest.addAll(termvec);
+      List<String> termvec = pullTermIdSlice(request);
+      slices.add(termvec);
     }
+    return ListFns.zip(requests, slices);
+  }
 
-    // lookup necessary vocab:
-    Map<Integer, String> terms = MapFns.fromPairs(vocab.forwardReader.getInBulk(new IntList(vocabOfInterest)));
-
-    // translate pre-loaded list:
-    List<List<String>> translatedSlices = new ArrayList<>();
-    for (IntList sliceId : sliceIds) {
-      List<String> slice = new ArrayList<>(sliceId.size());
-      for (int termId : sliceId) {
-        slice.add(terms.get(termId));
-      }
-      translatedSlices.add(slice);
+  public List<String> pullTokens(int document) {
+    ZipArchiveEntry entry = tokensCorpus.getByName(Integer.toString(document));
+    if(entry == null) return null;
+    try {
+      return tokensCodec.readImpl(entry.getInputStream());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-
-    return ListFns.zip(requests, translatedSlices);
   }
 
   /**
@@ -163,10 +149,10 @@ public class VocabReader extends AbstractIndex implements Closeable {
    * @param slice the coordinates of the data to pull.
    * @return a list of term ids corresponding to the data in the given slice.
    */
-  public IntList pullTermIdSlice(TermSlice slice) {
-    return new IntList(
+  public List<String> pullTermIdSlice(TermSlice slice) {
+    return new ArrayList<>(
         ListFns.slice(
-            termIdCorpus.get(slice.document),
+            pullTokens(slice.document),
             slice.start,
             slice.end));
   }
@@ -181,31 +167,12 @@ public class VocabReader extends AbstractIndex implements Closeable {
   }
 
   public int collectionFrequency(String term) throws IOException {
-    Integer x = vocab.reverseReader.get(term);
-    if(x == null) return 0;
-    return collectionFrequency(x);
-  }
-
-  public int collectionFrequency(int termId) throws IOException {
-    if(termId < 0) return 0;
-    PostingMover<PositionsList> mover = positions.get(termId);
+    PostingMover<PositionsList> mover = positions.get(term);
+    if(mover == null) return 0;
     int count = 0;
     for(; mover.hasNext(); mover.next()) {
       count += mover.getCurrentPosting().size();
     }
     return count;
-  }
-
-  public IntList getTermIds(List<String> terms) throws IOException {
-    Map<String, Integer> lookup = MapFns.fromPairs(vocab.reverseReader.getInBulk(terms));
-    IntList results = new IntList(terms.size());
-    for (String term : terms) {
-      results.add(MapFns.getOrElse(lookup, term, -1));
-    }
-    return results;
-  }
-
-  public String getTerm(int termId) throws IOException {
-    return vocab.forwardReader.get(termId);
   }
 }
