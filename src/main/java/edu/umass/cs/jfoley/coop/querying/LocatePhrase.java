@@ -6,6 +6,7 @@ import edu.umass.cs.ciir.waltz.index.Index;
 import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsIterator;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.List;
  * @author jfoley
  */
 public class LocatePhrase {
-  public static List<DocumentAndPosition> find(Index index, List<String> terms) {
+  public static List<DocumentResult<Integer>> find(Index index, List<String> terms) {
     switch (terms.size()) {
       case 0: throw new IllegalArgumentException("Didn't specify any terms to search!");
       case 1: return findTermImpl(index, terms.get(0));
@@ -23,27 +24,27 @@ public class LocatePhrase {
     }
   }
 
-  static List<DocumentAndPosition> findTermImpl(Index index, String term) {
-    List<DocumentAndPosition> hits = new ArrayList<>();
+  static List<DocumentResult<Integer>> findTermImpl(Index index, String term) {
+    List<DocumentResult<Integer>> hits = new ArrayList<>();
     PostingMover<PositionsList> mover = index.getPositionsMover(term);
 
     for(; !mover.isDone(); mover.next()) {
       int doc = mover.currentKey();
-      for (int pos : mover.getCurrentPosting().toList()) {
-        hits.add(new DocumentAndPosition(doc, pos));
+      for (int pos : mover.getCurrentPosting()) {
+        hits.add(new DocumentResult<>(doc, pos));
       }
     }
 
     return hits;
   }
 
-  static List<DocumentAndPosition> findPhraseImpl(Index index, List<String> phraseTerms) {
+  static List<DocumentResult<Integer>> findPhraseImpl(Index index, List<String> phraseTerms) {
     List<PostingMover<PositionsList>> phraseMovers = new ArrayList<>();
     for (String phraseTerm : phraseTerms) {
       phraseMovers.add(index.getPositionsMover(phraseTerm));
     }
 
-    List<DocumentAndPosition> hits = new ArrayList<>();
+    List<DocumentResult<Integer>> hits = new ArrayList<>();
 
     AllOfMover andMovement = new AllOfMover(phraseMovers);
     for(; !andMovement.isDone(); andMovement.next()) {
@@ -53,7 +54,7 @@ public class LocatePhrase {
       }
 
       for (int pos : OrderedWindow.findIter(positions, 1)) {
-        hits.add(new DocumentAndPosition(andMovement.currentKey(), pos));
+        hits.add(new DocumentResult<>(andMovement.currentKey(), pos));
       }
     }
 

@@ -10,9 +10,9 @@ import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.lang.LazyPtr;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
-import edu.umass.cs.jfoley.coop.querying.DocumentAndPosition;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
+import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.tokenize.Tokenizer;
@@ -103,17 +103,17 @@ public class RankTerms extends AppFunction {
     System.err.println("I parsed your query as the following terms: "+ StrUtil.join(query, " "));
 
 
-    Pair<Long, List<DocumentAndPosition>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, query));
+    Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, query));
     int queryFrequency = hits.right.size();
     System.err.println("Run query in "+hits.left+" ms. "+hits.right.size()+" hits found!");
 
     // build slices from the results, based on arguments to this file:
     List<TermSlice> slices = new ArrayList<>();
-    for (DocumentAndPosition hit : ListFns.take(hits.right, hitLimit)) {
+    for (DocumentResult<Integer> hit : ListFns.take(hits.right, hitLimit)) {
       slices.add(new TermSlice(
-          hit.documentId,
-          hit.matchPosition - leftWidth,
-          hit.matchPosition + query.size() + rightWidth));
+          hit.document,
+          hit.value - leftWidth,
+          hit.value + query.size() + rightWidth));
     }
 
     // Now score the nearby terms!
