@@ -2,11 +2,14 @@ package edu.umass.cs.jfoley.coop.querying;
 
 import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
+import edu.umass.cs.ciir.waltz.feature.MoverFeature;
 import edu.umass.cs.ciir.waltz.index.Index;
-import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
-import edu.umass.cs.ciir.waltz.postings.positions.PositionsIterator;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
+import edu.umass.cs.jfoley.coop.querying.eval.QueryEvalEngine;
+import edu.umass.cs.jfoley.coop.querying.eval.QueryEvalNode;
+import edu.umass.cs.jfoley.coop.querying.eval.features.FeaturePositionsNode;
+import edu.umass.cs.jfoley.coop.querying.eval.nodes.PhraseNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,35 +31,29 @@ public class LocatePhrase {
     List<DocumentResult<Integer>> hits = new ArrayList<>();
     PostingMover<PositionsList> mover = index.getPositionsMover(term);
 
-    for(; !mover.isDone(); mover.next()) {
-      int doc = mover.currentKey();
-      for (int pos : mover.getCurrentPosting()) {
-        hits.add(new DocumentResult<>(doc, pos));
-      }
-    }
+    QueryEvalEngine.EvaluateOneToMany(
+        mover,
+        new FeaturePositionsNode(new MoverFeature<>(mover)),
+        hits::add);
 
     return hits;
   }
 
   static List<DocumentResult<Integer>> findPhraseImpl(Index index, List<String> phraseTerms) {
     List<PostingMover<PositionsList>> phraseMovers = new ArrayList<>();
+    List<QueryEvalNode<PositionsList>> features = new ArrayList<>();
     for (String phraseTerm : phraseTerms) {
-      phraseMovers.add(index.getPositionsMover(phraseTerm));
+      PostingMover<PositionsList> positionsMover = index.getPositionsMover(phraseTerm);
+      phraseMovers.add(positionsMover);
+      features.add(new FeaturePositionsNode(new MoverFeature<>(positionsMover)));
     }
 
     List<DocumentResult<Integer>> hits = new ArrayList<>();
 
-    AllOfMover andMovement = new AllOfMover(phraseMovers);
-    for(; !andMovement.isDone(); andMovement.next()) {
-      List<PositionsIterator> positions = new ArrayList<>();
-      for (PostingMover<PositionsList> phraseMover : phraseMovers) {
-        positions.add(phraseMover.getCurrentPosting().getExtentsIterator());
-      }
-
-      for (int pos : OrderedWindow.findIter(positions, 1)) {
-        hits.add(new DocumentResult<>(andMovement.currentKey(), pos));
-      }
-    }
+    QueryEvalEngine.EvaluateOneToMany(
+        new AllOfMover(phraseMovers),
+        new PhraseNode(features),
+        hits::add);
 
     return hits;
   }

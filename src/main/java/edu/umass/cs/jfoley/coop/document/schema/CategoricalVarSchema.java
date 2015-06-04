@@ -42,6 +42,7 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
   @Override
   public Parameters toJSON() {
     return Parameters.parseArray(
+        "type", "categorical",
         "values", values.toList()
     );
   }

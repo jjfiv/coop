@@ -51,8 +51,9 @@ public class IndexReader extends AbstractIndex implements Closeable {
     this.meta = Parameters.parseFile(indexDir.child("meta.json"));
 
     this.fieldSchema = new HashMap<>();
-    for (String field : meta.get("schema", Parameters.create()).keySet()) {
-      this.fieldSchema.put(field, DocVarSchema.create(field, meta.getMap(field)));
+    Parameters schema = meta.get("schema", Parameters.create());
+    for (String field : schema.keySet()) {
+      this.fieldSchema.put(field, DocVarSchema.create(field, schema.getMap(field)));
     }
     this.docLabels = new DocumentLabelIndex.Reader(indexDir.childPath("doclabels"));
 

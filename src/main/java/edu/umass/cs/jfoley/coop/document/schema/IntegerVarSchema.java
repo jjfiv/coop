@@ -38,7 +38,7 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
   @Override
   public Parameters toJSON() {
     return Parameters.parseArray(
-        "class", IntegerVarSchema.class.getName(),
+        "type", "number",
         "name", name,
         "maxValue", maxValue,
         "minValue", minValue,

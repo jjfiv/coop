@@ -4,6 +4,7 @@ import ciir.jfoley.chai.fn.SinkFn;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -24,7 +25,7 @@ public class QueryEvalEngine {
    * @param <T> the type of result expected from the query.
    */
   public static <T> void Evaluate(Mover mover, QueryEvalNode<T> query, SinkFn<DocumentResult<T>> output) {
-    for(; mover.hasNext(); mover.isDone()) {
+    for(; mover.hasNext(); mover.next()) {
       int document = mover.currentKey();
       T value = query.calculate(document);
       if(value != null) {
@@ -33,10 +34,10 @@ public class QueryEvalEngine {
     }
   }
 
-  public static <T> void EvaluateOneToMany(Mover mover, QueryEvalNode<List<T>> query, SinkFn<DocumentResult<T>> output) {
-    for(; mover.hasNext(); mover.isDone()) {
+  public static <T> void EvaluateOneToMany(Mover mover, QueryEvalNode<? extends Collection<T>> query, SinkFn<DocumentResult<T>> output) {
+    for(; mover.hasNext(); mover.next()) {
       int document = mover.currentKey();
-      List<T> values = query.calculate(document);
+      Collection<T> values = query.calculate(document);
       if(values == null || values.isEmpty()) {
         continue;
       }
@@ -44,6 +45,7 @@ public class QueryEvalEngine {
         output.process(new DocumentResult<>(document, value));
       }
     }
-
   }
+
+
 }

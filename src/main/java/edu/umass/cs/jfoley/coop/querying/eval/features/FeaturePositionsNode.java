@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
  * @author jfoley
  */
 public class FeaturePositionsNode extends FeatureQueryNode<PositionsList> {
-  protected FeaturePositionsNode(Feature<PositionsList> feature) {
+  public FeaturePositionsNode(Feature<PositionsList> feature) {
     super(feature);
   }
 
