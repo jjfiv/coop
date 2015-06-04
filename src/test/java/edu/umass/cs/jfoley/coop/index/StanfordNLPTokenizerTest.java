@@ -2,16 +2,15 @@ package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
+import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author jfoley
@@ -42,6 +41,8 @@ public class StanfordNLPTokenizerTest {
     StanfordNLPTokenizer tok = new StanfordNLPTokenizer();
     CoopDoc spot = tok.createDocument("spot", SpotDocument);
 
+    assertNotNull(spot.getTags().get("sentence"));
+
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
       try (IndexBuilder builder = new IndexBuilder(tok, tmpdir)) {
         builder.addDocument(spot);
@@ -53,6 +54,11 @@ public class StanfordNLPTokenizerTest {
         List<String> terms = reader.getCorpus().pullTokens(reader.getDocumentId("spot"));
         assertEquals(spot.getTerms(), terms);
         System.out.println(terms);
+
+        // Make sure that our tags got written correctly:
+        List<SpanList> data = new ArrayList<>();
+        reader.getTag("sentence").collectValues(data::add);
+        assertEquals(Collections.singletonList(spot.getTags().get("sentence")), data);
       }
     }
   }

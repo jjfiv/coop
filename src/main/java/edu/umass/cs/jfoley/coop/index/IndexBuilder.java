@@ -9,8 +9,8 @@ import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.lang.Builder;
 import edu.umass.cs.ciir.waltz.coders.kinds.*;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
-import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
+import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
@@ -102,6 +102,11 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
 
     collectionLength += terms.size();
 
+    // collect tags:
+    for (Map.Entry<String, SpanList> kv : doc.getTags().entrySet()) {
+      tagsBuilder.add(kv.getKey(), currentId, kv.getValue());
+    }
+
     // collect variables:
     for (DocVar docVar : doc.getVariables()) {
       if(docVar.getSchema() instanceof CategoricalVarSchema) {
@@ -137,6 +142,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     rawCorpusWriter.close();
     lengthWriter.close();
     doclabelWriter.close();
+    tagsBuilder.close();
     names.close();
     tokensCorpusWriter.close();
     positionsBuilder.close();

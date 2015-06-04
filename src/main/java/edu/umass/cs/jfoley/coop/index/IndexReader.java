@@ -17,6 +17,8 @@ import edu.umass.cs.ciir.waltz.index.AbstractIndex;
 import edu.umass.cs.ciir.waltz.index.mem.CountsOfPositionsMover;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
+import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
+import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
@@ -39,6 +41,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   final IOMap<String, PostingMover<Integer>> lengths;
   final IdMaps.Reader<String> names;
   final IOMap<String, PostingMover<PositionsList>> positions;
+  final IOMap<String, PostingMover<SpanList>> tags;
   final CoopTokenizer tokenizer;
   final Map<String, DocVarSchema> fieldSchema;
   final DocumentLabelIndex.Reader docLabels;
@@ -69,6 +72,11 @@ public class IndexReader extends AbstractIndex implements Closeable {
         indexDir.childPath("positions")
     );
     this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
+    this.tags = GalagoIO.openIOMap(
+        CharsetCoders.utf8Raw,
+        new SimplePostingListFormat.PostingCoder<>(new SpanListCoder()),
+        indexDir.childPath("tags")
+    );
   }
 
   public CoopTokenizer getTokenizer() {
@@ -114,6 +122,14 @@ public class IndexReader extends AbstractIndex implements Closeable {
   public PostingMover<PositionsList> getPositionsMover(String term) {
     try {
       return positions.get(term);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public PostingMover<SpanList> getTag(String tagName) {
+    try {
+      return tags.get(tagName);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
