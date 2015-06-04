@@ -4,6 +4,8 @@ import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -44,6 +46,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
   public int getIdentifier() { return identifier; }
 
   @SuppressWarnings("unchecked")
+  @Nullable
   public <T> DocVar<T> getVariable(DocVarSchema<T> schema) {
     DocVar variable = variables.get(schema.getName());
     if(variable == null) return null;
@@ -53,6 +56,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
     throw new RuntimeException("Couldn't find a variable for schema, but found one with the same name! schema="+schema.getClass().getName()+" name="+schema.getName()+" found="+variable.getSchema()+" value="+variable.get());
   }
 
+  @Nonnull
   public Parameters getJSONVars() {
     Parameters output = Parameters.create();
     for (String s : variables.keySet()) {
@@ -83,6 +87,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
     return rawText;
   }
 
+  @Nonnull
   public static CoopDoc createMTE(CoopTokenizer tok, Parameters document, Map<String, DocVarSchema> varSchemas) {
     String text = document.getString("text");
     String name = document.getString("docid");
