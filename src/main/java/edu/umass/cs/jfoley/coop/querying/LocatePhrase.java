@@ -2,13 +2,12 @@ package edu.umass.cs.jfoley.coop.querying;
 
 import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
-import edu.umass.cs.ciir.waltz.feature.MoverFeature;
 import edu.umass.cs.ciir.waltz.index.Index;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.querying.eval.QueryEvalEngine;
 import edu.umass.cs.jfoley.coop.querying.eval.QueryEvalNode;
-import edu.umass.cs.jfoley.coop.querying.eval.features.FeaturePositionsNode;
+import edu.umass.cs.jfoley.coop.querying.eval.nodes.FeatureQueryNode;
 import edu.umass.cs.jfoley.coop.querying.eval.nodes.PhraseNode;
 
 import java.util.ArrayList;
@@ -31,9 +30,10 @@ public class LocatePhrase {
     List<DocumentResult<Integer>> hits = new ArrayList<>();
     PostingMover<PositionsList> mover = index.getPositionsMover(term);
 
+    //noinspection Convert2Diamond -- intellij is wrong about javac's inference capabilities :(
     QueryEvalEngine.EvaluateOneToMany(
         mover,
-        new FeaturePositionsNode(new MoverFeature<>(mover)),
+        new FeatureQueryNode<PositionsList>(mover),
         hits::add);
 
     return hits;
@@ -45,7 +45,7 @@ public class LocatePhrase {
     for (String phraseTerm : phraseTerms) {
       PostingMover<PositionsList> positionsMover = index.getPositionsMover(phraseTerm);
       phraseMovers.add(positionsMover);
-      features.add(new FeaturePositionsNode(new MoverFeature<>(positionsMover)));
+      features.add(new FeatureQueryNode<>(positionsMover));
     }
 
     List<DocumentResult<Integer>> hits = new ArrayList<>();
