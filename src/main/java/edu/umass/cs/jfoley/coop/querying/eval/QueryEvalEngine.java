@@ -10,7 +10,7 @@ import java.util.List;
  * @author jfoley
  */
 public class QueryEvalEngine {
-  public static <T> List<DocumentResult<T>> Evaluate(Mover mover, QueryEval.QueryEvalNode<T> query) {
+  public static <T> List<DocumentResult<T>> Evaluate(Mover mover, QueryEvalNode<T> query) {
     ArrayList<DocumentResult<T>> results = new ArrayList<>();
     Evaluate(mover, query, results::add);
     return results;
@@ -23,7 +23,7 @@ public class QueryEvalEngine {
    * @param output the {@link SinkFn} to feed results to.
    * @param <T> the type of result expected from the query.
    */
-  public static <T> void Evaluate(Mover mover, QueryEval.QueryEvalNode<T> query, SinkFn<DocumentResult<T>> output) {
+  public static <T> void Evaluate(Mover mover, QueryEvalNode<T> query, SinkFn<DocumentResult<T>> output) {
     for(; mover.hasNext(); mover.isDone()) {
       int document = mover.currentKey();
       T value = query.calculate(document);
@@ -31,5 +31,19 @@ public class QueryEvalEngine {
         output.process(new DocumentResult<>(document, value));
       }
     }
+  }
+
+  public static <T> void EvaluateOneToMany(Mover mover, QueryEvalNode<List<T>> query, SinkFn<DocumentResult<T>> output) {
+    for(; mover.hasNext(); mover.isDone()) {
+      int document = mover.currentKey();
+      List<T> values = query.calculate(document);
+      if(values == null || values.isEmpty()) {
+        continue;
+      }
+      for (T value : values) {
+        output.process(new DocumentResult<>(document, value));
+      }
+    }
+
   }
 }
