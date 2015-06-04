@@ -1,7 +1,7 @@
 package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.io.TemporaryDirectory;
-import edu.umass.cs.ciir.waltz.postings.extents.Extent;
+import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import org.junit.Test;
 
@@ -29,11 +29,11 @@ public class StanfordNLPTokenizerTest {
         spot.getTerms());
 
     // Make sure you count periods if you think my fours are wrong.
-    Map<String, List<Extent>> data = Collections.singletonMap(
+    Map<String, List<Span>> data = Collections.singletonMap(
         "sentence",
-        Arrays.asList(new Extent(0, 4), new Extent(4, 8)));
+        Arrays.asList(new Span(0, 4), new Span(4, 8)));
 
-    Map<String, ? extends List<Extent>> tags = spot.getTags();
+    Map<String, ? extends List<Span>> tags = spot.getTags();
     assertEquals(data, tags);
   }
 

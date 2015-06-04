@@ -9,8 +9,10 @@ import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.lang.Builder;
 import edu.umass.cs.ciir.waltz.coders.kinds.*;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
+import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
+import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
@@ -39,6 +41,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   private final ListCoder<String> tokensCodec;
   private final IdMaps.Writer<String> names;
   private final StreamingPostingBuilder<String, PositionsList> positionsBuilder;
+  private final StreamingPostingBuilder<String, SpanList> tagsBuilder;
   private int documentId = 0;
   private int collectionLength = 0;
   private final Map<String, DocVarSchema> fieldSchema;
@@ -73,6 +76,11 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
         new PositionsListCoder(),
         //GenKeyDiskMap.Writer.createNew(outputDir.childPath("positions", ))
         GalagoIO.getRawIOMapWriter(outputDir.childPath("positions")));
+    tagsBuilder = new StreamingPostingBuilder<>(
+        CharsetCoders.utf8Raw,
+        new SpanListCoder(),
+        GalagoIO.getRawIOMapWriter(outputDir.childPath("tags"))
+    );
   }
 
   public void addDocument(String name, String text) throws IOException {

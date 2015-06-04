@@ -3,9 +3,9 @@ package edu.umass.cs.jfoley.coop.document;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.string.StrUtil;
-import edu.umass.cs.ciir.waltz.postings.extents.Extent;
-import edu.umass.cs.ciir.waltz.postings.extents.ExtentsList;
-import edu.umass.cs.ciir.waltz.postings.extents.InterleavedExtents;
+import edu.umass.cs.ciir.waltz.postings.extents.Span;
+import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
+import edu.umass.cs.ciir.waltz.postings.extents.InterleavedSpans;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
@@ -22,7 +22,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   private String name;
   private List<String> terms;
-  private Map<String, ExtentsList> tags;
+  private Map<String, SpanList> tags;
   private int identifier;
   private Map<String, DocVar> variables;
   private String rawText = null;
@@ -98,8 +98,8 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   public void addTag(String tagName, int begin, int end) {
     MapFns.extendCollectionInMap(tags,
-        tagName, new Extent(begin, end),
-        (GenerateFn<ExtentsList>) InterleavedExtents::new);
+        tagName, new Span(begin, end),
+        (GenerateFn<SpanList>) InterleavedSpans::new);
   }
 
   @Nonnull
@@ -128,7 +128,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.terms = terms;
   }
 
-  public Map<String, ExtentsList> getTags() {
+  public Map<String, SpanList> getTags() {
     return tags;
   }
 }
