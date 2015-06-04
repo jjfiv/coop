@@ -21,7 +21,7 @@ public class GalagoTokenizerTest {
     GalagoTokenizer tokenizer = new GalagoTokenizer(Arrays.asList("a", "b"));
     CoopDoc spot = tokenizer.createDocument("spot", SpotDocument);
     // No periods from Galago
-    assertEquals(Arrays.asList("see", "spot", "run", "see", "spot", "bark"), spot.getTerms());
+    assertEquals(Arrays.asList("see", "spot", "run", "see", "spot", "bark"), spot.getTerms().get(tokenizer.getDefaultTermSet()));
     assertEquals(Collections.singletonList(new Span(0, 3)), spot.getTags().get("a"));
     assertEquals(Collections.singletonList(new Span(3, 6)), spot.getTags().get("b"));
   }

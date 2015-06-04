@@ -2,16 +2,18 @@ package edu.umass.cs.jfoley.coop.document;
 
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.fn.GenerateFn;
-import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.ciir.waltz.postings.extents.InterleavedSpans;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
-import edu.umass.cs.ciir.waltz.postings.extents.InterleavedSpans;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * My pet peeve are java classes named Document.
@@ -21,7 +23,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
   public static final int UNKNOWN_DOCID = -1;
 
   private String name;
-  private List<String> terms;
+  private Map<String,List<String>> terms;
   private Map<String, SpanList> tags;
   private int identifier;
   private Map<String, DocVar> variables;
@@ -29,12 +31,12 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   public CoopDoc() {
     this.name = null;
-    this.terms = new ArrayList<>();
+    this.terms = new HashMap<>();
     this.tags = new HashMap<>();
     this.identifier = UNKNOWN_DOCID;
     this.variables = new HashMap<>();
   }
-  public CoopDoc(String name, List<String> terms, int identifier, Map<String, DocVar> variables) {
+  public CoopDoc(String name, Map<String,List<String>> terms, int identifier, Map<String, DocVar> variables) {
     this.name = name;
     this.terms = terms;
     this.tags = new HashMap<>();
@@ -42,7 +44,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.variables = variables;
   }
 
-  public CoopDoc(String name, List<String> terms) {
+  public CoopDoc(String name, Map<String,List<String>> terms) {
     this.name = name;
     this.terms = terms;
     this.tags = new HashMap<>();
@@ -51,7 +53,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
   }
 
   public String getName() { return name; }
-  public List<String> getTerms() { return terms; }
+  public Map<String,List<String>> getTerms() { return terms; }
   public int getIdentifier() { return identifier; }
 
   @SuppressWarnings("unchecked")
@@ -90,9 +92,6 @@ public class CoopDoc implements Comparable<CoopDoc> {
   }
 
   public String getRawText() {
-    if(rawText == null) {
-      return StrUtil.join(terms, " ");
-    }
     return rawText;
   }
 
@@ -128,8 +127,8 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.name = name;
   }
 
-  public void setTerms(List<String> terms) {
-    this.terms = terms;
+  public void setTerms(String termSet, List<String> terms) {
+    this.terms.put(termSet, terms);
   }
 
   public Map<String, SpanList> getTags() {

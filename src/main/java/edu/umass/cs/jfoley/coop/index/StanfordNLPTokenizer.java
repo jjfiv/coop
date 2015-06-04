@@ -9,18 +9,16 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author jfoley
  */
 public class StanfordNLPTokenizer implements CoopTokenizer {
+
   public static LazyPtr<StanfordCoreNLP> nlp = new LazyPtr<>(() -> {
     //List<String> annotators = Arrays.asList("tokenize", "cleanxml", "ssplit", "pos", "lemma");
-    List<String> annotators = Arrays.asList("tokenize", "cleanxml", "ssplit");
+    List<String> annotators = Arrays.asList("tokenize", "cleanxml", "ssplit", "pos", "lemma");
     Properties props = new Properties();
     props.put("annotators", StrUtil.join(annotators, ","));
     return new StanfordCoreNLP(props);
@@ -48,6 +46,17 @@ public class StanfordNLPTokenizer implements CoopTokenizer {
     return terms;
   }
 
+  public static List<String> collectLemmas(Annotation ann) {
+    List<CoreLabel> coreLabels = ann.get(CoreAnnotations.TokensAnnotation.class);
+    List<String> terms = new ArrayList<>(coreLabels.size());
+    for (CoreLabel coreLabel : coreLabels) {
+      String rawTerm = coreLabel.getString(CoreAnnotations.LemmaAnnotation.class);
+      // HACK: lowercase stanford nlp stuff? Idk if lemmas are capitalized or not.
+      terms.add(rawTerm.toLowerCase());
+    }
+    return terms;
+  }
+
   @Override
   public CoopDoc createDocument(String name, String text) {
     CoopDoc cdoc = new CoopDoc();
@@ -58,11 +67,22 @@ public class StanfordNLPTokenizer implements CoopTokenizer {
     nlp.get().annotate(ann);
 
     // Grab terms no matter what.
-    cdoc.setTerms(collectTerms(ann));
+    cdoc.setTerms("tokens", collectTerms(ann));
+    cdoc.setTerms("lemmas", collectLemmas(ann));
 
     // sentence tag.
     collectSentenceTags(ann, cdoc);
 
     return cdoc;
+  }
+
+  @Override
+  public Set<String> getTermSets() {
+    return new HashSet<>(Arrays.asList("tokens", "lemmas"));
+  }
+
+  @Override
+  public String getDefaultTermSet() {
+    return "tokens";
   }
 }

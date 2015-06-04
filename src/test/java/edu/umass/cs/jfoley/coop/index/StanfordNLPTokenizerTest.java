@@ -25,7 +25,7 @@ public class StanfordNLPTokenizerTest {
 
     assertEquals(
         Arrays.asList("see", "spot", "run", ".", "see", "spot", "bark", "."),
-        spot.getTerms());
+        spot.getTerms().get(tok.getDefaultTermSet()));
 
     // Make sure you count periods if you think my fours are wrong.
     Map<String, List<Span>> data = Collections.singletonMap(
@@ -52,8 +52,7 @@ public class StanfordNLPTokenizerTest {
         assertEquals(tok.getClass(), reader.getTokenizer().getClass());
 
         List<String> terms = reader.getCorpus().pullTokens(reader.getDocumentId("spot"));
-        assertEquals(spot.getTerms(), terms);
-        System.out.println(terms);
+        assertEquals(spot.getTerms().get(tok.getDefaultTermSet()), terms);
 
         // Make sure that our tags got written correctly:
         List<SpanList> data = new ArrayList<>();

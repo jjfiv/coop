@@ -40,7 +40,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   private final StreamingPostingBuilder<String, Integer> lengthWriter;
   private final ListCoder<String> tokensCodec;
   private final IdMaps.Writer<String> names;
-  private final StreamingPostingBuilder<String, PositionsList> positionsBuilder;
+  private final Map<String, StreamingPostingBuilder<String,PositionsList>> positionsBuilders;
   private final StreamingPostingBuilder<String, SpanList> tagsBuilder;
   private int documentId = 0;
   private int collectionLength = 0;
@@ -71,11 +71,16 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     );
     this.names = IdMaps.openWriter(outputDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
     this.tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
-    this.positionsBuilder = new StreamingPostingBuilder<>(
-        CharsetCoders.utf8Raw,
-        new PositionsListCoder(),
-        //GenKeyDiskMap.Writer.createNew(outputDir.childPath("positions", ))
-        GalagoIO.getRawIOMapWriter(outputDir.childPath("positions")));
+    this.positionsBuilders = new HashMap<>();
+    for (String tokenSet : this.tokenizer.getTermSets()) {
+      positionsBuilders.put(
+          tokenSet,
+          new StreamingPostingBuilder<>(
+              CharsetCoders.utf8Raw,
+              new PositionsListCoder(),
+              GalagoIO.getRawIOMapWriter(outputDir.childPath(tokenSet+".positions")))
+      );
+    }
     tagsBuilder = new StreamingPostingBuilder<>(
         CharsetCoders.utf8Raw,
         new SpanListCoder(),
@@ -90,7 +95,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   }
 
   public void addDocument(CoopDoc doc) throws IOException {
-    List<String> terms = doc.getTerms();
+    Map<String, List<String>> terms = doc.getTerms();
     int currentId = documentId++;
     doc.setIdentifier(currentId);
 
@@ -116,6 +121,19 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
       }
     }
 
+    for (Map.Entry<String, List<String>> kv : doc.getTerms().entrySet()) {
+      addToPositionsBuilder(currentId, kv.getKey(), kv.getValue());
+    }
+
+    // So we don't have to pay tokenization time in the second pass.
+    tokensCorpusWriter.write(Integer.toString(currentId), outputStream -> {
+      tokensCodec.write(outputStream, terms.get(tokenizer.getDefaultTermSet()));
+    });
+  }
+
+  public void addToPositionsBuilder(int currentId, String tokenSet, List<String> terms) {
+    StreamingPostingBuilder<String, PositionsList> positionsBuilder = this.positionsBuilders.get(tokenSet);
+
     // collection position vectors:
     Map<String, IntList> data = new HashMap<>();
     for (int i = 0, termsSize = terms.size(); i < termsSize; i++) {
@@ -124,16 +142,11 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     }
     // Add position vectors to builder:
     for (Map.Entry<String, IntList> kv : data.entrySet()) {
-      this.positionsBuilder.add(
+      positionsBuilder.add(
           kv.getKey(),
           currentId,
           new SimplePositionsList(kv.getValue()));
     }
-
-    // So we don't have to pay tokenization time in the second pass.
-    tokensCorpusWriter.write(Integer.toString(currentId), outputStream -> {
-      tokensCodec.write(outputStream, terms);
-    });
   }
 
   @Override
@@ -145,7 +158,9 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     tagsBuilder.close();
     names.close();
     tokensCorpusWriter.close();
-    positionsBuilder.close();
+    for (Closeable builder : positionsBuilders.values()) {
+      builder.close();
+    }
 
     Parameters fieldSchemaJSON = Parameters.create();
     for (String field : fieldSchema.keySet()) {

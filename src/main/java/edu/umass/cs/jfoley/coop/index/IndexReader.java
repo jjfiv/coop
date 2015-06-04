@@ -3,6 +3,7 @@ package edu.umass.cs.jfoley.coop.index;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.Directory;
+import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipArchive;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
@@ -40,7 +41,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   ZipTokensCorpusReader tokensCorpus;
   final IOMap<String, PostingMover<Integer>> lengths;
   final IdMaps.Reader<String> names;
-  final IOMap<String, PostingMover<PositionsList>> positions;
+  final Map<String, IOMap<String, PostingMover<PositionsList>>> positionSets;
   final IOMap<String, PostingMover<SpanList>> tags;
   final CoopTokenizer tokenizer;
   final Map<String, DocVarSchema> fieldSchema;
@@ -66,11 +67,17 @@ public class IndexReader extends AbstractIndex implements Closeable {
         new SimplePostingListFormat.PostingCoder<>(VarUInt.instance),
         indexDir.childPath("lengths")
     );
-    this.positions = GalagoIO.openIOMap(
-        CharsetCoders.utf8Raw,
-        new SimplePostingListFormat.PostingCoder<>(new PositionsListCoder()),
-        indexDir.childPath("positions")
-    );
+    this.positionSets = new HashMap<>();
+    for (String termSet : tokenizer.getTermSets()) {
+      positionSets.put(
+          termSet,
+          GalagoIO.openIOMap(
+              CharsetCoders.utf8Raw,
+              new SimplePostingListFormat.PostingCoder<>(new PositionsListCoder()),
+              indexDir.childPath(termSet+".positions")
+          )
+      );
+    }
     this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
     this.tags = GalagoIO.openIOMap(
         CharsetCoders.utf8Raw,
@@ -89,7 +96,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
     tokensCorpus.close();
     lengths.close();
     names.close();
-    positions.close();
+    positionSets.values().forEach(IO::close);
   }
 
   @Override
@@ -121,7 +128,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   @Override
   public PostingMover<PositionsList> getPositionsMover(String term) {
     try {
-      return positions.get(term);
+      return positionSets.get(tokenizer.getDefaultTermSet()).get(term);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -169,7 +176,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   }
 
   public int collectionFrequency(String term) throws IOException {
-    PostingMover<PositionsList> mover = positions.get(term);
+    PostingMover<PositionsList> mover = getPositionsMover(term);
     if(mover == null) return 0;
     int count = 0;
     for(; mover.hasNext(); mover.next()) {
