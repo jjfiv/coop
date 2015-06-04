@@ -14,7 +14,7 @@ public abstract class IndexItemWriter implements Closeable {
   protected final Directory outputDir;
   protected final CoopTokenizer tokenizer;
 
-  protected IndexItemWriter(Directory outputDir, CoopTokenizer tokenizer) {
+  public IndexItemWriter(Directory outputDir, CoopTokenizer tokenizer) {
     this.outputDir = outputDir;
     this.tokenizer = tokenizer;
   }
