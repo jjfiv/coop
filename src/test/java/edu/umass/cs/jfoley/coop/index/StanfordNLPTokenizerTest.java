@@ -32,6 +32,14 @@ public class StanfordNLPTokenizerTest {
         "sentence",
         Arrays.asList(new Span(0, 4), new Span(4, 8)));
 
+    System.out.println(spot.getTerms());
+
+    // Interesting, shouldn't bark and run be verbs?
+    assertEquals(
+        Arrays.asList("VB", "NN", "NN", ".", "VB", "NN", "NN", "."),
+        spot.getTerms("pos")
+    );
+
     Map<String, ? extends List<Span>> tags = spot.getTags();
     assertEquals(data, tags);
   }
@@ -62,4 +70,14 @@ public class StanfordNLPTokenizerTest {
     }
   }
 
+  @Test
+  public void interestingLemmaTest() {
+    String ApplesSentence = "I have all the apples that you have given anyone.";
+    StanfordNLPTokenizer tok = new StanfordNLPTokenizer();
+    CoopDoc apples = tok.createDocument("apples", ApplesSentence);
+    assertEquals(
+        Arrays.asList("i have all the apple that you have give anyone .".split("\\s+")),
+        apples.getTerms("lemmas")
+    );
+  }
 }

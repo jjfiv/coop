@@ -50,12 +50,24 @@ public class StanfordNLPTokenizer implements CoopTokenizer {
     List<CoreLabel> coreLabels = ann.get(CoreAnnotations.TokensAnnotation.class);
     List<String> terms = new ArrayList<>(coreLabels.size());
     for (CoreLabel coreLabel : coreLabels) {
+      // HACK: Idk if lemmas are capitalized or not.
       String rawTerm = coreLabel.getString(CoreAnnotations.LemmaAnnotation.class);
-      // HACK: lowercase stanford nlp stuff? Idk if lemmas are capitalized or not.
       terms.add(rawTerm.toLowerCase());
     }
     return terms;
   }
+
+  private List<String> collectPOS(Annotation ann) {
+    List<CoreLabel> coreLabels = ann.get(CoreAnnotations.TokensAnnotation.class);
+    List<String> terms = new ArrayList<>(coreLabels.size());
+    for (CoreLabel coreLabel : coreLabels) {
+      String pos = coreLabel.getString(CoreAnnotations.PartOfSpeechAnnotation.class);
+      // HACK: lowercase stanford nlp stuff? Idk if lemmas are capitalized or not.
+      terms.add(pos);
+    }
+    return terms;
+  }
+
 
   @Override
   public CoopDoc createDocument(String name, String text) {
@@ -69,6 +81,7 @@ public class StanfordNLPTokenizer implements CoopTokenizer {
     // Grab terms no matter what.
     cdoc.setTerms("tokens", collectTerms(ann));
     cdoc.setTerms("lemmas", collectLemmas(ann));
+    cdoc.setTerms("pos", collectPOS(ann));
 
     // sentence tag.
     collectSentenceTags(ann, cdoc);
@@ -78,7 +91,7 @@ public class StanfordNLPTokenizer implements CoopTokenizer {
 
   @Override
   public Set<String> getTermSets() {
-    return new HashSet<>(Arrays.asList("tokens", "lemmas"));
+    return new HashSet<>(Arrays.asList("tokens", "lemmas", "pos"));
   }
 
   @Override

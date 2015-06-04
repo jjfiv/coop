@@ -138,4 +138,8 @@ public class CoopDoc implements Comparable<CoopDoc> {
   public void setVariables(HashMap<String,DocVar> variables) {
     this.variables = variables;
   }
+
+  public List<String> getTerms(String pos) {
+    return terms.get(pos);
+  }
 }
