@@ -127,4 +127,8 @@ public class CoopDoc implements Comparable<CoopDoc> {
   public void setTerms(List<String> terms) {
     this.terms = terms;
   }
+
+  public Map<String, ExtentsList> getTags() {
+    return tags;
+  }
 }

@@ -2,15 +2,12 @@ package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.Spawn;
 import ciir.jfoley.chai.collections.util.IterableFns;
-import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -20,7 +17,7 @@ public class CoIndexTest {
 
   @Test
   public void testCoIndex3() throws IOException, InterruptedException {
-    List<String> docs = new ArrayList<>(Arrays.asList(IO.resource("/gettysburg_address.txt").split("\n+")));
+    List<String> docs = Gettysburg.getParagraphs();
 
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
       try (IndexBuilder builder = new IndexBuilder(CoopTokenizer.create(), tmpdir)) {

@@ -1,13 +1,9 @@
 package edu.umass.cs.jfoley.coop.index;
 
-import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import org.lemurproject.galago.core.parse.Document;
-import org.lemurproject.galago.core.parse.Tag;
-import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * @author jfoley
@@ -27,9 +23,7 @@ public interface CoopTokenizer {
       return create();
     }
   }
-
   static CoopTokenizer create() {
     return new StanfordNLPTokenizer();
   }
-
 }
