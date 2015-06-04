@@ -22,7 +22,7 @@ import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
-import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndex;
+import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndexReader;
 import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
 import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusReader;
 import org.lemurproject.galago.utility.Parameters;
@@ -46,7 +46,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   final IOMap<String, PostingMover<SpanList>> tags;
   final CoopTokenizer tokenizer;
   final Map<String, DocVarSchema> fieldSchema;
-  final DocumentLabelIndex.Reader docLabels;
+  final DocumentLabelIndexReader docLabels;
   final Parameters meta;
 
   public IndexReader(Directory indexDir) throws IOException {
@@ -58,7 +58,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
     for (String field : schema.keySet()) {
       this.fieldSchema.put(field, DocVarSchema.create(field, schema.getMap(field)));
     }
-    this.docLabels = new DocumentLabelIndex.Reader(indexDir.childPath("doclabels"));
+    this.docLabels = new DocumentLabelIndexReader(indexDir.childPath("doclabels"));
 
     this.tokenizer = CoopTokenizer.create(meta);
     this.rawCorpus = ZipArchive.open(indexDir.child("raw.zip"));

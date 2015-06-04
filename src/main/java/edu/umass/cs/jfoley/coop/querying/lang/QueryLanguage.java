@@ -1,7 +1,7 @@
 package edu.umass.cs.jfoley.coop.querying.lang;
 
 import ciir.jfoley.chai.collections.list.AChaiList;
-import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndex;
+import edu.umass.cs.jfoley.coop.index.NamespacedLabel;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
@@ -86,9 +86,9 @@ public class QueryLanguage {
   }
 
   public static class DocumentLabel extends LeafNode implements BooleanNode {
-    public final DocumentLabelIndex.NamespacedLabel label;
+    public final NamespacedLabel label;
 
-    public DocumentLabel(DocumentLabelIndex.NamespacedLabel label) {
+    public DocumentLabel(NamespacedLabel label) {
       this.label = label;
     }
 

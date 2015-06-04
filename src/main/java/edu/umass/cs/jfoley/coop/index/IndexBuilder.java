@@ -46,10 +46,10 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
     this.tokenizer = tok;
     this.names = IdMaps.openWriter(outputDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
     this.tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
-    this.writers = new ArrayList<>();
 
+    this.writers = new ArrayList<>();
     writers.add(new PositionsSetWriter(outputDir, tokenizer));
-    writers.add(new DocumentLabelIndex.Writer(outputDir, tokenizer));
+    writers.add(new DocumentLabelIndexWriter(outputDir, tokenizer));
     writers.add(new TagIndexWriter(outputDir, tokenizer));
     writers.add(new LengthsWriter(outputDir, tokenizer));
 
