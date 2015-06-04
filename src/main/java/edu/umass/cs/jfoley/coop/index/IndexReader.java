@@ -22,6 +22,7 @@ import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
+import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndex;
 import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
 import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusReader;
 import org.lemurproject.galago.utility.Parameters;

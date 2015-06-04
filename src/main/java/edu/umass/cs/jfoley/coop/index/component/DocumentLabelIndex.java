@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.index;
+package edu.umass.cs.jfoley.coop.index.component;
 
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
@@ -15,7 +15,7 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
-import edu.umass.cs.jfoley.coop.index.component.IndexItemWriter;
+import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -98,7 +98,7 @@ public class DocumentLabelIndex {
     private final IOMapWriter<NamespacedLabel, List<Integer>> ioMapWriter;
     private final HashMap<NamespacedLabel, SmartDocIdSet> tmpStorage;
 
-    protected Writer(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
+    public Writer(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
       super(outputDir, tokenizer);
       this.tmpStorage = new HashMap<>();
       this.ioMapWriter = GalagoIO.getIOMapWriter(

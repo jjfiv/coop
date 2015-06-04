@@ -14,6 +14,7 @@ import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
+import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndex;
 import edu.umass.cs.jfoley.coop.index.component.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.index.component.PositionsSetWriter;
 import org.lemurproject.galago.utility.Parameters;
