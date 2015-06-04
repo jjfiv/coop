@@ -32,8 +32,6 @@ public class StanfordNLPTokenizerTest {
         "sentence",
         Arrays.asList(new Span(0, 4), new Span(4, 8)));
 
-    System.out.println(spot.getTerms());
-
     // Interesting, shouldn't bark and run be verbs?
     assertEquals(
         Arrays.asList("VB", "NN", "NN", ".", "VB", "NN", "NN", "."),
