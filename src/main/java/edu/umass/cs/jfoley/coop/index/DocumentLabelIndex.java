@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.collections.list.IntList;
+import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.data.SmartDataChunk;
@@ -11,6 +12,10 @@ import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
+import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.document.DocVar;
+import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
+import edu.umass.cs.jfoley.coop.index.component.IndexItemWriter;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -89,13 +94,18 @@ public class DocumentLabelIndex {
     }
   }
 
-  public static class Writer implements Closeable {
+  public static class Writer extends IndexItemWriter {
     private final IOMapWriter<NamespacedLabel, List<Integer>> ioMapWriter;
     private final HashMap<NamespacedLabel, SmartDocIdSet> tmpStorage;
 
-    public Writer(IOMapWriter<NamespacedLabel,List<Integer>> ioMapWriter) throws IOException {
+    protected Writer(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
+      super(outputDir, tokenizer);
       this.tmpStorage = new HashMap<>();
-      this.ioMapWriter = ioMapWriter.getSorting();
+      this.ioMapWriter = GalagoIO.getIOMapWriter(
+              DocumentLabelIndex.NamespacedLabel.coder,
+              new DeltaIntListCoder(),
+              outputDir.childPath("doclabels")
+          ).getSorting();
     }
 
     public void add(String namespace, String label, int docId) {
@@ -106,6 +116,18 @@ public class DocumentLabelIndex {
         tmpStorage.put(key, forLabel);
       }
       forLabel.add(docId);
+    }
+
+    @Override
+    public void process(CoopDoc document) {
+      // collect variables:
+      for (DocVar docVar : document.getVariables()) {
+        if(docVar.getSchema() instanceof CategoricalVarSchema) {
+          String field = docVar.getName();
+          String label = (String) docVar.get();
+          add(field, label, document.getIdentifier());
+        }
+      }
     }
 
     @Override

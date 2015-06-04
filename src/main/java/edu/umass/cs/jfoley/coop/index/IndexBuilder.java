@@ -4,15 +4,16 @@ import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.lang.Builder;
-import edu.umass.cs.ciir.waltz.coders.kinds.*;
+import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
+import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
+import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
+import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
-import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.index.component.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.index.component.PositionsSetWriter;
 import org.lemurproject.galago.utility.Parameters;
@@ -20,7 +21,10 @@ import org.lemurproject.galago.utility.Parameters;
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author jfoley.
@@ -37,7 +41,6 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   private int documentId = 0;
   private int collectionLength = 0;
   private final Map<String, DocVarSchema> fieldSchema;
-  private final DocumentLabelIndex.Writer doclabelWriter;
   private final List<IndexItemWriter> writers;
 
   public IndexBuilder(CoopTokenizer tok, Directory outputDir) throws IOException {
@@ -47,13 +50,6 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     this.outputDir = outputDir;
     this.fieldSchema = fieldSchema;
 
-    doclabelWriter = new DocumentLabelIndex.Writer(
-        GalagoIO.getIOMapWriter(
-            DocumentLabelIndex.NamespacedLabel.coder,
-            new DeltaIntListCoder(),
-            outputDir.childPath("doclabels")
-        )
-    );
     this.rawCorpusWriter = new ZipWriter(outputDir.childPath("raw.zip"));
     this.tokensCorpusWriter = new ZipWriter(outputDir.childPath("tokens.zip"));
     this.tokenizer = tok;
@@ -65,7 +61,10 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     this.names = IdMaps.openWriter(outputDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
     this.tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
     this.writers = new ArrayList<>();
+
     writers.add(new PositionsSetWriter(outputDir, tokenizer));
+    writers.add(new DocumentLabelIndex.Writer(outputDir, tokenizer));
+
     tagsBuilder = new StreamingPostingBuilder<>(
         CharsetCoders.utf8Raw,
         new SpanListCoder(),
@@ -97,15 +96,6 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
       tagsBuilder.add(kv.getKey(), currentId, kv.getValue());
     }
 
-    // collect variables:
-    for (DocVar docVar : doc.getVariables()) {
-      if(docVar.getSchema() instanceof CategoricalVarSchema) {
-        String field = docVar.getName();
-        String label = (String) docVar.get();
-        doclabelWriter.add(field, label, currentId);
-      }
-    }
-
     for (IndexItemWriter writer : writers) {
       writer.process(doc);
     }
@@ -121,7 +111,6 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     System.err.println("Begin closing writers!");
     rawCorpusWriter.close();
     lengthWriter.close();
-    doclabelWriter.close();
     tagsBuilder.close();
     names.close();
     tokensCorpusWriter.close();
