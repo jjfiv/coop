@@ -1,13 +1,9 @@
 package edu.umass.cs.jfoley.coop.index;
 
-import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
-import ciir.jfoley.chai.collections.util.ListFns;
-import ciir.jfoley.chai.fn.SinkFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.archive.ZipArchive;
-import ciir.jfoley.chai.io.archive.ZipArchiveEntry;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
@@ -23,12 +19,15 @@ import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
-import edu.umass.cs.jfoley.coop.querying.TermSlice;
+import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
+import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusReader;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author jfoley.
@@ -36,8 +35,7 @@ import java.util.*;
 public class IndexReader extends AbstractIndex implements Closeable {
   final Directory indexDir;
   final ZipArchive rawCorpus;
-  final ZipArchive tokensCorpus;
-  final ListCoder<String> tokensCodec;
+  ZipTokensCorpusReader tokensCorpus;
   final IOMap<String, PostingMover<Integer>> lengths;
   final IdMaps.Reader<String> names;
   final IOMap<String, PostingMover<PositionsList>> positions;
@@ -59,7 +57,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
 
     this.tokenizer = CoopTokenizer.create(meta);
     this.rawCorpus = ZipArchive.open(indexDir.child("raw.zip"));
-    this.tokensCorpus = ZipArchive.open(indexDir.child("tokens.zip"));
+    this.tokensCorpus = new ZipTokensCorpusReader(ZipArchive.open(indexDir.child("tokens.zip")), new ListCoder<>(CharsetCoders.utf8LengthPrefixed));
     this.lengths = GalagoIO.openIOMap(
         CharsetCoders.utf8Raw,
         new SimplePostingListFormat.PostingCoder<>(VarUInt.instance),
@@ -71,7 +69,6 @@ public class IndexReader extends AbstractIndex implements Closeable {
         indexDir.childPath("positions")
     );
     this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
-    this.tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
   }
 
   public CoopTokenizer getTokenizer() {
@@ -142,82 +139,8 @@ public class IndexReader extends AbstractIndex implements Closeable {
     }
   }
 
-  public List<Pair<TermSlice, List<String>>> pullTermSlices(List<TermSlice> requests) throws IOException {
-    List<List<String>> slices = new ArrayList<>();
-    for (TermSlice request : requests) {
-      List<String> termvec = pullTermIdSlice(request);
-      slices.add(termvec);
-    }
-    return ListFns.zip(requests, slices);
-  }
-
-  /**
-   * Only pull each document once.
-   */
-  public List<Pair<TermSlice, List<String>>> pullTermSlices1(List<TermSlice> requests) throws IOException {
-    // sort by document.
-    Collections.sort(requests);
-
-    // cache a document a time in memory so we don't pull it twice.
-    List<String> currentDocTerms = null;
-    int currentDocId = -1;
-
-    // slices:
-    List<List<String>> slices = new ArrayList<>();
-    for (TermSlice request : requests) {
-      if(request.document != currentDocId) {
-        currentDocId = request.document;
-        currentDocTerms = pullTokens(currentDocId);
-      }
-      // make a copy here so that the documents don't end up leaked into memory via subList.
-      slices.add(new ArrayList<>(ListFns.slice(currentDocTerms, request.start, request.end)));
-    }
-    return ListFns.zip(requests, slices);
-  }
-
-  public void forTermInSlice(List<TermSlice> requests, SinkFn<String> onTerm) {
-    // sort by document.
-    Collections.sort(requests);
-
-    // cache a document a time in memory so we don't pull it twice.
-    List<String> currentDocTerms = null;
-    int currentDocId = -1;
-
-    // slices:
-    List<List<String>> slices = new ArrayList<>();
-    for (TermSlice request : requests) {
-      if(request.document != currentDocId) {
-        currentDocId = request.document;
-        currentDocTerms = pullTokens(currentDocId);
-      }
-      for (String term : ListFns.slice(currentDocTerms, request.start, request.end)) {
-        onTerm.process(term);
-      }
-    }
-  }
-
-
-  public List<String> pullTokens(int document) {
-    ZipArchiveEntry entry = tokensCorpus.getByName(Integer.toString(document));
-    if(entry == null) return null;
-    try {
-      return tokensCodec.readImpl(entry.getInputStream());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Raw access to corpus structure.
-   * @param slice the coordinates of the data to pull.
-   * @return a list of term ids corresponding to the data in the given slice.
-   */
-  public List<String> pullTermIdSlice(TermSlice slice) {
-    return new ArrayList<>(
-        ListFns.slice(
-            pullTokens(slice.document),
-            slice.start,
-            slice.end));
+  public AbstractCorpusReader getCorpus() {
+    return tokensCorpus;
   }
 
   @Override

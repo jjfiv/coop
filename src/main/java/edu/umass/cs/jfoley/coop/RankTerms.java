@@ -119,11 +119,11 @@ public class RankTerms extends AppFunction {
     // Now score the nearby terms!
     final TObjectIntHashMap<String> termProxCounts = new TObjectIntHashMap<>();
     long candidateFindingTime = Timing.milliseconds(() -> {
-      index.forTermInSlice(slices, (term) ->  {
+      index.getCorpus().forTermInSlice(slices, (term) ->  {
         termProxCounts.adjustOrPutValue(term, 1, 1);
       });
       /*for (TermSlice slice : slices) {
-        for (String term : index.pullTermIdSlice(slice)) {
+        for (String term : index.pullTokens(slice)) {
           termProxCounts.adjustOrPutValue(term, 1, 1);
         }
       }*/
