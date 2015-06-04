@@ -76,7 +76,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   }
 
   public void addDocument(String name, String text) throws IOException {
-    CoopDoc document = new CoopDoc(name, tokenizer.tokenize(text));
+    CoopDoc document = tokenizer.createDocument(name, text);
     document.setRawText(text);
     addDocument(document);
   }

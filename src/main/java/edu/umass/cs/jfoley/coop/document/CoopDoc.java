@@ -1,6 +1,11 @@
 package edu.umass.cs.jfoley.coop.document;
 
+import ciir.jfoley.chai.collections.util.MapFns;
+import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.ciir.waltz.postings.extents.Extent;
+import edu.umass.cs.ciir.waltz.postings.extents.ExtentsList;
+import edu.umass.cs.ciir.waltz.postings.extents.InterleavedExtents;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
@@ -17,19 +22,22 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   private String name;
   private List<String> terms;
+  private Map<String, ExtentsList> tags;
   private int identifier;
   private Map<String, DocVar> variables;
   private String rawText = null;
 
-  public CoopDoc(String name) {
-    this.name = name;
+  public CoopDoc() {
+    this.name = null;
     this.terms = new ArrayList<>();
+    this.tags = new HashMap<>();
     this.identifier = UNKNOWN_DOCID;
     this.variables = new HashMap<>();
   }
   public CoopDoc(String name, List<String> terms, int identifier, Map<String, DocVar> variables) {
     this.name = name;
     this.terms = terms;
+    this.tags = new HashMap<>();
     this.identifier = identifier;
     this.variables = variables;
   }
@@ -37,6 +45,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
   public CoopDoc(String name, List<String> terms) {
     this.name = name;
     this.terms = terms;
+    this.tags = new HashMap<>();
     this.identifier = UNKNOWN_DOCID;
     this.variables = new HashMap<>();
   }
@@ -87,6 +96,12 @@ public class CoopDoc implements Comparable<CoopDoc> {
     return rawText;
   }
 
+  public void addTag(String tagName, int begin, int end) {
+    MapFns.extendCollectionInMap(tags,
+        tagName, new Extent(begin, end),
+        (GenerateFn<ExtentsList>) InterleavedExtents::new);
+  }
+
   @Nonnull
   public static CoopDoc createMTE(CoopTokenizer tok, Parameters document, Map<String, DocVarSchema> varSchemas) {
     String text = document.getString("text");
@@ -103,5 +118,13 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   public Collection<DocVar> getVariables() {
     return variables.values();
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setTerms(List<String> terms) {
+    this.terms = terms;
   }
 }
