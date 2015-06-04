@@ -33,6 +33,6 @@ public class ZipTokensCorpusWriter extends IndexItemWriter {
 
   @Override
   public void close() throws IOException {
-
+    tokensCorpusWriter.close();
   }
 }
