@@ -17,6 +17,7 @@ import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndex;
 import edu.umass.cs.jfoley.coop.index.component.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.index.component.PositionsSetWriter;
+import edu.umass.cs.jfoley.coop.index.component.TagIndexWriter;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
@@ -65,6 +66,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
 
     writers.add(new PositionsSetWriter(outputDir, tokenizer));
     writers.add(new DocumentLabelIndex.Writer(outputDir, tokenizer));
+    writers.add(new TagIndexWriter(outputDir, tokenizer))
 
     tagsBuilder = new StreamingPostingBuilder<>(
         CharsetCoders.utf8Raw,
@@ -91,11 +93,6 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     names.put(currentId, doc.getName());
 
     collectionLength += terms.size();
-
-    // collect tags:
-    for (Map.Entry<String, SpanList> kv : doc.getTags().entrySet()) {
-      tagsBuilder.add(kv.getKey(), currentId, kv.getValue());
-    }
 
     for (IndexItemWriter writer : writers) {
       writer.process(doc);
