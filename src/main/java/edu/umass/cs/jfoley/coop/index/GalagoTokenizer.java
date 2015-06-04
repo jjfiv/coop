@@ -24,11 +24,6 @@ public class GalagoTokenizer implements CoopTokenizer {
   }
 
   @Override
-  public List<String> tokenize(String input) {
-    return tok.tokenize(StrUtil.replaceUnicodeQuotes(input)).terms;
-  }
-
-  @Override
   public CoopDoc createDocument(String name, String text) {
     Document doc = tok.tokenize(StrUtil.replaceUnicodeQuotes(text));
     CoopDoc cdoc = new CoopDoc();

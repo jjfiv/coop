@@ -26,20 +26,6 @@ public class StanfordNLPTokenizer implements CoopTokenizer {
     return new StanfordCoreNLP(props);
   });
 
-  @Override
-  public List<String> tokenize(String input) {
-    Annotation ann = new Annotation(input);
-    nlp.get().annotate(ann);
-    List<CoreLabel> coreLabels = ann.get(CoreAnnotations.TokensAnnotation.class);
-    List<String> terms = new ArrayList<>(coreLabels.size());
-    for (CoreLabel coreLabel : coreLabels) {
-      String rawTerm = coreLabel.getString(CoreAnnotations.TextAnnotation.class);
-      // HACK: lowercase stanford nlp stuff
-      terms.add(rawTerm.toLowerCase());
-    }
-    return terms;
-  }
-
   public static void collectSentenceTags(Annotation ann, CoopDoc doc) {
     List<CoreMap> sentences = ann.get(CoreAnnotations.SentencesAnnotation.class);
     // tokenIndex

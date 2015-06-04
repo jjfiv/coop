@@ -106,14 +106,18 @@ public class CoopDoc implements Comparable<CoopDoc> {
   public static CoopDoc createMTE(CoopTokenizer tok, Parameters document, Map<String, DocVarSchema> varSchemas) {
     String text = document.getString("text");
     String name = document.getString("docid");
-    List<String> terms = tok.tokenize(text);
+    CoopDoc doc = tok.createDocument(name, text);
 
-    HashMap<String,DocVar> vars = new HashMap<>();
+    HashMap<String, DocVar> vars = new HashMap<>();
     for (DocVarSchema docVarSchema : varSchemas.values()) {
       docVarSchema.extract(document, vars);
     }
 
-    return new CoopDoc(name, terms, UNKNOWN_DOCID, vars);
+    doc.setVariables(vars);
+    // MTE the raw is the input JSON.
+    doc.setRawText(document.toString());
+
+    return doc;
   }
 
   public Collection<DocVar> getVariables() {
@@ -130,5 +134,9 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   public Map<String, SpanList> getTags() {
     return tags;
+  }
+
+  public void setVariables(HashMap<String,DocVar> variables) {
+    this.variables = variables;
   }
 }

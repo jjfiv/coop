@@ -3,13 +3,10 @@ package edu.umass.cs.jfoley.coop.index;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import org.lemurproject.galago.utility.Parameters;
 
-import java.util.List;
-
 /**
  * @author jfoley
  */
 public interface CoopTokenizer {
-  List<String> tokenize(String input);
   CoopDoc createDocument(String name, String text);
 
   static CoopTokenizer create(Parameters argp) {
