@@ -1,7 +1,6 @@
 package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.io.Directory;
-import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.lang.Builder;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
@@ -10,7 +9,6 @@ import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.index.component.*;
-import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -24,14 +22,11 @@ import java.util.Map;
  */
 public class IndexBuilder implements Closeable, Builder<IndexReader> {
   private final Directory outputDir;
-  private final ZipWriter rawCorpusWriter;
   private final CoopTokenizer tokenizer;
   private final ZipWriter tokensCorpusWriter;
   private final ListCoder<String> tokensCodec;
   private final IdMaps.Writer<String> names;
   private int documentId = 0;
-  private int collectionLength = 0;
-  private final Map<String, DocVarSchema> fieldSchema;
   private final List<IndexItemWriter> writers;
 
   public IndexBuilder(CoopTokenizer tok, Directory outputDir) throws IOException {
@@ -39,9 +34,7 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
   }
   public IndexBuilder(CoopTokenizer tok, Directory outputDir, Map<String, DocVarSchema> fieldSchema) throws IOException {
     this.outputDir = outputDir;
-    this.fieldSchema = fieldSchema;
 
-    this.rawCorpusWriter = new ZipWriter(outputDir.childPath("raw.zip"));
     this.tokensCorpusWriter = new ZipWriter(outputDir.childPath("tokens.zip"));
     this.tokenizer = tok;
     this.names = IdMaps.openWriter(outputDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
@@ -52,7 +45,11 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
     writers.add(new DocumentLabelIndexWriter(outputDir, tokenizer));
     writers.add(new TagIndexWriter(outputDir, tokenizer));
     writers.add(new LengthsWriter(outputDir, tokenizer));
+    writers.add(new RawCorpusWriter(outputDir, tokenizer));
 
+    // TODO: have every writer have a unique name and a piece of JSON to contribute.
+    MetadataWriter metadataWriter = new MetadataWriter(outputDir, tokenizer, fieldSchema);
+    writers.add(metadataWriter);
   }
 
   public void addDocument(String name, String text) throws IOException {
@@ -66,17 +63,12 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
     int currentId = documentId++;
     doc.setIdentifier(currentId);
 
-    // corpus
-    rawCorpusWriter.writeUTF8(doc.getName(), doc.getRawText());
     // write length to flat lengths file.
     names.put(currentId, doc.getName());
-
-    collectionLength += terms.size();
 
     for (IndexItemWriter writer : writers) {
       writer.process(doc);
     }
-
     // So we don't have to pay tokenization time in the second pass.
     tokensCorpusWriter.write(Integer.toString(currentId), outputStream -> {
       tokensCodec.write(outputStream, terms.get(tokenizer.getDefaultTermSet()));
@@ -86,24 +78,11 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
   @Override
   public void close() throws IOException {
     System.err.println("Begin closing writers!");
-    rawCorpusWriter.close();
     names.close();
     tokensCorpusWriter.close();
     for (IndexItemWriter builder : writers) {
       builder.close();
     }
-
-    Parameters fieldSchemaJSON = Parameters.create();
-    for (String field : fieldSchema.keySet()) {
-      fieldSchemaJSON.put(field, fieldSchema.get(field).toJSON());
-    }
-
-    IO.spit(Parameters.parseArray(
-        "collectionLength", collectionLength,
-        "documentCount", documentId,
-        "schema", fieldSchemaJSON,
-        "tokenizer", tokenizer.getClass().getName()
-    ).toPrettyString(), outputDir.child("meta.json"));
   }
 
   @Override

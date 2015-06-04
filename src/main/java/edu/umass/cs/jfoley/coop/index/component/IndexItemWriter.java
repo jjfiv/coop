@@ -19,7 +19,7 @@ public abstract class IndexItemWriter implements Closeable {
     this.tokenizer = tokenizer;
   }
 
-  public abstract void process(CoopDoc document);
+  public abstract void process(CoopDoc document) throws IOException;
   @Override
   public abstract void close() throws IOException;
 }
