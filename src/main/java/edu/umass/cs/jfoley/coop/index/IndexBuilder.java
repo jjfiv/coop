@@ -1,33 +1,26 @@
 package edu.umass.cs.jfoley.coop.index;
 
-import ciir.jfoley.chai.collections.list.IntList;
-import ciir.jfoley.chai.collections.util.MapFns;
-import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.lang.Builder;
 import edu.umass.cs.ciir.waltz.coders.kinds.*;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
-import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
-import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
+import edu.umass.cs.jfoley.coop.index.component.IndexItemWriter;
+import edu.umass.cs.jfoley.coop.index.component.PositionsSetWriter;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author jfoley.
@@ -40,12 +33,12 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
   private final StreamingPostingBuilder<String, Integer> lengthWriter;
   private final ListCoder<String> tokensCodec;
   private final IdMaps.Writer<String> names;
-  private final Map<String, StreamingPostingBuilder<String,PositionsList>> positionsBuilders;
   private final StreamingPostingBuilder<String, SpanList> tagsBuilder;
   private int documentId = 0;
   private int collectionLength = 0;
   private final Map<String, DocVarSchema> fieldSchema;
   private final DocumentLabelIndex.Writer doclabelWriter;
+  private final List<IndexItemWriter> writers;
 
   public IndexBuilder(CoopTokenizer tok, Directory outputDir) throws IOException {
     this(tok, outputDir, Collections.emptyMap());
@@ -71,16 +64,8 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     );
     this.names = IdMaps.openWriter(outputDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
     this.tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
-    this.positionsBuilders = new HashMap<>();
-    for (String tokenSet : this.tokenizer.getTermSets()) {
-      positionsBuilders.put(
-          tokenSet,
-          new StreamingPostingBuilder<>(
-              CharsetCoders.utf8Raw,
-              new PositionsListCoder(),
-              GalagoIO.getRawIOMapWriter(outputDir.childPath(tokenSet+".positions")))
-      );
-    }
+    this.writers = new ArrayList<>();
+    writers.add(new PositionsSetWriter(outputDir, tokenizer));
     tagsBuilder = new StreamingPostingBuilder<>(
         CharsetCoders.utf8Raw,
         new SpanListCoder(),
@@ -121,32 +106,14 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
       }
     }
 
-    for (Map.Entry<String, List<String>> kv : doc.getTerms().entrySet()) {
-      addToPositionsBuilder(currentId, kv.getKey(), kv.getValue());
+    for (IndexItemWriter writer : writers) {
+      writer.process(doc);
     }
 
     // So we don't have to pay tokenization time in the second pass.
     tokensCorpusWriter.write(Integer.toString(currentId), outputStream -> {
       tokensCodec.write(outputStream, terms.get(tokenizer.getDefaultTermSet()));
     });
-  }
-
-  public void addToPositionsBuilder(int currentId, String tokenSet, List<String> terms) {
-    StreamingPostingBuilder<String, PositionsList> positionsBuilder = this.positionsBuilders.get(tokenSet);
-
-    // collection position vectors:
-    Map<String, IntList> data = new HashMap<>();
-    for (int i = 0, termsSize = terms.size(); i < termsSize; i++) {
-      String term = terms.get(i);
-      MapFns.extendCollectionInMap(data, term, i, (GenerateFn<IntList>) IntList::new);
-    }
-    // Add position vectors to builder:
-    for (Map.Entry<String, IntList> kv : data.entrySet()) {
-      positionsBuilder.add(
-          kv.getKey(),
-          currentId,
-          new SimplePositionsList(kv.getValue()));
-    }
   }
 
   @Override
@@ -158,7 +125,7 @@ public class IndexBuilder implements Closeable, Flushable, Builder<IndexReader> 
     tagsBuilder.close();
     names.close();
     tokensCorpusWriter.close();
-    for (Closeable builder : positionsBuilders.values()) {
+    for (IndexItemWriter builder : writers) {
       builder.close();
     }
 

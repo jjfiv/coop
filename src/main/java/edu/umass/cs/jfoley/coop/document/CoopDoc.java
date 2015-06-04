@@ -77,7 +77,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
   }
 
   @Override
-  public int compareTo(CoopDoc o) {
+  public int compareTo(@Nonnull CoopDoc o) {
     int cmp = Integer.compare(this.identifier, o.identifier);
     if(cmp != 0) return cmp;
     return name.compareTo(o.name);
