@@ -12,7 +12,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javaVersion>1.8</javaVersion>
     <galagoVersion>3.8-SNAPSHOT</galagoVersion>
-    <chaiVersion>0.4-SNAPSHOT</chaiVersion>
+    <chaiVersion>0.4</chaiVersion>
     <waltzVersion>0.2.0-SNAPSHOT</waltzVersion>
     <nlpVersion>3.5.0</nlpVersion>
     <mainClass>edu.umass.cs.jfoley.coop.Main</mainClass>
