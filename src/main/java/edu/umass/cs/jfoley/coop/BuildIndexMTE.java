@@ -6,6 +6,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.document.MTECoopDoc;
 import edu.umass.cs.jfoley.coop.index.IndexBuilder;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.lemurproject.galago.utility.Parameters;
@@ -72,7 +73,7 @@ public class BuildIndexMTE extends AppFunction {
       try (LinesIterable input = LinesIterable.fromFile(dataFile)) {
         for (String line : input) {
           Parameters data = Parameters.parseString(line);
-          CoopDoc doc = CoopDoc.createMTE(cfg.tokenizer, data, cfg.documentVariables);
+          CoopDoc doc = MTECoopDoc.createMTE(cfg, data);
           doc.setRawText(data.toString());
           builder.addDocument(doc);
         }

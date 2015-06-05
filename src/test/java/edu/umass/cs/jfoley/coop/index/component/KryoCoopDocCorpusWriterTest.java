@@ -4,6 +4,7 @@ import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.document.MTECoopDoc;
 import edu.umass.cs.jfoley.coop.index.IndexBuilder;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
@@ -50,7 +51,7 @@ public class KryoCoopDocCorpusWriterTest {
     cfg.documentVariables.putAll(schemas);
 
     for (Parameters mteStyleDocument : mteStyleDocuments) {
-      CoopDoc current = CoopDoc.createMTE(cfg.tokenizer, mteStyleDocument, cfg.documentVariables);
+      CoopDoc current = MTECoopDoc.createMTE(cfg, mteStyleDocument);
       CoopDoc translated = coder.read(coder.write(current));
       assertEquals(current.toJSON().toPrettyString(), translated.toJSON().toPrettyString());
       assertEquals(current, translated);
@@ -67,7 +68,7 @@ public class KryoCoopDocCorpusWriterTest {
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
       try (IndexBuilder builder = new IndexBuilder(cfg, tmpdir)) {
         for (Parameters mteStyleDocument : mteStyleDocuments) {
-          CoopDoc current = CoopDoc.createMTE(cfg.tokenizer, mteStyleDocument, schemas);
+          CoopDoc current = MTECoopDoc.createMTE(cfg, mteStyleDocument);
           docs.add(current);
           builder.addDocument(current);
         }

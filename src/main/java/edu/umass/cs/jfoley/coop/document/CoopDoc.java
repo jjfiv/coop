@@ -131,24 +131,6 @@ public class CoopDoc implements Comparable<CoopDoc> {
         (GenerateFn<SpanList>) InterleavedSpans::new);
   }
 
-  @Nonnull
-  public static CoopDoc createMTE(CoopTokenizer tok, Parameters document, Map<String, DocVarSchema> varSchemas) {
-    String text = document.getString("text");
-    String name = document.getString("docid");
-    CoopDoc doc = tok.createDocument(name, text);
-
-    HashMap<String, DocVar> vars = new HashMap<>();
-    for (DocVarSchema docVarSchema : varSchemas.values()) {
-      docVarSchema.extract(document, vars);
-    }
-
-    doc.setVariables(vars);
-    // MTE the raw is the input JSON.
-    doc.setRawText(document.toString());
-
-    return doc;
-  }
-
   @Override
   public boolean equals(Object o) {
     if(this == o) return true;

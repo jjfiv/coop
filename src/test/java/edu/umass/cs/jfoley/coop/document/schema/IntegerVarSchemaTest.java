@@ -2,7 +2,7 @@ package edu.umass.cs.jfoley.coop.document.schema;
 
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
-import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.document.MTECoopDoc;
 import edu.umass.cs.jfoley.coop.index.IndexBuilder;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
@@ -42,7 +42,7 @@ public class IntegerVarSchemaTest {
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
       try (IndexBuilder builder = new IndexBuilder(cfg,tmpdir)) {
         for (Parameters mteStyleDocument : mteStyleDocuments) {
-          builder.addDocument(CoopDoc.createMTE(cfg.tokenizer, mteStyleDocument, cfg.documentVariables));
+          builder.addDocument(MTECoopDoc.createMTE(cfg, mteStyleDocument));
         }
       }
 

@@ -46,7 +46,7 @@ public class DocVarSchemaTest {
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
       try (IndexBuilder builder = new IndexBuilder(cfg, tmpdir)) {
         for (Parameters mteStyleDocument : mteStyleDocuments) {
-          builder.addDocument(CoopDoc.createMTE(cfg.tokenizer, mteStyleDocument, cfg.documentVariables));
+          builder.addDocument(MTECoopDoc.createMTE(cfg, mteStyleDocument));
         }
       }
 
