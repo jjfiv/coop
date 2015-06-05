@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.document.schema;
 
 import ciir.jfoley.chai.collections.ListBasedOrderedSet;
+import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import org.lemurproject.galago.utility.Parameters;
@@ -56,6 +57,26 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
     } else {
       values.add(value);
     }
+  }
+
+  @Override
+  public String toString() {
+    return "CategoricalVarSchema."+name+"("+ StrUtil.join(values.toList(), ",")+")";
+  }
+
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if(this == o) return true;
+    if (!(o instanceof CategoricalVarSchema)) {
+      return false;
+    }
+    CategoricalVarSchema other = (CategoricalVarSchema) o;
+    return name.equals(other.name) && values.equals(other.values);
   }
 
   public static DocVarSchema create(String name, Parameters args) {

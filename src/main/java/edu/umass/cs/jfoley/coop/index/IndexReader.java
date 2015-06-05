@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
+import ciir.jfoley.chai.errors.NotHandledNow;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipArchive;
@@ -10,6 +11,8 @@ import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
+import edu.umass.cs.ciir.waltz.dociter.movement.IdSetMover;
+import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.feature.Feature;
 import edu.umass.cs.ciir.waltz.feature.MoverFeature;
@@ -22,16 +25,20 @@ import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
+import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndexReader;
 import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
 import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusReader;
 import org.lemurproject.galago.utility.Parameters;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author jfoley.
@@ -49,7 +56,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   final DocumentLabelIndexReader docLabels;
   final Parameters meta;
 
-  public IndexReader(Directory indexDir) throws IOException {
+  public IndexReader(@Nonnull Directory indexDir) throws IOException {
     this.indexDir = indexDir;
     this.meta = Parameters.parseFile(indexDir.child("meta.json"));
 
@@ -87,6 +94,17 @@ public class IndexReader extends AbstractIndex implements Closeable {
     );
   }
 
+  @Nonnull
+  public Set<String> fieldNames() {
+    return fieldSchema.keySet();
+  }
+
+  @Nullable
+  public DocVarSchema fieldSchema(String fieldName) {
+    return fieldSchema.get(fieldName);
+  }
+
+  @Nonnull
   public CoopTokenizer getTokenizer() {
     return tokenizer;
   }
@@ -111,11 +129,12 @@ public class IndexReader extends AbstractIndex implements Closeable {
   }
 
   @Override
+  @Nonnull
   public List<Integer> getAllDocumentIds() {
     try {
       return IterableFns.collect(names.forwardReader.keys(), new IntList());
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IndexErrorException(e);
     }
   }
 
@@ -127,28 +146,54 @@ public class IndexReader extends AbstractIndex implements Closeable {
   }
 
   @Override
+  @Nullable
   public PostingMover<PositionsList> getPositionsMover(String term) {
+    return getPositionsMover(tokenizer.getDefaultTermSet(), term);
+  }
+
+  @Nullable
+  public PostingMover<PositionsList> getPositionsMover(String type, String term) {
     try {
-      return positionSets.get(tokenizer.getDefaultTermSet()).get(term);
+      IOMap<String, PostingMover<PositionsList>> typeTerms = positionSets.get(type);
+      if(typeTerms == null) { return null; }
+      return typeTerms.get(term);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IndexErrorException(e);
     }
   }
 
+  @Nullable
   public PostingMover<SpanList> getTag(String tagName) {
     try {
       return tags.get(tagName);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IndexErrorException(e);
     }
   }
 
+  @Nullable
+  public Mover getLabeledDocuments(String name, Object value) {
+    DocVarSchema docVarSchema = fieldSchema(name);
+    if(docVarSchema == null) return null;
+    if(docVarSchema instanceof CategoricalVarSchema) {
+      String val = (String) value;
+      try {
+        List<Integer> ids = docLabels.getMatchingDocs(name, val);
+        if(ids == null) return null;
+        return new IdSetMover(ids);
+      } catch (IOException e) {
+        throw new IndexErrorException(e);
+      }
+    } else throw new NotHandledNow("schema", docVarSchema.toString());
+  }
+
   @Override
+  @Nullable
   public String getDocumentName(int id) {
     try {
       return names.forwardReader.get(id);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IndexErrorException(e);
     }
   }
 
@@ -159,20 +204,22 @@ public class IndexReader extends AbstractIndex implements Closeable {
       if(id == null) return -1;
       return id;
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IndexErrorException(e);
     }
   }
 
+  @Nonnull
   public AbstractCorpusReader getCorpus() {
     return tokensCorpus;
   }
 
   @Override
+  @Nonnull
   public Feature<Integer> getLengths() {
     try {
       return new MoverFeature<>(lengths.get("doc"));
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IndexErrorException(e);
     }
   }
 
