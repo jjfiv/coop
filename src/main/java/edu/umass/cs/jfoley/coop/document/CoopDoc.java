@@ -80,13 +80,20 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   @SuppressWarnings("unchecked")
   @Nullable
-  public <T> DocVar<T> getVariable(DocVarSchema<T> schema) {
+  public <T extends Comparable<T>> DocVar<T> getVariable(DocVarSchema<T> schema) {
     DocVar variable = variables.get(schema.getName());
     if(variable == null) return null;
     if(variable.getSchema().equals(schema)) {
       return (DocVar<T>) variable;
     }
     throw new RuntimeException("Couldn't find a variable for schema, but found one with the same name! schema="+schema.getClass().getName()+" name="+schema.getName()+" found="+variable.getSchema()+" value="+variable.get());
+  }
+
+  @Nullable
+  public <T extends Comparable<T>> T getVariableValue(DocVarSchema<T> schema) {
+    DocVar<T> var = getVariable(schema);
+    if(var == null) return null;
+    return var.get();
   }
 
   @Nonnull

@@ -1,6 +1,8 @@
 package edu.umass.cs.jfoley.coop.document.schema;
 
 import ciir.jfoley.chai.IntMath;
+import edu.umass.cs.ciir.waltz.coders.Coder;
+import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import org.lemurproject.galago.utility.Parameters;
@@ -46,6 +48,10 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
     );
   }
 
+  @Override
+  public Coder<Integer> getCoder() {
+    return FixedSize.ints;
+  }
 
   @Override
   public void encounterValue(Integer value) {

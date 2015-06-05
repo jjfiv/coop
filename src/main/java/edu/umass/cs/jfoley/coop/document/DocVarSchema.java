@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.document;
 
+import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
 import org.lemurproject.galago.utility.Parameters;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 /**
  * @author jfoley
  */
-public abstract class DocVarSchema<T> {
+public abstract class DocVarSchema<T extends Comparable<T>> {
   protected final String name;
   public DocVarSchema(String name) {
     this.name = name;
@@ -37,6 +38,11 @@ public abstract class DocVarSchema<T> {
     DocVarSchema rhs = (DocVarSchema) other;
     return name.equals(rhs.getName()) && rhs.getClass().equals(getClass());
   }
+
+  /**
+   * @return a coder that can encode the value type T.
+   */
+  public abstract Coder<T> getCoder();
 
   @Override
   public int hashCode() {
