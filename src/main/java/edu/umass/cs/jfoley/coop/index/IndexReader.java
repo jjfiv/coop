@@ -7,16 +7,12 @@ import ciir.jfoley.chai.errors.NotHandledNow;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipArchive;
-import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
-import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
-import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
+import edu.umass.cs.ciir.waltz.coders.kinds.*;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.IdSetMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.feature.Feature;
-import edu.umass.cs.ciir.waltz.feature.MoverFeature;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.index.AbstractIndex;
 import edu.umass.cs.ciir.waltz.index.mem.CountsOfPositionsMover;
@@ -27,6 +23,7 @@ import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
+import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
 import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndexReader;
 import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
 import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusReader;
@@ -51,6 +48,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   final IOMap<String, PostingMover<Integer>> lengths;
   final IdMaps.Reader<String> names;
   final Map<String, IOMap<String, PostingMover<PositionsList>>> positionSets;
+  final IOMap<String, PostingMover<Integer>> numbers;
   final IOMap<String, PostingMover<SpanList>> tags;
   final CoopTokenizer tokenizer;
   final Map<String, DocVarSchema> fieldSchema;
@@ -93,6 +91,11 @@ public class IndexReader extends AbstractIndex implements Closeable {
         new SimplePostingListFormat.PostingCoder<>(new SpanListCoder()),
         indexDir.childPath("tags")
     );
+    this.numbers = GalagoIO.openIOMap(
+        CharsetCoders.utf8Raw,
+        new SimplePostingListFormat.PostingCoder<>(VarInt.instance),
+        indexDir.childPath("numbers")
+    );
   }
 
   @Nonnull
@@ -101,7 +104,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   }
 
   @Nullable
-  public DocVarSchema fieldSchema(String fieldName) {
+  public DocVarSchema getFieldSchema(String fieldName) {
     return fieldSchema.get(fieldName);
   }
 
@@ -174,7 +177,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
 
   @Nullable
   public Mover getLabeledDocuments(String name, Object value) {
-    DocVarSchema docVarSchema = fieldSchema(name);
+    DocVarSchema docVarSchema = getFieldSchema(name);
     if(docVarSchema == null) return null;
     if(docVarSchema instanceof CategoricalVarSchema) {
       String val = (String) value;
@@ -217,8 +220,15 @@ public class IndexReader extends AbstractIndex implements Closeable {
   @Override
   @Nonnull
   public Feature<Integer> getLengths() {
+    PostingMover<Integer> lengthsMover = getLengths(tokenizer.getDefaultTermSet());
+    if(lengthsMover == null) throw new IndexErrorException("Should have a lengths posting list for the default term set: "+tokenizer.getDefaultTermSet());
+    return lengthsMover.getFeature();
+  }
+
+  @Nullable
+  public PostingMover<Integer> getLengths(String tokenType) {
     try {
-      return new MoverFeature<>(lengths.get("doc"));
+      return lengths.get(tokenType);
     } catch (IOException e) {
       throw new IndexErrorException(e);
     }
@@ -239,6 +249,20 @@ public class IndexReader extends AbstractIndex implements Closeable {
       return ChaiIterable.create(names.forwardReader.getInBulk(blueIds))
           .map(x -> (x.right))
           .intoSet();
+    } catch (IOException e) {
+      throw new IndexErrorException(e);
+    }
+  }
+
+  @Nullable
+  public PostingMover<Integer> getNumbers(String numericFieldName) {
+    DocVarSchema docVarSchema = getFieldSchema(numericFieldName);
+    if(docVarSchema == null) return null;
+    if (!(docVarSchema instanceof IntegerVarSchema)) {
+      return null;
+    }
+    try {
+      return numbers.get(numericFieldName);
     } catch (IOException e) {
       throw new IndexErrorException(e);
     }

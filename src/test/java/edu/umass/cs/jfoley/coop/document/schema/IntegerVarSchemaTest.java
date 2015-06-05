@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.document.schema;
 
 import ciir.jfoley.chai.io.TemporaryDirectory;
+import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -47,10 +49,15 @@ public class IntegerVarSchemaTest {
 
       try (IndexReader reader = new IndexReader(tmpdir)) {
         assertEquals(Collections.singleton("ordinal"), reader.fieldNames());
-        assertTrue(reader.fieldSchema("ordinal") instanceof IntegerVarSchema);
-        assertEquals(schemas.get("ordinal"), reader.fieldSchema("ordinal"));
+        assertTrue(reader.getFieldSchema("ordinal") instanceof IntegerVarSchema);
+        assertEquals(schemas.get("ordinal"), reader.getFieldSchema("ordinal"));
 
-
+        PostingMover<Integer> ordinal = reader.getNumbers("ordinal");
+        assertNotNull(ordinal);
+        ordinal.execute((document) -> {
+          assertTrue(ordinal.matches(document));
+          assertEquals(document+1, ordinal.getCurrentPosting().intValue());
+        });
       }
     }
 
