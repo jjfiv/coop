@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.lemurproject.galago.core.parse.Document;
 import org.lemurproject.galago.core.parse.DocumentSource;
 import org.lemurproject.galago.core.parse.DocumentStreamParser;
@@ -33,9 +34,9 @@ public class BuildIndex extends AppFunction {
   @Override
   public void run(Parameters argp, PrintStream output) throws Exception {
     List<DocumentSplit> splits = DocumentSource.processFile(new File(argp.getString("input")), argp);
-    CoopTokenizer tok = CoopTokenizer.create(argp);
+    IndexConfiguration cfg = IndexConfiguration.create();
 
-    try (IndexBuilder builder = new IndexBuilder(tok, new Directory(argp.getString("output")))) {
+    try (IndexBuilder builder = new IndexBuilder(cfg, new Directory(argp.getString("output")))) {
       int x = 0;
       for (DocumentSplit split : splits) {
         try (DocumentStreamParser parser = DocumentStreamParser.create(split, argp)) {

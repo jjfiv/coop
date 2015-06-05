@@ -5,6 +5,7 @@ import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -45,21 +46,22 @@ public class StanfordNLPTokenizerTest {
 
   @Test
   public void singleDocumentIndex() throws IOException {
-    StanfordNLPTokenizer tok = new StanfordNLPTokenizer();
-    CoopDoc spot = tok.createDocument("spot", SpotDocument);
+    IndexConfiguration cfg = IndexConfiguration.create();
+    cfg.tokenizer = new StanfordNLPTokenizer();
+    CoopDoc spot = cfg.tokenizer.createDocument("spot", SpotDocument);
 
     assertNotNull(spot.getTags().get("sentence"));
 
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
-      try (IndexBuilder builder = new IndexBuilder(tok, tmpdir)) {
+      try (IndexBuilder builder = new IndexBuilder(cfg, tmpdir)) {
         builder.addDocument(spot);
       }
       try (IndexReader reader = new IndexReader(tmpdir)) {
         // Tokenizers should be the same.
-        assertEquals(tok.getClass(), reader.getTokenizer().getClass());
+        assertEquals(cfg.tokenizer.getClass(), reader.getTokenizer().getClass());
 
         List<String> terms = reader.getCorpus().pullTokens(reader.getDocumentId("spot"));
-        assertEquals(spot.getTerms().get(tok.getDefaultTermSet()), terms);
+        assertEquals(spot.getTerms().get(cfg.tokenizer.getDefaultTermSet()), terms);
 
         // Make sure that our tags got written correctly:
         List<SpanList> data = new ArrayList<>();

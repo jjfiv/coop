@@ -13,6 +13,11 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
   public int maxValue;
   public int minValue;
   public int frequency;
+
+
+  /** Reflection-only */
+  private IntegerVarSchema() { super(null); }
+
   IntegerVarSchema(String name, int maxValue, int minValue, int frequency) {
      super(name);
      this.maxValue = maxValue;

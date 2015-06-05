@@ -4,16 +4,14 @@ import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.StanfordNLPTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Nonnull;
+import java.util.*;
 
 /**
  * @author jfoley
  */
 public class IndexConfiguration {
-  public final CoopTokenizer tokenizer;
+  public CoopTokenizer tokenizer;
   public final Map<String, DocVarSchema> documentVariables;
   public final List<CovariateSpaceConfiguration> covariateSpaces;
 
@@ -23,6 +21,7 @@ public class IndexConfiguration {
     this.covariateSpaces = covariateSpaces;
   }
 
+  @Nonnull
   public static IndexConfiguration fromMTEParameters(Parameters input) {
     // Load up var schema:
     Parameters schema = input.getMap("schema");
@@ -54,5 +53,14 @@ public class IndexConfiguration {
     );
 
     return new IndexConfiguration(new StanfordNLPTokenizer(), varSchemas, cvs);
+  }
+
+  @Nonnull
+  public static IndexConfiguration create() {
+    return new IndexConfiguration(
+        CoopTokenizer.create(),
+        new HashMap<>(),
+        new ArrayList<>()
+    );
   }
 }

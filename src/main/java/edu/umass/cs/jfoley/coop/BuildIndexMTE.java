@@ -6,9 +6,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.IndexBuilder;
-import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.AppFunction;
@@ -16,7 +14,6 @@ import org.lemurproject.galago.utility.tools.AppFunction;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Map;
 
 /**
  * @author jfoley
@@ -63,20 +60,19 @@ public class BuildIndexMTE extends AppFunction {
     IndexConfiguration config = IndexConfiguration.fromMTEParameters(dataset);
 
     if(dataFile.exists()) {
-      buildIndexFromDataFile(argp, config.documentVariables, dataFile, outputDir);
+      buildIndexFromDataFile(config, dataFile, outputDir);
     } else {
       throw new UnsupportedOperationException("JustNERFile");
     }
 
   }
 
-  public static void buildIndexFromDataFile(Parameters argp, Map<String, DocVarSchema> varSchemas, File dataFile, Directory outputDir) throws IOException {
-    CoopTokenizer tok = CoopTokenizer.create(argp);
-    try(IndexBuilder builder = new IndexBuilder(tok, outputDir, varSchemas)) {
+  public static void buildIndexFromDataFile(IndexConfiguration cfg, File dataFile, Directory outputDir) throws IOException {
+    try(IndexBuilder builder = new IndexBuilder(cfg, outputDir)) {
       try (LinesIterable input = LinesIterable.fromFile(dataFile)) {
         for (String line : input) {
           Parameters data = Parameters.parseString(line);
-          CoopDoc doc = CoopDoc.createMTE(tok, data, varSchemas);
+          CoopDoc doc = CoopDoc.createMTE(cfg.tokenizer, data, cfg.documentVariables);
           doc.setRawText(data.toString());
           builder.addDocument(doc);
         }

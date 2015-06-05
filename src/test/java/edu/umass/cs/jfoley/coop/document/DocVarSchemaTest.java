@@ -3,11 +3,10 @@ package edu.umass.cs.jfoley.coop.document;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
-import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.IndexBuilder;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
-import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
+import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.junit.Test;
 import org.lemurproject.galago.utility.Parameters;
 
@@ -23,7 +22,7 @@ public class DocVarSchemaTest {
 
   @Test
   public void indexDocumentsAndRetrieveByField() throws IOException {
-    CoopTokenizer tok = CoopTokenizer.create();
+    IndexConfiguration cfg = IndexConfiguration.create();
 
     List<Parameters> mteStyleDocuments = new ArrayList<>();
     mteStyleDocuments.add(Parameters.parseArray(
@@ -42,20 +41,19 @@ public class DocVarSchemaTest {
         "color", "blue"
     ));
 
-    Map<String,DocVarSchema> schemas = new HashMap<>();
-    schemas.put("color", new CategoricalVarSchema("color", Arrays.asList("red", "blue"), true));
+    cfg.documentVariables.put("color", new CategoricalVarSchema("color", Arrays.asList("red", "blue"), true));
 
     try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
-      try (IndexBuilder builder = new IndexBuilder(tok, tmpdir, schemas)) {
+      try (IndexBuilder builder = new IndexBuilder(cfg, tmpdir)) {
         for (Parameters mteStyleDocument : mteStyleDocuments) {
-          builder.addDocument(CoopDoc.createMTE(tok,mteStyleDocument,schemas));
+          builder.addDocument(CoopDoc.createMTE(cfg.tokenizer, mteStyleDocument, cfg.documentVariables));
         }
       }
 
       try (IndexReader reader = new IndexReader(tmpdir)) {
         assertEquals(Collections.singleton("color"), reader.fieldNames());
         assertTrue(reader.getFieldSchema("color") instanceof CategoricalVarSchema);
-        assertEquals(schemas.get("color"), reader.getFieldSchema("color"));
+        assertEquals(cfg.documentVariables.get("color"), reader.getFieldSchema("color"));
 
         assertNull(reader.getLabeledDocuments("color", "yellow"));
         assertNull(reader.getLabeledDocuments("flower", "blue"));
