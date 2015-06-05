@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.index.general;
+package edu.umass.cs.jfoley.coop.index.covariate;
 
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.io.Directory;
@@ -9,6 +9,8 @@ import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
+import edu.umass.cs.jfoley.coop.index.general.DocumentSetWriter;
+import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.lemurproject.galago.utility.Parameters;
