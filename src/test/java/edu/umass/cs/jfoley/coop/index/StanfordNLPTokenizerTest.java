@@ -6,6 +6,7 @@ import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
+import edu.umass.cs.jfoley.coop.tokenization.StanfordNLPTokenizer;
 import org.junit.Test;
 
 import java.io.IOException;

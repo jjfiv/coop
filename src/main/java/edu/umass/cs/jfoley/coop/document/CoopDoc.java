@@ -5,7 +5,6 @@ import ciir.jfoley.chai.fn.GenerateFn;
 import edu.umass.cs.ciir.waltz.postings.extents.InterleavedSpans;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import org.lemurproject.galago.utility.Parameters;
 

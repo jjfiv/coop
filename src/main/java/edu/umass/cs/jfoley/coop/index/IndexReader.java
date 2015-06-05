@@ -22,6 +22,7 @@ import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.index.general.IdMaps;
 import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.schema.IntegerVarSchema;
@@ -29,6 +30,7 @@ import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndexReader;
 import edu.umass.cs.jfoley.coop.index.component.KryoCoopDocCorpusWriter;
 import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
 import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusReader;
+import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;

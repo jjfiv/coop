@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.index;
+package edu.umass.cs.jfoley.coop.tokenization;
 
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import org.lemurproject.galago.utility.Parameters;

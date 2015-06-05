@@ -1,7 +1,7 @@
 package edu.umass.cs.jfoley.coop.querying.lang;
 
 import ciir.jfoley.chai.collections.list.AChaiList;
-import edu.umass.cs.jfoley.coop.index.NamespacedLabel;
+import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;

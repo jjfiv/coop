@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.index;
 
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.tokenization.GalagoTokenizer;
 import org.junit.Test;
 
 import java.util.Arrays;

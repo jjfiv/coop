@@ -5,6 +5,7 @@ import ciir.jfoley.chai.lang.Builder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.index.component.*;
 import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusWriter;
+import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.Closeable;

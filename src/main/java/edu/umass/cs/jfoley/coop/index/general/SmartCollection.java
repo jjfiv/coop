@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.index;
+package edu.umass.cs.jfoley.coop.index.general;
 
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.data.SmartDataChunk;

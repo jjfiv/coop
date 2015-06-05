@@ -5,7 +5,7 @@ import ciir.jfoley.chai.io.archive.ZipWriter;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.component.IndexItemWriter;
+import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.IOException;

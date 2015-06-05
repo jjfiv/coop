@@ -1,10 +1,9 @@
-package edu.umass.cs.jfoley.coop.index.component;
+package edu.umass.cs.jfoley.coop.index.general;
 
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.fn.GenerateFn;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
-import edu.umass.cs.jfoley.coop.index.SmartCollection;
 
 import java.io.Closeable;
 import java.io.IOException;

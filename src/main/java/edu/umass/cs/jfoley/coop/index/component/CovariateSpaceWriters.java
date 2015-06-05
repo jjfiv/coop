@@ -2,6 +2,8 @@ package edu.umass.cs.jfoley.coop.index.component;
 
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
+import edu.umass.cs.jfoley.coop.index.general.MapCovariateSpaceWriter;
 import edu.umass.cs.jfoley.coop.schema.CovariateSpaceConfiguration;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 

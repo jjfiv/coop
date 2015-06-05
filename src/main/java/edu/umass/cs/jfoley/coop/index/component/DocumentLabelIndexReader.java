@@ -4,7 +4,7 @@ import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
-import edu.umass.cs.jfoley.coop.index.NamespacedLabel;
+import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
 import java.io.Closeable;
 import java.io.IOException;

@@ -1,7 +1,7 @@
 package edu.umass.cs.jfoley.coop.schema;
 
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
-import edu.umass.cs.jfoley.coop.index.StanfordNLPTokenizer;
+import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
+import edu.umass.cs.jfoley.coop.tokenization.StanfordNLPTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;

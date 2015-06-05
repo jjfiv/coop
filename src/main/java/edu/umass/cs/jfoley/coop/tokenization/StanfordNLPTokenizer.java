@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.index;
+package edu.umass.cs.jfoley.coop.tokenization;
 
 import ciir.jfoley.chai.lang.LazyPtr;
 import ciir.jfoley.chai.string.StrUtil;

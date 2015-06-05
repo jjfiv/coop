@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.index.component;
+package edu.umass.cs.jfoley.coop.index.general;
 
 import java.io.Closeable;
 

@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.index.component;
+package edu.umass.cs.jfoley.coop.index.general;
 
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
