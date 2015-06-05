@@ -7,6 +7,7 @@ import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import org.lemurproject.galago.utility.Parameters;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,7 +93,8 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
     return name.equals(other.name) && values.equals(other.values);
   }
 
-  public static DocVarSchema create(String name, Parameters args) {
+  @Nonnull
+  public static CategoricalVarSchema create(String name, Parameters args) {
     if (args.isList("values")) {
       return new CategoricalVarSchema(name, args.getAsList("values", String.class), true);
     }

@@ -161,7 +161,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
     return tags;
   }
 
-  public void setVariables(HashMap<String,DocVar> variables) {
+  public void setVariables(Map<String,DocVar> variables) {
     this.variables = variables;
   }
 
