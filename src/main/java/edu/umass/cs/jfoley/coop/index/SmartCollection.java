@@ -7,10 +7,7 @@ import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.AbstractCollection;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Stores a collection on disk when the JVM tells us we're running out of memory.
@@ -22,13 +19,13 @@ public class SmartCollection<T> extends AbstractCollection<T> implements Closeab
   private final Coder<T> itemCoder;
   private int count;
 
-  public SmartCollection(Coder<T> itemCoder) {
+  public SmartCollection(@Nonnull Coder<T> itemCoder) {
     this.storage = new SmartDataChunk();
-    this.itemCoder = itemCoder;
+    this.itemCoder = Objects.requireNonNull(itemCoder.lengthSafe());
     this.count = 0;
   }
 
-  public boolean add(T val) {
+  public boolean add(@Nonnull T val) {
     storage.add(itemCoder, val);
     count++;
     return true;
@@ -70,8 +67,9 @@ public class SmartCollection<T> extends AbstractCollection<T> implements Closeab
         }
 
         @Override
+        @Nonnull
         public T next() {
-          if(!hasNext()) return null;
+          if(!hasNext()) throw new NoSuchElementException();
           return itemCoder.read(is);
         }
       };
