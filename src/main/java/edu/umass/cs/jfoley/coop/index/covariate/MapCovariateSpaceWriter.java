@@ -27,24 +27,30 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
 
   private final DocVarSchema<A> xSchema;
   private final DocVarSchema<B> ySchema;
-  private final Coder<A> xCoder;
-  private final Coder<B> yCoder;
-  private final DocumentSetWriter<Covariable> writer;
+  private final DocumentSetWriter<Covariable<A,B>> writer;
 
-  public final class Covariable extends Pair<A,B> implements Comparable<Covariable> {
+  public static class Covariable<A extends Comparable<A>, B extends Comparable<B>> extends Pair<A,B> implements Comparable<Covariable<A,B>> {
     public Covariable(A left, B right) {
       super(left, right);
     }
 
     @Override
-    public int compareTo(@Nonnull Covariable o) {
+    public int compareTo(@Nonnull Covariable<A,B> o) {
       int cmp = left.compareTo(o.left);
       if(cmp != 0) return cmp;
 
       return right.compareTo(o.right);
     }
   }
-  public final class CovariableCoder extends Coder<Covariable> {
+  public static class CovariableCoder<A extends Comparable<A>, B extends Comparable<B>> extends Coder<Covariable<A,B>> {
+    private Coder<A> xCoder;
+    private Coder<B> yCoder;
+
+    public CovariableCoder(Coder<A> xCoder, Coder<B> yCoder) {
+      this.xCoder = xCoder;
+      this.yCoder = yCoder;
+    }
+
     @Override
     public boolean knowsOwnSize() {
       return true;
@@ -52,7 +58,7 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
 
     @Nonnull
     @Override
-    public DataChunk writeImpl(Covariable obj) throws IOException {
+    public DataChunk writeImpl(Covariable<A,B> obj) throws IOException {
       BufferList bl = new BufferList();
       bl.add(xCoder, obj.left);
       bl.add(yCoder, obj.right);
@@ -61,10 +67,10 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
 
     @Nonnull
     @Override
-    public Covariable readImpl(InputStream inputStream) throws IOException {
+    public Covariable<A,B> readImpl(InputStream inputStream) throws IOException {
       A left = xCoder.readImpl(inputStream);
       B right = yCoder.readImpl(inputStream);
-      return new Covariable(left, right);
+      return new Covariable<>(left, right);
     }
   }
 
@@ -72,9 +78,11 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
     super(outputDir, cfg);
     this.xSchema = xSchema;
     this.ySchema = ySchema;
+    Coder<A> xCoder = xSchema.getCoder().lengthSafe();
+    Coder<B> yCoder = ySchema.getCoder().lengthSafe();
     this.writer = new DocumentSetWriter<>(
         GalagoIO.getIOMapWriter(
-            new CovariableCoder(),
+            new CovariableCoder<>(xCoder, yCoder),
             new DeltaIntListCoder(),
             outputDir.childPath("covar." + xSchema.getName() + "." + ySchema.getName()), // TODO, do variables need short-names?
             Parameters.parseArray(
@@ -83,8 +91,6 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
             )
         )
     );
-    this.xCoder = xSchema.getCoder().lengthSafe();
-    this.yCoder = ySchema.getCoder().lengthSafe();
   }
 
   @Override
@@ -95,7 +101,7 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
     B varB = document.getVariableValue(ySchema);
     if(varB == null) return;
 
-    Covariable covar = new Covariable(varA, varB);
+    Covariable<A,B> covar = new Covariable<>(varA, varB);
     writer.process(covar, document.getIdentifier());
   }
 
