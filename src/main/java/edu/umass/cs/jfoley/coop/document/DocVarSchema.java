@@ -4,6 +4,7 @@ import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
 import org.lemurproject.galago.utility.Parameters;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 
 /**
@@ -57,6 +58,7 @@ public abstract class DocVarSchema<T> {
     vars.put(name, val);
   }
 
+  @Nonnull
   public static DocVarSchema create(String name, Parameters argp) {
     switch(argp.getString("type")) {
       case "categorical":
