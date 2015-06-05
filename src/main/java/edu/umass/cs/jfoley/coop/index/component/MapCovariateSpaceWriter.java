@@ -5,10 +5,13 @@ import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.data.BufferList;
 import edu.umass.cs.ciir.waltz.coders.data.DataChunk;
+import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
+import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
+import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -24,6 +27,7 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
   private final DocVarSchema<B> ySchema;
   private final Coder<A> xCoder;
   private final Coder<B> yCoder;
+  private final DocumentSetWriter<Covariable> writer;
 
   public final class Covariable extends Pair<A,B> implements Comparable<Covariable> {
     public Covariable(A left, B right) {
@@ -62,10 +66,21 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
     }
   }
 
-  public MapCovariateSpaceWriter(Directory outputDir, CoopTokenizer tokenizer, DocVarSchema<A> xSchema, DocVarSchema<B> ySchema) {
+  public MapCovariateSpaceWriter(Directory outputDir, CoopTokenizer tokenizer, DocVarSchema<A> xSchema, DocVarSchema<B> ySchema) throws IOException {
     super(outputDir, tokenizer);
     this.xSchema = xSchema;
     this.ySchema = ySchema;
+    this.writer = new DocumentSetWriter<>(
+        GalagoIO.getIOMapWriter(
+            new CovariableCoder(),
+            new DeltaIntListCoder(),
+            "covar." + xSchema.getName() + "." + ySchema, // TODO, do variables need short-names?
+            Parameters.parseArray(
+                "covarXSchema", xSchema.toJSON(),
+                "covarYSchema", ySchema.toJSON()
+            )
+        )
+    );
     this.xCoder = xSchema.getCoder().lengthSafe();
     this.yCoder = ySchema.getCoder().lengthSafe();
   }
@@ -79,11 +94,11 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
     if(varB == null) return;
 
     Covariable covar = new Covariable(varA, varB);
-
+    writer.process(covar, document.getIdentifier());
   }
 
   @Override
   public void close() throws IOException {
-
+    writer.close();
   }
 }
