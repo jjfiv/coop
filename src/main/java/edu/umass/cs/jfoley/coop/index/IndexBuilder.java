@@ -45,6 +45,7 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
 
     // corpus:
     writers.add(new RawCorpusWriter(outputDir, tokenizer));
+    writers.add(new KryoCoopDocCorpusWriter(outputDir, tokenizer));
     writers.add(new ZipTokensCorpusWriter(outputDir, tokenizer));
 
     // TODO: have every writer have a unique name and a piece of JSON to contribute.

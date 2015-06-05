@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.index;
 
 import ciir.jfoley.chai.io.TemporaryDirectory;
+import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
@@ -62,7 +63,9 @@ public class StanfordNLPTokenizerTest {
 
         // Make sure that our tags got written correctly:
         List<SpanList> data = new ArrayList<>();
-        reader.getTag("sentence").collectValues(data::add);
+        PostingMover<SpanList> sentence = reader.getTag("sentence");
+        assertNotNull(sentence);
+        sentence.collectValues(data::add);
         assertEquals(Collections.singletonList(spot.getTags().get("sentence")), data);
       }
     }

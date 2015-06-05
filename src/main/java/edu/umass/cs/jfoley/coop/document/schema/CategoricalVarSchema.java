@@ -16,6 +16,13 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
   private final ListBasedOrderedSet<String> values;
   private final boolean definedInAdvance;
 
+  /** Reflection-only constructor */
+  private CategoricalVarSchema() {
+    super(null);
+    this.values = null;
+    this.definedInAdvance = false;
+  }
+
   public CategoricalVarSchema(String name, List<String> values, boolean definedInAdvance) {
     super(name);
     this.values = new ListBasedOrderedSet<>(values);

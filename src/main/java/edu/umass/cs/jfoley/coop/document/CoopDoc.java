@@ -10,10 +10,7 @@ import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * My pet peeve are java classes named Document.
@@ -36,6 +33,8 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.identifier = UNKNOWN_DOCID;
     this.variables = new HashMap<>();
   }
+
+
   public CoopDoc(String name, Map<String,List<String>> terms, int identifier, Map<String, DocVar> variables) {
     this.name = name;
     this.terms = terms;
@@ -51,6 +50,29 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.identifier = UNKNOWN_DOCID;
     this.variables = new HashMap<>();
   }
+
+  @Override
+  public String toString() {
+    return toJSON().toString();
+  }
+
+  public Parameters toJSON() {
+    return Parameters.parseArray(
+        "name", name,
+        "identifier", identifier,
+        "terms", Parameters.wrap(terms),
+        "tags", Parameters.wrap(MapFns.mapValues(tags, (spanList) -> {
+          List<List<Integer>> reallyNaiveSpanList = new ArrayList<>();
+          for (Span span : spanList) {
+            reallyNaiveSpanList.add(Arrays.asList(span.begin, span.end));
+          }
+          return reallyNaiveSpanList;
+        })),
+        "variables", Parameters.wrap(MapFns.mapValues(variables, (var) -> var.get()))
+    );
+  }
+
+
 
   public String getName() { return name; }
   public Map<String,List<String>> getTerms() { return terms; }
@@ -117,6 +139,27 @@ public class CoopDoc implements Comparable<CoopDoc> {
     doc.setRawText(document.toString());
 
     return doc;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if(this == o) return true;
+    if(o instanceof CoopDoc) {
+      CoopDoc other = (CoopDoc) o;
+      if(identifier != other.identifier) return false;
+      System.out.println("id ok");
+      if(!name.equals(other.name)) return false;
+      System.out.println("name ok");
+      if(!terms.equals(other.terms)) return false;
+      System.out.println("terms ok");
+      if(!tags.equals(other.tags)) return false;
+      System.out.println("tags ok");
+      if(!variables.equals(other.variables)) return false;
+      System.out.println("variables ok");
+      if(!rawText.equals(other.rawText)) return false;
+      System.out.println("rawText ok");
+    }
+    return false;
   }
 
   public Collection<DocVar> getVariables() {

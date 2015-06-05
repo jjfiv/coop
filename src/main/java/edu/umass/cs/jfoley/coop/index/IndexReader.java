@@ -21,10 +21,12 @@ import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
 import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
 import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndexReader;
+import edu.umass.cs.jfoley.coop.index.component.KryoCoopDocCorpusWriter;
 import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
 import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusReader;
 import org.lemurproject.galago.utility.Parameters;
@@ -54,6 +56,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   final Map<String, DocVarSchema> fieldSchema;
   final DocumentLabelIndexReader docLabels;
   final Parameters meta;
+  final IOMap<Integer, CoopDoc> corpus;
 
   public IndexReader(@Nonnull Directory indexDir) throws IOException {
     this.indexDir = indexDir;
@@ -65,6 +68,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
       this.fieldSchema.put(field, DocVarSchema.create(field, schema.getMap(field)));
     }
     this.docLabels = new DocumentLabelIndexReader(indexDir.childPath("doclabels"));
+    this.corpus = KryoCoopDocCorpusWriter.getReader(indexDir);
 
     this.tokenizer = CoopTokenizer.create(meta);
     this.rawCorpus = ZipArchive.open(indexDir.child("raw.zip"));
@@ -252,6 +256,20 @@ public class IndexReader extends AbstractIndex implements Closeable {
     } catch (IOException e) {
       throw new IndexErrorException(e);
     }
+  }
+
+  @Nullable
+  public CoopDoc getDocument(int id) {
+    try {
+      return corpus.get(id);
+    } catch (IOException e) {
+      throw new IndexErrorException(e);
+    }
+  }
+
+  @Nullable
+  public CoopDoc getDocument(String name) {
+    return getDocument(getDocumentId(name));
   }
 
   @Nullable

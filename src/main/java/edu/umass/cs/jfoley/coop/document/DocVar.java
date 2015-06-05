@@ -9,6 +9,11 @@ public class DocVar<T> implements GenerateFn<T> {
   private final DocVarSchema<T> schema;
   private final T value;
 
+  /** No-args constructor for reflection. */
+  private DocVar() {
+    this.schema = null;
+    this.value = null;
+  }
   public DocVar(DocVarSchema<T> schema, T value) {
     this.schema = schema;
     this.value = value;
