@@ -48,9 +48,9 @@ public class IndexConfiguration {
     // Load up primary covariate-space:
     String xName = input.getString("x");
     String yName = input.getString("y");
-    List<CovariateSpaceConfiguration> cvs = Collections.singletonList(
+    List<CovariateSpaceConfiguration> cvs = new ArrayList<>(Collections.singletonList(
         new CovariateSpaceConfiguration(varSchemas.get(xName), varSchemas.get(yName))
-    );
+    ));
 
     return new IndexConfiguration(new StanfordNLPTokenizer(), varSchemas, cvs);
   }

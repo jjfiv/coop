@@ -74,7 +74,7 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
         GalagoIO.getIOMapWriter(
             new CovariableCoder(),
             new DeltaIntListCoder(),
-            "covar." + xSchema.getName() + "." + ySchema, // TODO, do variables need short-names?
+            outputDir.childPath("covar." + xSchema.getName() + "." + ySchema.getName()), // TODO, do variables need short-names?
             Parameters.parseArray(
                 "covarXSchema", xSchema.toJSON(),
                 "covarYSchema", ySchema.toJSON()

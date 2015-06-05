@@ -24,7 +24,6 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
   public IndexBuilder(IndexConfiguration cfg, Directory outputDir) throws IOException {
     this.outputDir = outputDir;
     this.cfg = cfg;
-    CoopTokenizer tokenizer = cfg.tokenizer;
 
     this.writers = new ArrayList<>();
     // terms & tags:
@@ -43,6 +42,9 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
     writers.add(new RawCorpusWriter(outputDir, cfg));
     writers.add(new KryoCoopDocCorpusWriter(outputDir, cfg));
     writers.add(new ZipTokensCorpusWriter(outputDir, cfg));
+
+    // co-variate spaces
+    writers.add(new CovariateSpaceWriters(outputDir, cfg));
 
     // TODO: have every writer have a unique name and a piece of JSON to contribute.
     MetadataWriter metadataWriter = new MetadataWriter(outputDir, cfg);
