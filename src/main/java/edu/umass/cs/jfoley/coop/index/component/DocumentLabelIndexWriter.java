@@ -6,8 +6,8 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.NamespacedLabel;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.IOException;
 
@@ -17,8 +17,8 @@ import java.io.IOException;
 public class DocumentLabelIndexWriter extends IndexItemWriter {
   DocumentSetWriter<NamespacedLabel> writer;
 
-  public DocumentLabelIndexWriter(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
-    super(outputDir, tokenizer);
+  public DocumentLabelIndexWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
+    super(outputDir, cfg);
     this.writer = new DocumentSetWriter<>(
         GalagoIO.getIOMapWriter(
         NamespacedLabel.coder,

@@ -6,7 +6,7 @@ import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,8 +18,8 @@ import java.util.Map;
 public class LengthsWriter extends IndexItemWriter {
   private final StreamingPostingBuilder<String, Integer> writer;
 
-  public LengthsWriter(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
-    super(outputDir, tokenizer);
+  public LengthsWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
+    super(outputDir, cfg);
     this.writer = new StreamingPostingBuilder<>(
         CharsetCoders.utf8Raw,
         VarUInt.instance,

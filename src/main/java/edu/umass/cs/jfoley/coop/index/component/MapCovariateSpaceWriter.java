@@ -10,7 +10,7 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
@@ -66,8 +66,8 @@ public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparabl
     }
   }
 
-  public MapCovariateSpaceWriter(Directory outputDir, CoopTokenizer tokenizer, DocVarSchema<A> xSchema, DocVarSchema<B> ySchema) throws IOException {
-    super(outputDir, tokenizer);
+  public MapCovariateSpaceWriter(Directory outputDir, IndexConfiguration cfg, DocVarSchema<A> xSchema, DocVarSchema<B> ySchema) throws IOException {
+    super(outputDir, cfg);
     this.xSchema = xSchema;
     this.ySchema = ySchema;
     this.writer = new DocumentSetWriter<>(

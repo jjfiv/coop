@@ -7,7 +7,7 @@ import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.IOException;
 
@@ -17,8 +17,8 @@ import java.io.IOException;
 public class KryoCoopDocCorpusWriter extends IndexItemWriter {
   private final IOMapWriter<Integer, CoopDoc> writer;
 
-  public KryoCoopDocCorpusWriter(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
-    super(outputDir, tokenizer);
+  public KryoCoopDocCorpusWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
+    super(outputDir, cfg);
     this.writer = GalagoIO.getIOMapWriter(
         FixedSize.ints,
         new KryoCoder<>(CoopDoc.class),

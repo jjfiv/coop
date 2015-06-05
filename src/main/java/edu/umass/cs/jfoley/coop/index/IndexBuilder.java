@@ -28,24 +28,24 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
 
     this.writers = new ArrayList<>();
     // terms & tags:
-    writers.add(new PositionsSetWriter(outputDir, tokenizer));
-    writers.add(new TagIndexWriter(outputDir, tokenizer));
+    writers.add(new PositionsSetWriter(outputDir, cfg));
+    writers.add(new TagIndexWriter(outputDir, cfg));
 
     // document vars:
-    writers.add(new DocumentLabelIndexWriter(outputDir, tokenizer));
-    writers.add(new NumericalVarWriter(outputDir, tokenizer));
+    writers.add(new DocumentLabelIndexWriter(outputDir, cfg));
+    writers.add(new NumericalVarWriter(outputDir, cfg));
 
     // lengths, names:
-    writers.add(new LengthsWriter(outputDir, tokenizer));
-    writers.add(new NamesWriter(outputDir, tokenizer));
+    writers.add(new LengthsWriter(outputDir, cfg));
+    writers.add(new NamesWriter(outputDir, cfg));
 
     // corpus:
-    writers.add(new RawCorpusWriter(outputDir, tokenizer));
-    writers.add(new KryoCoopDocCorpusWriter(outputDir, tokenizer));
-    writers.add(new ZipTokensCorpusWriter(outputDir, tokenizer));
+    writers.add(new RawCorpusWriter(outputDir, cfg));
+    writers.add(new KryoCoopDocCorpusWriter(outputDir, cfg));
+    writers.add(new ZipTokensCorpusWriter(outputDir, cfg));
 
     // TODO: have every writer have a unique name and a piece of JSON to contribute.
-    MetadataWriter metadataWriter = new MetadataWriter(outputDir, tokenizer, cfg.documentVariables);
+    MetadataWriter metadataWriter = new MetadataWriter(outputDir, cfg);
     writers.add(metadataWriter);
   }
 

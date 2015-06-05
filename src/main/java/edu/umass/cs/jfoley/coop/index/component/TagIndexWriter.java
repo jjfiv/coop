@@ -7,7 +7,7 @@ import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.IOException;
 import java.util.Map;
@@ -18,8 +18,8 @@ import java.util.Map;
 public class TagIndexWriter extends IndexItemWriter {
   private final StreamingPostingBuilder<String, SpanList> writer;
 
-  public TagIndexWriter(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
-    super(outputDir, tokenizer);
+  public TagIndexWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
+    super(outputDir, cfg);
     this.writer = new StreamingPostingBuilder<>(
         CharsetCoders.utf8Raw,
         new SpanListCoder(),

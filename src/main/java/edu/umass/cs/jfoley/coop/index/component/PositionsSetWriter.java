@@ -11,7 +11,7 @@ import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -25,11 +25,11 @@ import java.util.Map;
 public class PositionsSetWriter extends IndexItemWriter {
   private final HashMap<String, StreamingPostingBuilder<String, PositionsList>> positionsBuilders;
 
-  public PositionsSetWriter(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
-    super(outputDir, tokenizer);
+  public PositionsSetWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
+    super(outputDir, cfg);
 
     this.positionsBuilders = new HashMap<>();
-    for (String tokenSet : this.tokenizer.getTermSets()) {
+    for (String tokenSet : cfg.tokenizer.getTermSets()) {
       positionsBuilders.put(
           tokenSet,
           new StreamingPostingBuilder<>(

@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.document;
 
+import ciir.jfoley.chai.lang.Module;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
@@ -12,7 +13,7 @@ import java.util.Map;
 /**
  * @author jfoley
  */
-public class MTECoopDoc {
+public class MTECoopDoc extends Module {
   @Nonnull
   private static CoopDoc createMTE(CoopTokenizer tok, Parameters document, Map<String, DocVarSchema> varSchemas) {
     String text = document.getString("text");

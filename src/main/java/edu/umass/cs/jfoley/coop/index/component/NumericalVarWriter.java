@@ -7,8 +7,8 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import edu.umass.cs.jfoley.coop.schema.IntegerVarSchema;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 
 import java.io.IOException;
 
@@ -18,8 +18,8 @@ import java.io.IOException;
 public class NumericalVarWriter extends IndexItemWriter {
   StreamingPostingBuilder<String, Integer> countPostingsBuilder;
 
-  public NumericalVarWriter(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
-    super(outputDir, tokenizer);
+  public NumericalVarWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
+    super(outputDir, cfg);
     countPostingsBuilder = new StreamingPostingBuilder<>(
         CharsetCoders.utf8Raw,
         VarInt.instance,

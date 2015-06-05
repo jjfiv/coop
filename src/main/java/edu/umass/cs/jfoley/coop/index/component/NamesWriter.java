@@ -4,8 +4,8 @@ import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.IdMaps;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.IOException;
 
@@ -14,8 +14,8 @@ import java.io.IOException;
  */
 public class NamesWriter extends IndexItemWriter {
   private final IdMaps.Writer<String> names;
-  public NamesWriter(Directory outputDir, CoopTokenizer tokenizer) throws IOException {
-    super(outputDir, tokenizer);
+  public NamesWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
+    super(outputDir, cfg);
     this.names = IdMaps.openWriter(
         outputDir.childPath("names"),
         FixedSize.ints,

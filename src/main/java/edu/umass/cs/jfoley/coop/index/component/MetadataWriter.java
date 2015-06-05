@@ -4,7 +4,7 @@ import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
-import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
@@ -19,15 +19,15 @@ public class MetadataWriter extends IndexItemWriter {
   private int documentCount = 0;
   public Parameters metadata;
 
-  public MetadataWriter(Directory outputDir, CoopTokenizer tokenizer, Map<String, DocVarSchema> schema) {
-    super(outputDir, tokenizer);
+  public MetadataWriter(Directory outputDir, IndexConfiguration cfg) {
+    super(outputDir, cfg);
     this.metadata = Parameters.create();
-    this.schema = schema;
+    this.schema = cfg.documentVariables;
   }
 
   @Override
   public void process(CoopDoc document) throws IOException {
-    collectionLength += document.getTerms(tokenizer.getDefaultTermSet()).size();
+    collectionLength += document.getTerms(cfg.tokenizer.getDefaultTermSet()).size();
     documentCount++;
   }
 
@@ -42,7 +42,7 @@ public class MetadataWriter extends IndexItemWriter {
         "collectionLength", collectionLength,
         "documentCount", documentCount,
         "schema", fieldSchemaJSON,
-        "tokenizer", tokenizer.getClass().getName()
+        "tokenizer", cfg.tokenizer.getClass().getName()
     ).toPrettyString(), outputDir.child("meta.json"));
   }
 }
