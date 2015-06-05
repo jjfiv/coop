@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.document;
 
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.fn.GenerateFn;
+import com.esotericsoftware.kryo.serializers.MapSerializer;
 import edu.umass.cs.ciir.waltz.postings.extents.InterleavedSpans;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
@@ -20,9 +21,12 @@ public class CoopDoc implements Comparable<CoopDoc> {
   public static final int UNKNOWN_DOCID = -1;
 
   private String name;
+  @MapSerializer.BindMap(keysCanBeNull = false)
   private Map<String,List<String>> terms;
+  @MapSerializer.BindMap(keysCanBeNull = false)
   private Map<String, SpanList> tags;
   private int identifier;
+  @MapSerializer.BindMap(keysCanBeNull = false)
   private Map<String, DocVar> variables;
   private String rawText = null;
 
@@ -147,17 +151,12 @@ public class CoopDoc implements Comparable<CoopDoc> {
     if(o instanceof CoopDoc) {
       CoopDoc other = (CoopDoc) o;
       if(identifier != other.identifier) return false;
-      System.out.println("id ok");
       if(!name.equals(other.name)) return false;
-      System.out.println("name ok");
       if(!terms.equals(other.terms)) return false;
-      System.out.println("terms ok");
       if(!tags.equals(other.tags)) return false;
-      System.out.println("tags ok");
       if(!variables.equals(other.variables)) return false;
-      System.out.println("variables ok");
       if(!rawText.equals(other.rawText)) return false;
-      System.out.println("rawText ok");
+      return true;
     }
     return false;
   }

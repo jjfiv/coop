@@ -28,6 +28,16 @@ public class DocVar<T> implements GenerateFn<T> {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if(this == o) return true;
+    if(o instanceof DocVar) {
+      DocVar other = (DocVar) o;
+      return this.schema.equals(other.schema) && this.value.equals(other.value);
+    }
+    return false;
+  }
+
+  @Override
   public T get() {
     return value;
   }
