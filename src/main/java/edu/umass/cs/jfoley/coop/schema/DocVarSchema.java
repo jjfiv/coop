@@ -1,8 +1,7 @@
-package edu.umass.cs.jfoley.coop.document;
+package edu.umass.cs.jfoley.coop.schema;
 
 import edu.umass.cs.ciir.waltz.coders.Coder;
-import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
-import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
+import edu.umass.cs.jfoley.coop.document.DocVar;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;

@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.document;
 
 import ciir.jfoley.chai.fn.GenerateFn;
+import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 
 /**
  * @author jfoley

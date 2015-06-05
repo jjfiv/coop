@@ -11,7 +11,7 @@ import java.util.*;
 
 /**
  * Stores a collection on disk when the JVM tells us we're running out of memory.
- * You can slurp() it into memory when you're sure you need all of it, and close() it to delete any temporary files. *ANY* writing while reading might invalidate your {@link Iterator} or {@link InputStream}.
+ * You can {@code slurp()} it into memory when you're sure you need all of it, and {@code close()} it to delete any temporary files. <strong>ANY</strong> writing while reading might invalidate your {@link Iterator} or {@link InputStream}.
  * @author jfoley
  */
 public class SmartCollection<T> extends AbstractCollection<T> implements Closeable {

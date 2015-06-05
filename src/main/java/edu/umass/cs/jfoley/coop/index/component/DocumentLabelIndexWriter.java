@@ -5,7 +5,7 @@ import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
-import edu.umass.cs.jfoley.coop.document.schema.CategoricalVarSchema;
+import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.NamespacedLabel;
 

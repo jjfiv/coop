@@ -6,16 +6,16 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.IndexBuilder;
+import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
+import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.AppFunction;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -60,30 +60,10 @@ public class BuildIndexMTE extends AppFunction {
       throw new RuntimeException("Expected a data file or a ner file.");
     }
 
-    // Load up var schema:
-    Parameters schema = dataset.getMap("schema");
-    Map<String,DocVarSchema> varSchemas = new HashMap<>();
-
-    for (String fieldName : schema.keySet()) {
-      String type = null;
-      Parameters typeP = Parameters.create();
-      if(schema.isString(fieldName)) {
-        type = schema.getString(fieldName);
-      } else if(schema.isMap(fieldName)) {
-        typeP = schema.getMap(fieldName);
-        type = typeP.getString("type");
-
-      }
-      if(type == null) {
-        throw new RuntimeException("Can't figure out how to parse schema field: " + fieldName + " " + schema.get(fieldName));
-      }
-
-      typeP.set("type", type);
-      varSchemas.put(fieldName, DocVarSchema.create(fieldName, typeP));
-    }
+    IndexConfiguration config = IndexConfiguration.fromMTEParameters(dataset);
 
     if(dataFile.exists()) {
-      buildIndexFromDataFile(argp, varSchemas, dataFile, outputDir);
+      buildIndexFromDataFile(argp, config.documentVariables, dataFile, outputDir);
     } else {
       throw new UnsupportedOperationException("JustNERFile");
     }

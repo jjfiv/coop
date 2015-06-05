@@ -1,10 +1,9 @@
-package edu.umass.cs.jfoley.coop.document.schema;
+package edu.umass.cs.jfoley.coop.schema;
 
 import ciir.jfoley.chai.IntMath;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.jfoley.coop.document.DocVar;
-import edu.umass.cs.jfoley.coop.document.DocVarSchema;
 import org.lemurproject.galago.utility.Parameters;
 
 /**

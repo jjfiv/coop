@@ -3,10 +3,11 @@ package edu.umass.cs.jfoley.coop.document.schema;
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.document.DocVarSchema;
+import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.index.IndexBuilder;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
+import edu.umass.cs.jfoley.coop.schema.IntegerVarSchema;
 import org.junit.Test;
 import org.lemurproject.galago.utility.Parameters;
 

@@ -3,7 +3,7 @@ package edu.umass.cs.jfoley.coop.index.component;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.document.DocVarSchema;
+import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 

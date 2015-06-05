@@ -7,7 +7,7 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
-import edu.umass.cs.jfoley.coop.document.schema.IntegerVarSchema;
+import edu.umass.cs.jfoley.coop.schema.IntegerVarSchema;
 import edu.umass.cs.jfoley.coop.index.CoopTokenizer;
 
 import java.io.IOException;
