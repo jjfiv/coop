@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.index;
 
+import ciir.jfoley.chai.collections.chained.ChaiIterable;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.errors.NotHandledNow;
@@ -231,5 +232,15 @@ public class IndexReader extends AbstractIndex implements Closeable {
       count += mover.getCurrentPosting().size();
     }
     return count;
+  }
+
+  public Set<String> getDocumentNames(IntList blueIds) {
+    try {
+      return ChaiIterable.create(names.forwardReader.getInBulk(blueIds))
+          .map(x -> (x.right))
+          .intoSet();
+    } catch (IOException e) {
+      throw new IndexErrorException(e);
+    }
   }
 }

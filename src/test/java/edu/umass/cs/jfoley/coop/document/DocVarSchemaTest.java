@@ -59,12 +59,19 @@ public class DocVarSchemaTest {
         assertNull(reader.getLabeledDocuments("color", "yellow"));
         assertNull(reader.getLabeledDocuments("flower", "blue"));
 
-        IntList ids = new IntList();
+        IntList redIds = new IntList();
         Mover redDocuments = reader.getLabeledDocuments("color", "red");
         assertNotNull(redDocuments);
-        redDocuments.execute(ids::add);
-        assertEquals(1, ids.size());
-        assertEquals("red-wiki", reader.getDocumentName(ids.get(0)));
+        redDocuments.execute(redIds::add);
+        assertEquals(1, redIds.size());
+        assertEquals("red-wiki", reader.getDocumentName(redIds.get(0)));
+
+        Mover blueDocuments = reader.getLabeledDocuments("color", "blue");
+        assertNotNull(blueDocuments);
+        IntList blueIds = new IntList();
+        blueDocuments.execute(blueIds::add);
+        assertEquals(2, blueIds.size());
+        assertEquals(new HashSet<>(Arrays.asList("blue-wiki","ocean")), reader.getDocumentNames(blueIds));
 
       }
     }
