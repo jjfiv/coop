@@ -12,7 +12,7 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
   public int maxValue;
   public int minValue;
   public int frequency;
-   IntegerVarSchema(String name, int maxValue, int minValue, int frequency) {
+  IntegerVarSchema(String name, int maxValue, int minValue, int frequency) {
      super(name);
      this.maxValue = maxValue;
      this.minValue = minValue;
@@ -54,6 +54,9 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
     minValue = Math.min(minValue, value);
   }
 
+  public static IntegerVarSchema create(String name) {
+    return create(name, Parameters.create());
+  }
   public static IntegerVarSchema create(String name, Parameters parameters) {
     int maxValue = parameters.get("maxValue", Integer.MIN_VALUE);
     int minValue = parameters.get("minValue", Integer.MAX_VALUE);

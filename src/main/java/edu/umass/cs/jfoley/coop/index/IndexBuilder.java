@@ -31,13 +31,21 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
     this.tokenizer = tok;
 
     this.writers = new ArrayList<>();
+    // terms & tags:
     writers.add(new PositionsSetWriter(outputDir, tokenizer));
-    writers.add(new DocumentLabelIndexWriter(outputDir, tokenizer));
     writers.add(new TagIndexWriter(outputDir, tokenizer));
+
+    // document vars:
+    writers.add(new DocumentLabelIndexWriter(outputDir, tokenizer));
+    writers.add(new NumericalVarWriter(outputDir, tokenizer));
+
+    // lengths, names:
     writers.add(new LengthsWriter(outputDir, tokenizer));
+    writers.add(new NamesWriter(outputDir, tokenizer));
+
+    // corpus:
     writers.add(new RawCorpusWriter(outputDir, tokenizer));
     writers.add(new ZipTokensCorpusWriter(outputDir, tokenizer));
-    writers.add(new NamesWriter(outputDir, tokenizer));
 
     // TODO: have every writer have a unique name and a piece of JSON to contribute.
     MetadataWriter metadataWriter = new MetadataWriter(outputDir, tokenizer, fieldSchema);
