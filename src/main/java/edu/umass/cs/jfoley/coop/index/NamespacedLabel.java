@@ -5,6 +5,8 @@ import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.MappingCoder;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author jfoley
  */
@@ -33,7 +35,18 @@ public class NamespacedLabel implements Comparable<NamespacedLabel> {
   );
 
   @Override
-  public int compareTo(NamespacedLabel o) {
+  public int hashCode() {
+    return fullString.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    return other instanceof NamespacedLabel &&
+        fullString.equals(((NamespacedLabel) other).fullString);
+  }
+
+  @Override
+  public int compareTo(@Nonnull NamespacedLabel o) {
     return toString().compareTo(o.toString());
   }
 }

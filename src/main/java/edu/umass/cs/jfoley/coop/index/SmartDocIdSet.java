@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * Right now, this class is not order dependent, but it could be for space and maybe time efficiency.
  * @author jfoley
  */
 public class SmartDocIdSet implements Closeable {
@@ -24,6 +25,7 @@ public class SmartDocIdSet implements Closeable {
 
   public void add(int docId) {
     storage.add(intCoder, docId);
+    count++;
   }
 
   public InputStream getInputStream() throws IOException {
@@ -34,6 +36,7 @@ public class SmartDocIdSet implements Closeable {
   public IntList slurp() throws IOException {
     IntList memory = new IntList();
     memory.resize(count);
+    storage.flush();
     try (InputStream stream = getInputStream()) {
       for (int i = 0; i < count; i++) {
         memory.add(intCoder.readImpl(stream));
@@ -45,5 +48,9 @@ public class SmartDocIdSet implements Closeable {
   @Override
   public void close() throws IOException {
     storage.close();
+  }
+
+  public int size() {
+    return count;
   }
 }

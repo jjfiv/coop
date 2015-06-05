@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.index.component;
 
+import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
@@ -17,6 +18,9 @@ public class DocumentLabelIndexReader implements Closeable {
 
   public DocumentLabelIndexReader(String path) throws IOException {
     this.ioMap = GalagoIO.openIOMap(NamespacedLabel.coder, new DeltaIntListCoder(), path);
+  }
+  public DocumentLabelIndexReader(Directory dir) throws IOException {
+    this(dir.childPath("doclabels"));
   }
 
   public List<Integer> getMatchingDocs(String field, String label) throws IOException {
