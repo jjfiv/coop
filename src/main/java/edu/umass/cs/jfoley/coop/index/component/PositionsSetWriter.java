@@ -34,7 +34,7 @@ public class PositionsSetWriter extends IndexItemWriter {
       positionsBuilders.put(
           tokenSet,
           new StreamingPostingBuilder<>(
-              CharsetCoders.utf8Raw,
+              CharsetCoders.utf8,
               new PositionsListCoder(),
               GalagoIO.getRawIOMapWriter(outputDir.childPath(tokenSet + ".positions")))
       );

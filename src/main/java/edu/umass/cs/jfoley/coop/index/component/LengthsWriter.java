@@ -22,7 +22,7 @@ public class LengthsWriter extends IndexItemWriter {
   public LengthsWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
     super(outputDir, cfg);
     this.writer = new StreamingPostingBuilder<>(
-        CharsetCoders.utf8Raw,
+        CharsetCoders.utf8,
         VarUInt.instance,
         GalagoIO.getRawIOMapWriter(outputDir.childPath("lengths"))
     );

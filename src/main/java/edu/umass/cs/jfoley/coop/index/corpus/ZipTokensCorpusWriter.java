@@ -21,7 +21,7 @@ public class ZipTokensCorpusWriter extends IndexItemWriter {
   public ZipTokensCorpusWriter(Directory outputDir, IndexConfiguration tokenizer) throws IOException {
     super(outputDir, tokenizer);
     this.tokensCorpusWriter = new ZipWriter(outputDir.childPath("tokens.zip"));
-    this.tokensCodec = new ListCoder<>(CharsetCoders.utf8LengthPrefixed);
+    this.tokensCodec = new ListCoder<>(CharsetCoders.utf8);
   }
 
   @Override

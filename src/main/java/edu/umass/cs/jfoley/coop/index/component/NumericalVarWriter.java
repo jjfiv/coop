@@ -22,7 +22,7 @@ public class NumericalVarWriter extends IndexItemWriter {
   public NumericalVarWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
     super(outputDir, cfg);
     countPostingsBuilder = new StreamingPostingBuilder<>(
-        CharsetCoders.utf8Raw,
+        CharsetCoders.utf8,
         VarInt.instance,
         GalagoIO.getRawIOMapWriter(outputDir.childPath("numbers"))
     );
