@@ -1,7 +1,6 @@
 package edu.umass.cs.jfoley.coop.index.component;
 
 import ciir.jfoley.chai.io.Directory;
-import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
@@ -30,7 +29,7 @@ public class KryoCoopDocCorpusWriter extends IndexItemWriter {
 
   public static IOMap<Integer, CoopDoc> getReader(Directory inputDir) throws IOException {
     return GalagoIO.openIOMap(
-        FixedSize.ints,
+        VarUInt.instance,
         new KryoCoder<>(CoopDoc.class),
         inputDir.childPath("kryo.corpus")
     );

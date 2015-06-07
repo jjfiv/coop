@@ -91,7 +91,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
           )
       );
     }
-    this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8);
+    this.names = IdMaps.openReader(indexDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8);
     this.tags = GalagoIO.openIOMap(
         CharsetCoders.utf8,
         new SimplePostingListFormat.PostingCoder<>(new SpanListCoder()),
