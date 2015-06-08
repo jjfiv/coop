@@ -51,6 +51,7 @@ public class DocVarSchemaTest {
       }
 
       try (IndexReader reader = new IndexReader(tmpdir)) {
+        assertEquals(3, reader.getAllDocumentIds().size());
         assertEquals(Collections.singleton("color"), reader.fieldNames());
         assertTrue(reader.getFieldSchema("color") instanceof CategoricalVarSchema);
         assertEquals(cfg.documentVariables.get("color"), reader.getFieldSchema("color"));

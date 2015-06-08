@@ -22,7 +22,7 @@ public class TagIndexWriter extends IndexItemWriter {
   public TagIndexWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
     super(outputDir, cfg);
     this.writer = new StreamingPostingBuilder<>(
-        CharsetCoders.utf8Raw,
+        CharsetCoders.utf8,
         new SpanListCoder(),
         GalagoIO.getRawIOMapWriter(outputDir.childPath("tags"))
     );

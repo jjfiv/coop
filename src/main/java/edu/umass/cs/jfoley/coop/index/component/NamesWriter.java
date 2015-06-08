@@ -2,7 +2,7 @@ package edu.umass.cs.jfoley.coop.index.component;
 
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
-import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
+import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.index.general.IdMaps;
 import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
@@ -19,8 +19,8 @@ public class NamesWriter extends IndexItemWriter {
     super(outputDir, cfg);
     this.names = IdMaps.openWriter(
         outputDir.childPath("names"),
-        FixedSize.ints,
-        CharsetCoders.utf8Raw);
+        VarUInt.instance,
+        CharsetCoders.utf8);
   }
 
   @Override

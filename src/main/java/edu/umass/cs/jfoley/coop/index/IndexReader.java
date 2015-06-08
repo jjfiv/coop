@@ -74,9 +74,9 @@ public class IndexReader extends AbstractIndex implements Closeable {
 
     this.tokenizer = CoopTokenizer.create(meta);
     this.rawCorpus = ZipArchive.open(indexDir.child("raw.zip"));
-    this.tokensCorpus = new ZipTokensCorpusReader(ZipArchive.open(indexDir.child("tokens.zip")), new ListCoder<>(CharsetCoders.utf8LengthPrefixed));
+    this.tokensCorpus = new ZipTokensCorpusReader(ZipArchive.open(indexDir.child("tokens.zip")), new ListCoder<>(CharsetCoders.utf8));
     this.lengths = GalagoIO.openIOMap(
-        CharsetCoders.utf8Raw,
+        CharsetCoders.utf8,
         new SimplePostingListFormat.PostingCoder<>(VarUInt.instance),
         indexDir.childPath("lengths")
     );
@@ -85,20 +85,20 @@ public class IndexReader extends AbstractIndex implements Closeable {
       positionSets.put(
           termSet,
           GalagoIO.openIOMap(
-              CharsetCoders.utf8Raw,
+              CharsetCoders.utf8,
               new SimplePostingListFormat.PostingCoder<>(new PositionsListCoder()),
               indexDir.childPath(termSet+".positions")
           )
       );
     }
-    this.names = IdMaps.openReader(indexDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8Raw);
+    this.names = IdMaps.openReader(indexDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8);
     this.tags = GalagoIO.openIOMap(
-        CharsetCoders.utf8Raw,
+        CharsetCoders.utf8,
         new SimplePostingListFormat.PostingCoder<>(new SpanListCoder()),
         indexDir.childPath("tags")
     );
     this.numbers = GalagoIO.openIOMap(
-        CharsetCoders.utf8Raw,
+        CharsetCoders.utf8,
         new SimplePostingListFormat.PostingCoder<>(VarInt.instance),
         indexDir.childPath("numbers")
     );

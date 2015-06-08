@@ -26,7 +26,7 @@ public class MTECoopDoc extends Module {
     }
 
     doc.setVariables(vars);
-    // MTE the raw is the input JSON.
+    // MTE the rawsort is the input JSON.
     doc.setRawText(document.toString());
 
     return doc;

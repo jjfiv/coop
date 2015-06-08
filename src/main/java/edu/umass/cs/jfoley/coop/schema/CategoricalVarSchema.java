@@ -51,7 +51,7 @@ public class CategoricalVarSchema extends DocVarSchema<String> {
 
   @Override
   public Coder<String> getCoder() {
-    return CharsetCoders.utf8Raw;
+    return CharsetCoders.utf8;
   }
 
   @Override
