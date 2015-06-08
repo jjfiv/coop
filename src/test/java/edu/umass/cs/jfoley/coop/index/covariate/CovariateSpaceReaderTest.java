@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author jfoley
  */
@@ -53,8 +55,11 @@ public class CovariateSpaceReaderTest {
               new CovariableCoder<>(xSchema.getCoder().lengthSafe(), ySchema.getCoder().lengthSafe()),
               new DeltaIntListCoder(),
               tmpdir.childPath("covar.x.y")))) {
-        List<Integer> hits = reader.get(3, "03");
-        System.out.println(hits);
+
+        for (CoopDoc coopDoc : docs.values()) {
+          List<Integer> res = reader.get(coopDoc.getIdentifier() % 10, String.format("%02d", coopDoc.getIdentifier() % 20));
+          assertTrue(res.contains(coopDoc.getIdentifier()));
+        }
 
       }
 
