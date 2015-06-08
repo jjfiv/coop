@@ -45,7 +45,7 @@ public class BDAATExperiment {
     Parameters qp = Parameters.create();
     qp.put("processingModel", name);
 
-    PositionIndexReader positions = (PositionIndexReader) retrieval.getIndex().getIndexPart("postings.krovetz");
+    PositionIndexReader positions = (PositionIndexReader) retrieval.getIndex().getIndexPart("postings");
 
     Iterable<String> galagoKeyIterable = () -> {
       try {
