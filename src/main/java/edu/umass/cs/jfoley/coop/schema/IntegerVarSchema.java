@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.schema;
 
 import ciir.jfoley.chai.IntMath;
+import ciir.jfoley.chai.lang.DoubleFns;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarInt;
 import edu.umass.cs.jfoley.coop.document.DocVar;
@@ -36,8 +37,13 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
       return new DocVar<>(this, IntMath.fromLong((long) obj));
     } else if(obj instanceof Integer) {
       return new DocVar<>(this, ((Integer) obj).intValue());
+    } else if(obj instanceof Number) {
+      Number n = (Number) obj;
+      if(DoubleFns.equals((double) n.intValue(), n.doubleValue(), 0.00001)) {
+        return new DocVar<>(this, n.intValue());
+      } else throw new RuntimeException("Can't handle double-valued item: "+n);
     }
-    return null;
+    throw new RuntimeException("Couldn't handle incoming object: "+obj);
   }
 
 

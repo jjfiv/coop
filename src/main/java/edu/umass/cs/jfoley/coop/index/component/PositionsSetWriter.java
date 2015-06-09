@@ -11,6 +11,7 @@ import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.index.IndexErrorException;
 import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
@@ -28,17 +29,7 @@ public class PositionsSetWriter extends IndexItemWriter {
 
   public PositionsSetWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
     super(outputDir, cfg);
-
     this.positionsBuilders = new HashMap<>();
-    for (String tokenSet : cfg.tokenizer.getTermSets()) {
-      positionsBuilders.put(
-          tokenSet,
-          new StreamingPostingBuilder<>(
-              CharsetCoders.utf8,
-              new PositionsListCoder(),
-              GalagoIO.getRawIOMapWriter(outputDir.childPath(tokenSet + ".positions")))
-      );
-    }
   }
 
   @Override
@@ -49,7 +40,19 @@ public class PositionsSetWriter extends IndexItemWriter {
   }
 
   public void addToPositionsBuilder(int currentId, String tokenSet, List<String> terms) {
-    StreamingPostingBuilder<String, PositionsList> positionsBuilder = this.positionsBuilders.get(tokenSet);
+    StreamingPostingBuilder<String, PositionsList> builder = this.positionsBuilders.get(tokenSet);
+    if(builder == null) {
+      try {
+        builder = new StreamingPostingBuilder<>(
+            CharsetCoders.utf8,
+            new PositionsListCoder(),
+            GalagoIO.getRawIOMapWriter(outputDir.childPath(tokenSet + ".positions"))
+        );
+      } catch (IOException e) {
+        throw new IndexErrorException(e);
+      }
+      positionsBuilders.put(tokenSet, builder);
+    }
 
     // collection position vectors:
     Map<String, IntList> data = new HashMap<>();
@@ -59,7 +62,7 @@ public class PositionsSetWriter extends IndexItemWriter {
     }
     // Add position vectors to builder:
     for (Map.Entry<String, IntList> kv : data.entrySet()) {
-      positionsBuilder.add(
+      builder.add(
           kv.getKey(),
           currentId,
           new SimplePositionsList(kv.getValue()));

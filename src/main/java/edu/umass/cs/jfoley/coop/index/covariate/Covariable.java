@@ -17,7 +17,6 @@ public class Covariable<A extends Comparable<A>, B extends Comparable<B>> extend
   public int compareTo(@Nonnull Covariable<A, B> o) {
     int cmp = left.compareTo(o.left);
     if (cmp != 0) return cmp;
-
     return right.compareTo(o.right);
   }
 }
