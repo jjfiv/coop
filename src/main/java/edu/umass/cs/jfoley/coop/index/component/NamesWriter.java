@@ -1,10 +1,11 @@
 package edu.umass.cs.jfoley.coop.index.component;
 
 import ciir.jfoley.chai.io.Directory;
+import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
+import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.general.IdMaps;
 import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
@@ -17,7 +18,7 @@ public class NamesWriter extends IndexItemWriter {
   private final IdMaps.Writer<String> names;
   public NamesWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
     super(outputDir, cfg);
-    this.names = IdMaps.openWriter(
+    this.names = GalagoIO.openIdMapsWriter(
         outputDir.childPath("names"),
         VarUInt.instance,
         CharsetCoders.utf8);

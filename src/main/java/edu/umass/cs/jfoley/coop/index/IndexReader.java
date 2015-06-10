@@ -7,7 +7,12 @@ import ciir.jfoley.chai.errors.NotHandledNow;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.archive.ZipArchive;
-import edu.umass.cs.ciir.waltz.coders.kinds.*;
+import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.ciir.waltz.IdMaps;
+import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
+import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
+import edu.umass.cs.ciir.waltz.coders.kinds.VarInt;
+import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.IdSetMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
@@ -22,20 +27,20 @@ import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
-import edu.umass.cs.jfoley.coop.index.general.IdMaps;
-import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
-import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
-import edu.umass.cs.jfoley.coop.schema.IntegerVarSchema;
 import edu.umass.cs.jfoley.coop.index.component.DocumentLabelIndexReader;
 import edu.umass.cs.jfoley.coop.index.component.KryoCoopDocCorpusWriter;
 import edu.umass.cs.jfoley.coop.index.corpus.AbstractCorpusReader;
 import edu.umass.cs.jfoley.coop.index.corpus.ZipTokensCorpusReader;
+import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
+import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
+import edu.umass.cs.jfoley.coop.schema.IntegerVarSchema;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -81,7 +86,19 @@ public class IndexReader extends AbstractIndex implements Closeable {
         indexDir.childPath("lengths")
     );
     this.positionSets = new HashMap<>();
-    for (String termSet : tokenizer.getTermSets()) {
+    for (File file : indexDir.children()) {
+      if(file.getName().endsWith(".positions")) {
+        String termSet = StrUtil.takeBefore(file.getName(), ".positions");
+        positionSets.put(
+            termSet,
+            GalagoIO.openIOMap(
+                CharsetCoders.utf8,
+                new SimplePostingListFormat.PostingCoder<>(new PositionsListCoder()),
+                file.getPath()
+            ));
+      }
+    }
+    /*for (String termSet : tokenizer.getTermSets()) {
       positionSets.put(
           termSet,
           GalagoIO.openIOMap(
@@ -90,8 +107,8 @@ public class IndexReader extends AbstractIndex implements Closeable {
               indexDir.childPath(termSet+".positions")
           )
       );
-    }
-    this.names = IdMaps.openReader(indexDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8);
+    }*/
+    this.names = GalagoIO.openIdMapsReader(indexDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8);
     this.tags = GalagoIO.openIOMap(
         CharsetCoders.utf8,
         new SimplePostingListFormat.PostingCoder<>(new SpanListCoder()),
