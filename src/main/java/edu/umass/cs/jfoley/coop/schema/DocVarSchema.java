@@ -10,7 +10,7 @@ import java.util.HashMap;
 /**
  * @author jfoley
  */
-public abstract class DocVarSchema<T extends Comparable<T>> {
+public abstract class DocVarSchema<T> {
   protected final String name;
   public DocVarSchema(String name) {
     this.name = name;

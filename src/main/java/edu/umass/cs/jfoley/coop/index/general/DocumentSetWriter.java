@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * @author jfoley
  */
-public class DocumentSetWriter<K extends Comparable<K>> implements Closeable {
+public class DocumentSetWriter<K> implements Closeable {
   private final IOMapWriter<K, List<Integer>> ioMapWriter;
   private final HashMap<K, SmartCollection<Integer>> tmpStorage;
 

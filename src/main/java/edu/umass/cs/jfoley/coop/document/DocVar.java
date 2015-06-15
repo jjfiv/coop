@@ -6,7 +6,7 @@ import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 /**
  * @author jfoley
  */
-public class DocVar<T extends Comparable<T>> implements GenerateFn<T> {
+public class DocVar<T> implements GenerateFn<T> {
   private final DocVarSchema<T> schema;
   private final T value;
 

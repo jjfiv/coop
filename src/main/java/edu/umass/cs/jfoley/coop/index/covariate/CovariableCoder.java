@@ -12,7 +12,7 @@ import java.io.InputStream;
  * An encoder for a Covariable.
  * @author jfoley
  */
-public class CovariableCoder<A extends Comparable<A>, B extends Comparable<B>> extends Coder<Covariable<A, B>> {
+public class CovariableCoder<A, B> extends Coder<Covariable<A, B>> {
   private Coder<A> xCoder;
   private Coder<B> yCoder;
 

@@ -18,7 +18,7 @@ import java.io.IOException;
  * Given two variables {@link DocVar}, create an IOMap that will allow for somewhat efficient cell-based lookup of documents that belong in that cell.
  * @author jfoley
  */
-public class MapCovariateSpaceWriter<A extends Comparable<A>,B extends Comparable<B>> extends IndexItemWriter {
+public class MapCovariateSpaceWriter<A, B> extends IndexItemWriter {
 
   private final DocVarSchema<A> xSchema;
   private final DocVarSchema<B> ySchema;

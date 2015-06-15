@@ -80,7 +80,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   @SuppressWarnings("unchecked")
   @Nullable
-  public <T extends Comparable<T>> DocVar<T> getVariable(DocVarSchema<T> schema) {
+  public <T> DocVar<T> getVariable(DocVarSchema<T> schema) {
     DocVar variable = variables.get(schema.getName());
     if(variable == null) return null;
     if(variable.getSchema().equals(schema)) {
@@ -90,7 +90,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
   }
 
   @Nullable
-  public <T extends Comparable<T>> T getVariableValue(DocVarSchema<T> schema) {
+  public <T> T getVariableValue(DocVarSchema<T> schema) {
     DocVar<T> var = getVariable(schema);
     if(var == null) return null;
     return var.get();

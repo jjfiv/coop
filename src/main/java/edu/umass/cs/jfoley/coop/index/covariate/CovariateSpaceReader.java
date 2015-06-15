@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @author jfoley
  */
-public class CovariateSpaceReader<A extends Comparable<A>, B extends Comparable<B>> implements Closeable {
+public class CovariateSpaceReader<A, B> implements Closeable {
   public final IOMap<Covariable<A,B>, List<Integer>> reader;
   private final DocVarSchema<B> ySchema;
   private final DocVarSchema<A> xSchema;
