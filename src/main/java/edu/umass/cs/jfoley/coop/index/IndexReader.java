@@ -22,7 +22,7 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.index.AbstractIndex;
 import edu.umass.cs.ciir.waltz.index.mem.CountsOfPositionsMover;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
-import edu.umass.cs.ciir.waltz.io.postings.SimplePostingListFormat;
+import edu.umass.cs.ciir.waltz.io.postings.format.PostingCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
@@ -82,7 +82,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
     this.tokensCorpus = new ZipTokensCorpusReader(ZipArchive.open(indexDir.child("tokens.zip")), new ListCoder<>(CharsetCoders.utf8));
     this.lengths = GalagoIO.openIOMap(
         CharsetCoders.utf8,
-        new SimplePostingListFormat.PostingCoder<>(VarUInt.instance),
+        new PostingCoder<>(VarUInt.instance),
         indexDir.childPath("lengths")
     );
     this.positionSets = new HashMap<>();
@@ -93,7 +93,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
             termSet,
             GalagoIO.openIOMap(
                 CharsetCoders.utf8,
-                new SimplePostingListFormat.PostingCoder<>(new PositionsListCoder()),
+                new PostingCoder<>(new PositionsListCoder()),
                 file.getPath()
             ));
       }
@@ -111,12 +111,12 @@ public class IndexReader extends AbstractIndex implements Closeable {
     this.names = GalagoIO.openIdMapsReader(indexDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8);
     this.tags = GalagoIO.openIOMap(
         CharsetCoders.utf8,
-        new SimplePostingListFormat.PostingCoder<>(new SpanListCoder()),
+        new PostingCoder<>(new SpanListCoder()),
         indexDir.childPath("tags")
     );
     this.numbers = GalagoIO.openIOMap(
         CharsetCoders.utf8,
-        new SimplePostingListFormat.PostingCoder<>(VarInt.instance),
+        new PostingCoder<>(VarInt.instance),
         indexDir.childPath("numbers")
     );
   }

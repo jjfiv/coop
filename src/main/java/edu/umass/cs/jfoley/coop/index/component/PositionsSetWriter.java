@@ -7,7 +7,7 @@ import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
-import edu.umass.cs.ciir.waltz.io.postings.StreamingPostingBuilder;
+import edu.umass.cs.ciir.waltz.io.postings.streaming.StreamingPostingBuilder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
