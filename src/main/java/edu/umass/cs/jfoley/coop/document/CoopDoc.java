@@ -21,6 +21,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   private String name;
   private Map<String,List<String>> terms;
+  private List<Set<String>> termLevelIndicators;
   private Map<String, SpanList> tags;
   private int identifier;
   private Map<String, DocVar> variables;
@@ -32,23 +33,20 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.tags = new HashMap<>();
     this.identifier = UNKNOWN_DOCID;
     this.variables = new HashMap<>();
+    this.termLevelIndicators = new ArrayList<>();
   }
 
 
   public CoopDoc(String name, Map<String,List<String>> terms, int identifier, Map<String, DocVar> variables) {
-    this.name = name;
-    this.terms = terms;
-    this.tags = new HashMap<>();
+    this(name, terms);
     this.identifier = identifier;
     this.variables = variables;
   }
 
   public CoopDoc(String name, Map<String,List<String>> terms) {
+    this();
     this.name = name;
     this.terms = terms;
-    this.tags = new HashMap<>();
-    this.identifier = UNKNOWN_DOCID;
-    this.variables = new HashMap<>();
   }
 
   @Override
@@ -71,8 +69,6 @@ public class CoopDoc implements Comparable<CoopDoc> {
         "variables", Parameters.wrap(MapFns.mapValues(variables, (var) -> var.get()))
     );
   }
-
-
 
   public String getName() { return name; }
   public Map<String,List<String>> getTerms() { return terms; }
@@ -140,6 +136,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
           terms.equals(other.terms) &&
           tags.equals(other.tags) &&
           variables.equals(other.variables) &&
+          termLevelIndicators.equals(other.termLevelIndicators) &&
           rawText.equals(other.rawText);
     }
     return false;
@@ -167,5 +164,9 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   public List<String> getTerms(String pos) {
     return terms.get(pos);
+  }
+
+  public void setTermLevelIndicators(List<Set<String>> termLevelIndicators) {
+    this.termLevelIndicators = termLevelIndicators;
   }
 }

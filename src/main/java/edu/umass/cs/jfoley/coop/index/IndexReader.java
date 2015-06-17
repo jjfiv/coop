@@ -82,7 +82,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
     this.tokensCorpus = new ZipTokensCorpusReader(ZipArchive.open(indexDir.child("tokens.zip")), new ListCoder<>(CharsetCoders.utf8));
     this.lengths = GalagoIO.openIOMap(
         CharsetCoders.utf8,
-        new BlockedPostingsCoder(VarUInt.instance),
+        new BlockedPostingsCoder<>(VarUInt.instance),
         indexDir.childPath("lengths")
     );
     this.positionSets = new HashMap<>();

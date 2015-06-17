@@ -57,13 +57,24 @@ public class StanfordNLPTokenizer implements CoopTokenizer {
     return terms;
   }
 
-  private List<String> collectPOS(Annotation ann) {
+  public static List<String> collectPOS(Annotation ann) {
     List<CoreLabel> coreLabels = ann.get(CoreAnnotations.TokensAnnotation.class);
     List<String> terms = new ArrayList<>(coreLabels.size());
     for (CoreLabel coreLabel : coreLabels) {
       String pos = coreLabel.getString(CoreAnnotations.PartOfSpeechAnnotation.class);
       // HACK: lowercase stanford nlp stuff? Idk if lemmas are capitalized or not.
       terms.add(pos);
+    }
+    return terms;
+  }
+
+  public static List<String> collectNER(Annotation ann) {
+    List<CoreLabel> coreLabels = ann.get(CoreAnnotations.TokensAnnotation.class);
+    List<String> terms = new ArrayList<>(coreLabels.size());
+    for (CoreLabel coreLabel : coreLabels) {
+      String ner = coreLabel.getString(CoreAnnotations.NamedEntityTagAnnotation.class);
+      // HACK: lowercase stanford nlp stuff? Idk if lemmas are capitalized or not.
+      terms.add(ner);
     }
     return terms;
   }
