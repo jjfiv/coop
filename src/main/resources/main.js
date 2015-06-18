@@ -73,69 +73,16 @@ var SentenceList = React.createClass({
     }
 });
 
-var RandomSentences = React.createClass({
-    getInitialState: function() {
-        return {
-            requestCount: this.props.requestCount || 5,
-            response: {},
-            selected: null,
-            waiting: true,
-            error: null
-        };
-    },
-    refreshData: function() {
-        this.setState({response: {}, waiting: true, error: null});
-        postJSON("/api/randomSentences", {
-            count: this.state.requestCount
-        }, function(data) {
-            this.setState({response: data, error: null, waiting: false});
-        }.bind(this), function (err) {
-            this.setState({error: err, response: {}, waiting: false})
-        }.bind(this))
-    },
-    handleSignal: function(what, props) {
-        if(what === 'clicked_token') {
-            if (!this.state.selected || this.state.selected.tokenId !== props.tokenId) {
-                this.setState({selected: props});
-            } else {
-                this.setState({selected: null});
-            }
-        }
-    },
-    componentDidMount: function() {
-        EVENT_BUS.register('clicked_token', this);
-        this.refreshData();
-    },
-    render: function() {
-        if(this.state.waiting) {
-            return <div>Waiting for server response.</div>;
-        } else if(this.state.error != null) {
-            return <AjaxError err={this.state.error} />;
-        } else {
-            var sentences =
-                <SentenceList selectedToken={this.state.selected} sentences={this.state.response.sentences} />;
-            var footer = <div>
-                {"Finding these "+ _.size(this.state.response.sentences)+ " sentences took "+this.state.response.time+"ms. "}
-            </div>;
-
-
-            if(this.state.selected) {
-                return <div>{[sentences, footer, <TokenInfo token={this.state.selected} />]}</div>;
-            } else {
-                return <div>{[sentences, footer]}</div>;
-            }
-        }
-    }
-});
-
 var TokenInfo = React.createClass({
     render: function() {
         var pairs = _(this.props.token.terms)
             .map(function(v,k) {return {key: k, value: v}})
+            /*
             .filter(function(pair) {
                 if(pair.key.contains("overfit_")) return false;
                 return true;
-            }).value();
+            })*/
+            .value();
 
         pairs.push({key: "featureCount", value: _.size(this.props.token.indicators)});
 
@@ -145,10 +92,5 @@ var TokenInfo = React.createClass({
 
         return <table className="token-info">{dlitems}</table>;
     }
-});
-
-
-$(function() {
-    React.render(<RandomSentences requestCount={5} />, document.getElementById("sentences"));
 });
 

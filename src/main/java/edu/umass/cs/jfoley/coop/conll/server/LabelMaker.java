@@ -29,6 +29,7 @@ public class LabelMaker implements WebHandler, Closeable {
     this.apiMethods = new HashMap<>();
     apiMethods.put("debug", (p) -> p);
     apiMethods.put("randomSentences", new RandomSentencesFn(index));
+    apiMethods.put("searchSentences", new SearchSentencesFn(index));
   }
 
   public void start(int port) throws WebServerException {
