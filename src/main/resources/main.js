@@ -21,12 +21,14 @@ $(function() {
     postJSON("/api/randomSentences", {}, function(response){
         var html = '';
         html += 'Finding these sentences took: '+response.time+'ms.';
-        html += '<ul>';
+        html += '<ul class="sentences">';
         console.log(response);
+
+        var sentences = _.sortBy(response.sentences, function(s) { return s[0].sentenceId; });
 
         _.forEach(response.sentences, function(s) {
             html += '<li>';
-            html += '<span class="id">'+ s[0].sentenceId + '</span> ';
+            html += '<span class="sentenceId">'+ s[0].sentenceId + '</span> ';
 
             _.forEach(s, function(token) {
                 var title = _(token.terms).map(function(v, k) {

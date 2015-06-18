@@ -96,6 +96,8 @@ public class LabelMaker implements WebHandler, Closeable {
       contentType = "application/javascript";
     } else if(path.endsWith(".jsx")) {
       contentType = "text/jsx";
+    } else if(path.endsWith(".css")) {
+      contentType = "text/css";
     }
 
     if(contentType != null) {

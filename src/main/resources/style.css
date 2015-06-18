@@ -1,0 +1,18 @@
+.token {
+    display: inline-block;
+    padding: 1pt;
+    background-color: #eee;
+    border: 0.5pt solid #ddd;
+}
+
+.sentenceId {
+    display: inline-block;
+    width: 3em;
+    padding-right:1em;
+    text-align:right;
+    font-style: italic;
+}
+
+.sentences {
+    list-style: none;
+}
