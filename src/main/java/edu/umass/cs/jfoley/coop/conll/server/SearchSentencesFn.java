@@ -25,7 +25,7 @@ public class SearchSentencesFn extends IndexServerFn {
   public SearchSentencesFn(TermBasedIndexReader index) {
     super(index);
     // prime the tokenizer.
-    CoopTokenizer.create();t reset HEAD sr  
+    CoopTokenizer.create();
   }
 
   @Override
@@ -39,7 +39,6 @@ public class SearchSentencesFn extends IndexServerFn {
 
     CoopTokenizer tok = CoopTokenizer.create();
     CoopDoc document = tok.createDocument("query", input.getString("query"));
-
     List<String> terms = document.getTerms(field);
 
     List<NamespacedLabel> nl = new ArrayList<>();
@@ -71,6 +70,7 @@ public class SearchSentencesFn extends IndexServerFn {
 
     Parameters results = Parameters.create();
     results.put("totalHits", totalHits);
+    results.put("queryTerms", terms);
     results.put("results", pullSentenceJSON(pageHits));
     return results;
   }
