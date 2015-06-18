@@ -88,10 +88,12 @@ public class ConllLoader {
     List<String> chunks = new ArrayList<>();
     List<String> ner = new ArrayList<>();
     for (int i = linesIndex; i < lines.size(); i++) {
-      String line = lines.get(linesIndex);
+      String line = lines.get(i);
       if(line.isEmpty()) {
         fakeText.append('\n');
-        sentenceBreaks.add(words.size());
+        if(Objects.requireNonNull(ListFns.getLast(sentenceBreaks)) != words.size()) {
+          sentenceBreaks.add(words.size());
+        }
         continue;
       }
       CoNLLToken tok = new CoNLLToken(line.split("\\s+"));
@@ -101,10 +103,19 @@ public class ConllLoader {
       chunks.add(tok.chunk);
       ner.add(tok.ner);
     }
+    if(Objects.requireNonNull(ListFns.getLast(sentenceBreaks)) != words.size()) {
+      sentenceBreaks.add(words.size());
+    }
 
     CoopDoc document = new CoopDoc();
     for (List<Integer> kv : ListFns.sliding(sentenceBreaks, 2)) {
-      document.addTag("true_sentence", kv.get(0), kv.get(1));
+      int begin = kv.get(0);
+      int end = kv.get(1);
+      if(end <= begin) {
+        System.out.println("END <= BEGIN: "+begin+" >= "+end);
+        continue;
+      }
+      document.addTag("true_sentence", begin, end);
     }
     document.setTerms("true_terms", words);
     document.setTerms("true_pos", pos);
@@ -128,19 +139,23 @@ public class ConllLoader {
     // Now collect the crf features:
     CRFClassifier<CoreLabel> classifier = NERClassifierHack.get();
 
-    List<CoreLabel> tokens = ann.get(CoreAnnotations.TokensAnnotation.class);
     List<Set<String>> tokenLevelFeatures = new ArrayList<>();
-    for (int i = 0; i < tokens.size(); i++) {
-      CRFDatum<List<String>, CRFLabel> datum = classifier.makeDatum(tokens, i, classifier.featureFactories);
-      HashSet<String> features = new HashSet<>();
-      for (List<String> fs : datum.asFeatures()) {
-        features.addAll(fs);
-      }
-      tokenLevelFeatures.add(new TreeSet<>(features));
-    }
 
+    long feature_xms = Timing.milliseconds(() -> {
+      List<CoreLabel> tokens = ann.get(CoreAnnotations.TokensAnnotation.class);
+      for (int i = 0; i < tokens.size(); i++) {
+        CRFDatum<List<String>, CRFLabel> datum = classifier.makeDatum(tokens, i, classifier.featureFactories);
+        HashSet<String> features = new HashSet<>();
+        for (List<String> fs : datum.asFeatures()) {
+          features.addAll(fs);
+        }
+        tokenLevelFeatures.add(new TreeSet<>(features));
+      }
+    });
+    System.out.println("Feature Extract in "+feature_xms+"ms.");
     document.setTermLevelIndicators(tokenLevelFeatures);
 
+    assert(document.getTags().containsKey("true_sentence"));
     output.process(document);
 
   }
@@ -148,7 +163,11 @@ public class ConllLoader {
   public static void main(String[] args) throws IOException {
     Directory cdir = Directory.Read("/mnt/scratch/jfoley/conll2003");
 
-    List<String> interestingChildren = Arrays.asList("CoNLL03.eng.train", "CoNLL03.eng.testa", "CoNLL03.eng.testb");
+    List<String> interestingChildren = Arrays.asList(
+        "CoNLL03.eng.train",
+        "CoNLL03.eng.testa",
+        "CoNLL03.eng.testb"
+    );
 
     int i=0;
     for (String interestingChild : interestingChildren) {

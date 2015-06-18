@@ -36,7 +36,6 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.termLevelIndicators = new ArrayList<>();
   }
 
-
   public CoopDoc(String name, Map<String,List<String>> terms, int identifier, Map<String, DocVar> variables) {
     this(name, terms);
     this.identifier = identifier;
@@ -66,8 +65,33 @@ public class CoopDoc implements Comparable<CoopDoc> {
           }
           return reallyNaiveSpanList;
         })),
-        "variables", Parameters.wrap(MapFns.mapValues(variables, (var) -> var.get()))
+        "variables", getJSONVars()
     );
+  }
+
+  public List<CoopToken> tokens() {
+    int expectedSize = MapFns.firstValue(terms, Collections.emptyList()).size();
+
+    List<CoopToken> output = new ArrayList<>(expectedSize);
+    for (Map.Entry<String, List<String>> kv : terms.entrySet()) {
+      List<String> entries = kv.getValue();
+      for (int i = 0; i < entries.size(); i++) {
+        if(output.size() <= i) {
+          output.add(new CoopToken(this.identifier, i));
+        }
+        CoopToken it = output.get(i);
+        it.terms.put(kv.getKey(), entries.get(i));
+      }
+    }
+    for (int i = 0; i < output.size(); i++) {
+      if(i < termLevelIndicators.size()) {
+        output.get(i).indicators = termLevelIndicators.get(i);
+      } else {
+        output.get(i).indicators = Collections.singleton("NO-FEATURES-ERR");
+      }
+    }
+
+    return output;
   }
 
   public String getName() { return name; }

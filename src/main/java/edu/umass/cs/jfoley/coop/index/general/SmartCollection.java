@@ -43,7 +43,6 @@ public class SmartCollection<T> extends AbstractCollection<T> implements Closeab
    */
   public List<T> slurp() throws IOException {
     List<T> memory = new ArrayList<>(count);
-    storage.flush();
     try (InputStream stream = getInputStream()) {
       for (int i = 0; i < count; i++) {
         memory.add(itemCoder.read(stream));

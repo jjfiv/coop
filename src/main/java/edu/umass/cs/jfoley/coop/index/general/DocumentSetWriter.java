@@ -1,8 +1,8 @@
 package edu.umass.cs.jfoley.coop.index.general;
 
+import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.fn.GenerateFn;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
 
 import java.io.Closeable;
@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class DocumentSetWriter<K> implements Closeable {
   private final IOMapWriter<K, List<Integer>> ioMapWriter;
-  private final HashMap<K, SmartCollection<Integer>> tmpStorage;
+  private final HashMap<K, IntList> tmpStorage;
 
   public DocumentSetWriter(IOMapWriter<K, List<Integer>> ioMapWriter) throws IOException {
     this.ioMapWriter = ioMapWriter.getSorting();
@@ -27,15 +27,14 @@ public class DocumentSetWriter<K> implements Closeable {
     MapFns.extendCollectionInMap(tmpStorage,
         item,
         documentId,
-        (GenerateFn<SmartCollection<Integer>>) () -> new SmartCollection<>(VarUInt.instance));
+        (GenerateFn<IntList>) IntList::new);
   }
 
   @Override
   public void close() throws IOException {
-    for (Map.Entry<K, SmartCollection<Integer>> kv : tmpStorage.entrySet()) {
-      try (SmartCollection<Integer> docIds = kv.getValue()) {
-        ioMapWriter.put(kv.getKey(), docIds.slurp());
-      }
+    for (Map.Entry<K, IntList> kv : tmpStorage.entrySet()) {
+      ioMapWriter.put(kv.getKey(), kv.getValue());
+      kv.getValue().clear();
     }
     tmpStorage.clear();
     ioMapWriter.close();
