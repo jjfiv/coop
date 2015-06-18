@@ -9,7 +9,9 @@ import edu.umass.cs.ciir.waltz.dociter.movement.AnyOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
+import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
+import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
@@ -22,6 +24,8 @@ import java.util.List;
 public class SearchSentencesFn extends IndexServerFn {
   public SearchSentencesFn(TermBasedIndexReader index) {
     super(index);
+    // prime the tokenizer.
+    CoopTokenizer.create();t reset HEAD sr  
   }
 
   @Override
@@ -32,7 +36,11 @@ public class SearchSentencesFn extends IndexServerFn {
     assert(pageOffset >= 0);
     int pageSize = input.get("count", 10);
     assert(pageSize > 1);
-    List<String> terms = input.getAsList("terms", String.class);
+
+    CoopTokenizer tok = CoopTokenizer.create();
+    CoopDoc document = tok.createDocument("query", input.getString("query"));
+
+    List<String> terms = document.getTerms(field);
 
     List<NamespacedLabel> nl = new ArrayList<>();
     for (String term : terms) {

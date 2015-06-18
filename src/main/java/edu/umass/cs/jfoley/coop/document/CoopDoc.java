@@ -186,8 +186,8 @@ public class CoopDoc implements Comparable<CoopDoc> {
     this.variables = variables;
   }
 
-  public List<String> getTerms(String pos) {
-    return terms.get(pos);
+  public List<String> getTerms(String field) {
+    return terms.get(field);
   }
 
   public void setTermLevelIndicators(List<Set<String>> termLevelIndicators) {

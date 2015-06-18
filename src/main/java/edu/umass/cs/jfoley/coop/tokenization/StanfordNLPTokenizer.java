@@ -1,6 +1,6 @@
 package edu.umass.cs.jfoley.coop.tokenization;
 
-import ciir.jfoley.chai.lang.LazyPtr;
+import ciir.jfoley.chai.lang.ThreadsafeLazyPtr;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class StanfordNLPTokenizer implements CoopTokenizer {
 
-  public static LazyPtr<StanfordCoreNLP> nlp = new LazyPtr<>(() -> {
+  public static ThreadsafeLazyPtr<StanfordCoreNLP> nlp = new ThreadsafeLazyPtr<>(() -> {
     //List<String> annotators = Arrays.asList("tokenize", "cleanxml", "ssplit", "pos", "lemma");
     List<String> annotators = Arrays.asList("tokenize", "cleanxml", "ssplit", "pos", "lemma");
     Properties props = new Properties();

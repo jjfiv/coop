@@ -145,16 +145,24 @@ public class LabelMaker implements WebHandler, Closeable {
       response.sendError(ServerErr.NotFound, "No such API call: "+endpoint);
       return;
     }
-    response.setStatus(200);
-    response.setContentType("application/json");
-    // allow other domains to use this from JS
-    response.addHeader("Access-Control-Allow-Origin", "*");
 
-    try (PrintWriter out = response.getWriter()) {
-      out.println(apiFn.handleRequest(req).toString());
+    try {
+      response.setStatus(200);
+      response.setContentType("application/json");
+      // allow other domains to use this from JS
+      response.addHeader("Access-Control-Allow-Origin", "*");
+
+      PrintWriter out = response.getWriter();
+      long start = System.currentTimeMillis();
+      Parameters json = apiFn.handleRequest(req);
+      long end = System.currentTimeMillis();
+      json.put("time", end-start);
+      out.println(json.toString());
+      out.close();
+
     } catch (IllegalArgumentException iae) {
       iae.printStackTrace(System.err);
-      response.sendError(ServerErr.BadRequest, "Illegal argument received "+iae);
+      response.sendError(ServerErr.BadRequest, iae.getMessage());
     } catch (ServerErr err) {
       response.sendError(err.code, err.msg);
     } catch (AssertionError e) {
