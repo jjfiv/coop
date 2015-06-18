@@ -1,18 +1,18 @@
 package edu.umass.cs.jfoley.coop.conll.server;
 
 import ciir.jfoley.chai.io.Directory;
+import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
 import org.lemurproject.galago.tupleflow.web.WebHandler;
 import org.lemurproject.galago.tupleflow.web.WebServer;
 import org.lemurproject.galago.tupleflow.web.WebServerException;
 import org.lemurproject.galago.utility.Parameters;
+import org.lemurproject.galago.utility.StreamUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +33,7 @@ public class LabelMaker implements WebHandler, Closeable {
 
   public void start(int port) throws WebServerException {
     this.setServer(WebServer.start(port, this));
+    System.out.println("Started server at: "+server.getURL());
   }
   public void join() throws WebServerException {
     this.server.join();
@@ -67,6 +68,10 @@ public class LabelMaker implements WebHandler, Closeable {
     boolean POST = method.equals("POST");
 
     String path = request.getPathInfo();
+
+    // safen-up.
+    if(path.contains("..")) response.sendError(ServerErr.BadRequest);
+
     if((GET || POST) && path.equals("/stop")) {
       new Thread(() -> {
         try {
@@ -80,54 +85,80 @@ public class LabelMaker implements WebHandler, Closeable {
     }
 
     if(path.startsWith("/api/")) {
-      Parameters req;
-      switch (method) {
-        case "GET":
-          req = WebServer.parseGetParameters(request);
-          break;
-        case "POST":
-          req = parseBody(request);
-          break;
-        default:
-          response.sendError(ServerErr.BadRequest, "Unsupported method.");
-          return;
-      }
-
-      String endpoint = StrUtil.takeAfter(path, "/api/");
-      ServerFn apiFn = apiMethods.get(endpoint);
-      if(apiFn == null) {
-        response.sendError(ServerErr.NotFound, "No such API call: "+endpoint);
-        return;
-      }
-      response.setStatus(200);
-      response.setContentType("application/json");
-      // allow other domains to use this from JS
-      response.addHeader("Access-Control-Allow-Origin", "*");
-
-      try (PrintWriter out = response.getWriter()) {
-        out.println(apiFn.handleRequest(req).toString());
-      } catch (IllegalArgumentException iae) {
-        iae.printStackTrace(System.err);
-        response.sendError(ServerErr.BadRequest, "Illegal argument received "+iae);
-      } catch (ServerErr err) {
-        response.sendError(err.code, err.msg);
-      } catch (AssertionError e) {
-        e.printStackTrace(System.err);
-        try (PrintWriter out = response.getWriter()) {
-          e.printStackTrace(out);
-        }
-        response.sendError(501, "Assertion Failed: "+e.getMessage());
-      } catch (Exception e) {
-        e.printStackTrace(System.err);
-        try (PrintWriter out = response.getWriter()) {
-          e.printStackTrace(out);
-        }
-        response.sendError(501, e.getMessage());
-      }
+      handleAPI(request, response, method, path);
       return;
     }
 
+    String contentType = null;
+    if(path.endsWith(".html")) {
+      contentType = "text/html";
+    }
+
+    if(contentType != null) {
+      Directory dir = Directory.FirstExisting("coop/src/main/resources", "src/main/resources");
+      InputStream is;
+      if(dir == null) {
+        is = IO.resourceStream(path);
+      } else {
+        is = IO.openInputStream(dir.childPath(path));
+      }
+      if(is == null) response.sendError(ServerErr.NotFound, path);
+
+      response.setContentType(contentType);
+      try (InputStream read = is; OutputStream out = response.getOutputStream()) {
+        StreamUtil.copyStream(read, out);
+      }
+    }
+
     response.sendError(ServerErr.NotFound);
+  }
+
+  private void handleAPI(HttpServletRequest request, HttpServletResponse response, String method, String path) throws IOException {
+    Parameters req;
+    switch (method) {
+      case "GET":
+        req = WebServer.parseGetParameters(request);
+        break;
+      case "POST":
+        req = parseBody(request);
+        break;
+      default:
+        response.sendError(ServerErr.BadRequest, "Unsupported method.");
+        return;
+    }
+
+    String endpoint = StrUtil.takeAfter(path, "/api/");
+    ServerFn apiFn = apiMethods.get(endpoint);
+    if(apiFn == null) {
+      response.sendError(ServerErr.NotFound, "No such API call: "+endpoint);
+      return;
+    }
+    response.setStatus(200);
+    response.setContentType("application/json");
+    // allow other domains to use this from JS
+    response.addHeader("Access-Control-Allow-Origin", "*");
+
+    try (PrintWriter out = response.getWriter()) {
+      out.println(apiFn.handleRequest(req).toString());
+    } catch (IllegalArgumentException iae) {
+      iae.printStackTrace(System.err);
+      response.sendError(ServerErr.BadRequest, "Illegal argument received "+iae);
+    } catch (ServerErr err) {
+      response.sendError(err.code, err.msg);
+    } catch (AssertionError e) {
+      e.printStackTrace(System.err);
+      try (PrintWriter out = response.getWriter()) {
+        e.printStackTrace(out);
+      }
+      response.sendError(501, "Assertion Failed: "+e.getMessage());
+    } catch (Exception e) {
+      e.printStackTrace(System.err);
+      try (PrintWriter out = response.getWriter()) {
+        e.printStackTrace(out);
+      }
+      response.sendError(501, e.getMessage());
+    }
+    return;
   }
 
   public static Parameters parseBody(HttpServletRequest req) throws ServerErr {

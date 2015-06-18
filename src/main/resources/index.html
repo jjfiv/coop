@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>LabelMaker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+  <style>
+  </style>
+</head>
+<body>
+
+<div></div>
+
+</body>
+<script>
+  function postJSON(url, input_data, done_fn, err_fn) {
+    if(!err_fn) {
+      err_fn = standardErrorHandler;
+    }
+    var opts = {
+      url: url,
+      type: "POST",
+      data: JSON.stringify(input_data),
+      processData: false,
+      contentType: "application/json",
+      dataType: "json"
+    };
+    $.ajax(opts).done(done_fn).error(err_fn);
+  }
+
+  function standardErrorHandler(err) {
+    console.error(err);
+  }
+
+  $(function() {
+    postJSON("/api/randomSentences", {}, function(response){
+      console.log(response);
+    });
+  });
+
+</script>
+</html>
