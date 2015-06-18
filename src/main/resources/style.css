@@ -4,6 +4,12 @@
     background-color: #eee;
     border: 0.5pt solid #ddd;
 }
+.active-token {
+    display: inline-block;
+    padding: 1pt;
+    background-color: #99f;
+    border: 0.5pt solid #66d;
+}
 
 .sentenceId {
     display: inline-block;
@@ -15,4 +21,5 @@
 
 .sentences {
     list-style: none;
+    display:block;
 }

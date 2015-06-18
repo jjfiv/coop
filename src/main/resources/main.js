@@ -1,3 +1,5 @@
+var EVENT_BUS = createEventBus();
+
 function postJSON(url, input_data, done_fn, err_fn) {
     if(!err_fn) {
         err_fn = standardErrorHandler;
@@ -31,6 +33,28 @@ var Sentence = React.createClass({
 
 
 var Token = React.createClass({
+    getInitialState: function() {
+        return { active: false };
+    },
+    componentWillMount: function() {
+    },
+    handleClick: function() {
+        var newState = !this.state.active;
+        this.setState({active: newState});
+        if(newState == true) {
+            EVENT_BUS.signal("clicked_token", {token: this});
+            EVENT_BUS.register("clicked_token", this);
+        } else {
+            EVENT_BUS.unregister("clicked_token", this);
+        }
+    },
+    handleSignal: function(what, props) {
+        if(what === 'clicked_token') {
+            if(props.token != this) {
+                this.setState({active: false});
+            }
+        }
+    },
     computeTitle: function() {
         return _(this.props.terms).map(function(v, k) {
             if(k.contains("ner") && v == "O") return "";
@@ -42,17 +66,19 @@ var Token = React.createClass({
         return this.props.terms.true_terms;
     },
     render: function() {
-        return <span className="token" title={this.computeTitle()}>{this.getTerm()}</span>;
+        return <span onClick={this.handleClick}
+                     className={this.state.active ? "active-token" : "token"}
+                     title={this.computeTitle()}>
+            {this.getTerm()}
+        </span>;
     }
 });
 
 var SentenceList = React.createClass({
     render: function() {
         var sTags = _(this.props.sentences)
-            .map(function(tokens) { return <Sentence tokens={tokens} />; })
-            .sortBy('getSentenceId')
-            .map(function (tag) { return <li>{tag}</li>; })
-            .values();
+            .map(function(tokens) { return <li><Sentence tokens={tokens} /></li>; })
+            .value();
         return <ul className="sentences">{sTags}</ul>;
     }
 });
@@ -86,8 +112,9 @@ var RandomSentences = React.createClass({
             return <AjaxError err={this.state.error} />;
         } else {
             return <div>
-                {"Finding these "+ _.size(this.state.response.sentences)+ " sentences took "+this.state.response.time+"ms. "}
                 <SentenceList sentences={this.state.response.sentences} />
+                <hr />
+                {"Finding these "+ _.size(this.state.response.sentences)+ " sentences took "+this.state.response.time+"ms. "}
             </div>;
         }
     }
@@ -95,7 +122,7 @@ var RandomSentences = React.createClass({
 
 
 $(function() {
-    React.render(<RandomSentences requestCount={50} />, document.getElementById("sentences"));
+    React.render(<RandomSentences requestCount={5} />, document.getElementById("sentences"));
 /*postJSON("/api/randomSentences", {}, function(response){
  var html = '';
  html += 'Finding these sentences took: '+response.time+'ms.';
