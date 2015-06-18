@@ -58,7 +58,7 @@ var Token = React.createClass({
         return <span onClick={this.handleClick}
                      className={this.active() ? "active-token" : "token"}
                      title={this.computeTitle()}>
-            {this.getToken().tokenId +" "+this.getTerm()}
+            {this.getTerm()}
         </span>;
     }
 });
@@ -112,12 +112,38 @@ var RandomSentences = React.createClass({
         } else if(this.state.error != null) {
             return <AjaxError err={this.state.error} />;
         } else {
-            return <div>
-                <SentenceList selectedToken={this.state.selected} sentences={this.state.response.sentences} />
-                <hr />
+            var sentences =
+                <SentenceList selectedToken={this.state.selected} sentences={this.state.response.sentences} />;
+            var footer = <div>
                 {"Finding these "+ _.size(this.state.response.sentences)+ " sentences took "+this.state.response.time+"ms. "}
             </div>;
+
+
+            if(this.state.selected) {
+                return <div>{[sentences, footer, <TokenInfo token={this.state.selected} />]}</div>;
+            } else {
+                return <div>{[sentences, footer]}</div>;
+            }
         }
+    }
+});
+
+var TokenInfo = React.createClass({
+    render: function() {
+        var pairs = _(this.props.token.terms)
+            .map(function(v,k) {return {key: k, value: v}})
+            .filter(function(pair) {
+                if(pair.key.contains("overfit_")) return false;
+                return true;
+            }).value();
+
+        pairs.push({key: "featureCount", value: _.size(this.props.token.indicators)});
+
+        var dlitems = _(pairs)
+            .map(function(pair) { return <tr><td>{pair.key}</td><td>{pair.value}</td></tr> })
+            .value();
+
+        return <table className="token-info">{dlitems}</table>;
     }
 });
 
