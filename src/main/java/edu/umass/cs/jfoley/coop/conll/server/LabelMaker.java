@@ -30,18 +30,32 @@ public class LabelMaker implements WebHandler, Closeable {
     apiMethods.put("debug", (p) -> p);
   }
 
+  public void start(int port) throws WebServerException {
+    this.setServer(WebServer.start(port, this));
+  }
+  public void join() throws WebServerException {
+    this.server.join();
+    this.server = null;
+  }
+
   public static void main(String[] args) throws IOException, WebServerException {
     LabelMaker lm = new LabelMaker(Directory.Read("./CoNLL03.eng.train.run.stoken.index"));
-
-    WebServer server = WebServer.start(1234, lm);
-    lm.setServer(server);
-    server.join();
-
+    lm.start(1234);
+    lm.join();
+    // forces shutdown
     lm.close();
   }
 
   @Override
   public void close() throws IOException {
+    try {
+      if(server != null) {
+        server.stop();
+        server.join();
+      }
+    } catch (WebServerException e) {
+      throw new RuntimeException(e);
+    }
     index.close();
   }
 
