@@ -92,6 +92,10 @@ public class LabelMaker implements WebHandler, Closeable {
     String contentType = null;
     if(path.endsWith(".html")) {
       contentType = "text/html";
+    } else if(path.endsWith(".js")) {
+      contentType = "application/javascript";
+    } else if(path.endsWith(".jsx")) {
+      contentType = "text/jsx";
     }
 
     if(contentType != null) {
@@ -102,11 +106,16 @@ public class LabelMaker implements WebHandler, Closeable {
       } else {
         is = IO.openInputStream(dir.childPath(path));
       }
-      if(is == null) response.sendError(ServerErr.NotFound, path);
+      if(is == null) {
+        response.sendError(ServerErr.NotFound, path);
+        return;
+      }
 
       response.setContentType(contentType);
       try (InputStream read = is; OutputStream out = response.getOutputStream()) {
         StreamUtil.copyStream(read, out);
+        response.setStatus(200);
+        return;
       }
     }
 
