@@ -16,11 +16,11 @@ import java.io.PrintWriter;
  * @author jfoley
  */
 public class LabelMaker implements WebHandler, Closeable {
-  private final TermBasedIndex.TermBasedIndexReader index;
+  private final TermBasedIndexReader index;
   private WebServer server;
 
   public LabelMaker(Directory indexDir) throws IOException {
-    this.index = new TermBasedIndex.TermBasedIndexReader(indexDir);
+    this.index = new TermBasedIndexReader(indexDir);
   }
 
   public static void main(String[] args) throws IOException, WebServerException {
