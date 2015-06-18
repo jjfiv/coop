@@ -1,5 +1,7 @@
 package edu.umass.cs.jfoley.coop.conll;
 
+import ciir.jfoley.chai.IntMath;
+import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
@@ -15,6 +17,7 @@ import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,16 +25,16 @@ import java.util.List;
  */
 public class TermBasedIndexReader implements Closeable {
   public final Directory input;
-  final IOMap<Integer, List<Integer>> sentenceToTokens;
-  final IOMap<Integer, Integer> tokenToSentence;
-  final IOMap<Integer, List<TermBasedIndex.SentenceIndexedToken>> sentenceCorpus;
-  final IOMap<Integer, TermBasedIndex.SentenceIndexedToken> tokenCorpus;
+  public final IOMap<Integer, List<Integer>> sentenceToTokens;
+  public final IOMap<Integer, Integer> tokenToSentence;
+  public final IOMap<Integer, List<SentenceIndexedToken>> sentenceCorpus;
+  public final IOMap<Integer, SentenceIndexedToken> tokenCorpus;
   /**
    * Inverted index for features
    */
-  final IOMap<String, List<Integer>> featureIndex;
-  final IOMap<NamespacedLabel, List<Integer>> tokensByTerms;
-  final IOMap<NamespacedLabel, PostingMover<Integer>> sentencesByTerms;
+  public final IOMap<String, List<Integer>> featureIndex;
+  public final IOMap<NamespacedLabel, List<Integer>> tokensByTerms;
+  public final IOMap<NamespacedLabel, PostingMover<Integer>> sentencesByTerms;
 
   public TermBasedIndexReader(Directory input) throws IOException {
     this.input = input;
@@ -43,7 +46,7 @@ public class TermBasedIndexReader implements Closeable {
         VarUInt.instance, VarUInt.instance,
         input.childPath("tokenToSentence")
     );
-    Coder<TermBasedIndex.SentenceIndexedToken> tokenCoder = new KryoCoder<>(TermBasedIndex.SentenceIndexedToken.class);
+    Coder<SentenceIndexedToken> tokenCoder = new KryoCoder<>(SentenceIndexedToken.class);
     sentenceCorpus = GalagoIO.openIOMap(
         VarUInt.instance, new ListCoder<>(tokenCoder),
         input.childPath("sentenceCorpus")
@@ -67,6 +70,10 @@ public class TermBasedIndexReader implements Closeable {
     );
   }
 
+  public int getSentenceCount() {
+    return IntMath.fromLong(sentenceCorpus.keyCount());
+  }
+
   @Override
   public void close() throws IOException {
     sentenceToTokens.close();
@@ -76,5 +83,13 @@ public class TermBasedIndexReader implements Closeable {
     featureIndex.close();
     tokensByTerms.close();
     sentencesByTerms.close();
+  }
+
+  public List<List<SentenceIndexedToken>> pullSentences(List<Integer> ids) throws IOException {
+    ArrayList<List<SentenceIndexedToken>> data = new ArrayList<>();
+    for (Pair<Integer, List<SentenceIndexedToken>> kv : sentenceCorpus.getInBulk(ids)) {
+      data.add(kv.getValue());
+    }
+    return data;
   }
 }

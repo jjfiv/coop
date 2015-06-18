@@ -156,6 +156,7 @@ public class ConllLoader {
     document.setTermLevelIndicators(tokenLevelFeatures);
 
     assert(document.getTags().containsKey("true_sentence"));
+    assert(!document.getTerms().isEmpty());
     output.process(document);
 
   }

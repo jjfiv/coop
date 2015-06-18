@@ -32,8 +32,8 @@ public class TermBasedIndexWriter implements Closeable {
 
   final IOMapWriter<Integer, List<Integer>> sentenceToTokens;
   final IOMapWriter<Integer, Integer> tokenToSentence;
-  final IOMapWriter<Integer, List<TermBasedIndex.SentenceIndexedToken>> sentenceCorpus;
-  final IOMapWriter<Integer, TermBasedIndex.SentenceIndexedToken> tokenCorpus;
+  final IOMapWriter<Integer, List<SentenceIndexedToken>> sentenceCorpus;
+  final IOMapWriter<Integer, SentenceIndexedToken> tokenCorpus;
   /**
    * Inverted index for features
    */
@@ -54,7 +54,7 @@ public class TermBasedIndexWriter implements Closeable {
         VarUInt.instance, VarUInt.instance,
         output.childPath("tokenToSentence")
     );
-    Coder<TermBasedIndex.SentenceIndexedToken> tokenCoder = new KryoCoder<>(TermBasedIndex.SentenceIndexedToken.class);
+    Coder<SentenceIndexedToken> tokenCoder = new KryoCoder<>(SentenceIndexedToken.class);
     sentenceCorpus = GalagoIO.getIOMapWriter(
         VarUInt.instance, new ListCoder<>(tokenCoder),
         output.childPath("sentenceCorpus")
@@ -83,22 +83,25 @@ public class TermBasedIndexWriter implements Closeable {
 
   public void addSentence(List<CoopToken> sentence) throws IOException {
 
-    List<TermBasedIndex.SentenceIndexedToken> tokens = new ArrayList<>();
+    List<SentenceIndexedToken> tokens = new ArrayList<>();
 
     int sentenceId = sentenceIndex++;
     IntList tokenIds = new IntList();
     TObjectIntHashMap<NamespacedLabel> ttf = new TObjectIntHashMap<>();
     for (CoopToken coopToken : sentence) {
       int tokenId = tokenIndex++;
-      TermBasedIndex.SentenceIndexedToken token = new TermBasedIndex.SentenceIndexedToken(sentenceId, tokenId);
+      SentenceIndexedToken token = new SentenceIndexedToken(sentenceId, tokenId);
+      token.indicators = coopToken.getIndicators();
+      token.terms = coopToken.getTerms();
+
       tokens.add(token);
       tokenIds.add(tokenId);
       tokenCorpus.put(tokenId, token);
 
-      for (String feature : coopToken.getIndicators()) {
+      for (String feature : token.getIndicators()) {
         featureIndex.process(feature, tokenId);
       }
-      for (Map.Entry<String, String> kv : coopToken.getTerms().entrySet()) {
+      for (Map.Entry<String, String> kv : token.getTerms().entrySet()) {
         NamespacedLabel termTypeAndTerm = new NamespacedLabel(kv.getKey(), kv.getValue());
         tokensByTerms.process(termTypeAndTerm, tokenId);
         ttf.adjustOrPutValue(termTypeAndTerm, 1, 1);

@@ -29,4 +29,8 @@ public class ServerErr extends RuntimeException {
     this.code = InternalError;
     this.msg = msg;
   }
+
+  public ServerErr(Exception e) {
+    this(InternalError, e);
+  }
 }

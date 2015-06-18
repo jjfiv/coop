@@ -3,45 +3,24 @@ package edu.umass.cs.jfoley.coop.conll;
 import ciir.jfoley.chai.Timing;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.errors.FatalError;
 import ciir.jfoley.chai.io.Directory;
+import ciir.jfoley.chai.math.StreamingStats;
 import edu.umass.cs.ciir.waltz.coders.files.RunReader;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.CoopToken;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author jfoley
  */
 public class TermBasedIndex {
-  public static class SentenceIndexedToken implements Comparable<SentenceIndexedToken> {
-    public int sentenceId;
-    public int tokenId;
-    public Map<String,String> terms;
-    public Set<String> indicators;
-
-    public SentenceIndexedToken() {
-      sentenceId = -1;
-      tokenId = -1;
-      terms = new HashMap<>();
-      indicators = new HashSet<>();
-    }
-    public SentenceIndexedToken(int sentenceId, int tokenId) {
-      this();
-      this.sentenceId = sentenceId;
-      this.tokenId = tokenId;
-    }
-
-    @Override
-    public int compareTo(@Nonnull SentenceIndexedToken o) {
-      return Integer.compare(tokenId, o.tokenId);
-    }
-  }
 
   public static void main(String[] args) throws IOException {
     Directory here = Directory.Read(".");
@@ -56,23 +35,36 @@ public class TermBasedIndex {
           System.out.println("Read "+reader.getCount()+" entries in "+ms+ "ms");
         }
 
-        Directory output = here.childDir(file.getName()+".stoken.index");
-        long indexBuildTime = Timing.milliseconds(() -> {
-          try (TermBasedIndexWriter writer = new TermBasedIndexWriter(output)) {
-            for (CoopDoc coopDoc : collection) {
-              List<CoopToken> tokens = coopDoc.tokens();
-              if(coopDoc.getTags().isEmpty()) continue;
-              for (Span stag : coopDoc.getTags().get("true_sentence")) {
-                writer.addSentence(ListFns.slice(tokens, stag.begin, stag.end));
-              }
-            }
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        });
+        if(file.getName().contains("test")) continue;
 
-        System.out.println("Index build time: "+indexBuildTime);
-      }
+        Directory output = here.childDir(file.getName()+".stoken.index");
+
+        try (TermBasedIndexWriter writer = new TermBasedIndexWriter(output)) {
+          StreamingStats stats = new StreamingStats();
+          for (int i = 0; i < collection.size(); i++) {
+            CoopDoc coopDoc = collection.get(i);
+            List<CoopToken> tokens = coopDoc.tokens();
+            if (coopDoc.getTags().isEmpty()) continue;
+            for (Span stag : coopDoc.getTags().get("true_sentence")) {
+              stats.push(Timing.milliseconds(() -> {
+                try {
+                  writer.addSentence(ListFns.slice(tokens, stag.begin, stag.end));
+                } catch (IOException e) {
+                  throw new FatalError(e);
+                }
+              }));
+            }
+
+            if(i++ % 100 == 0) {
+              System.out.printf("%d: %s\n", i, stats);
+            }
+          }
+          System.out.println(stats);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      };
+
     }
   }
 }
