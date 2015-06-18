@@ -24,8 +24,9 @@ var Sentence = React.createClass({
         return this.props.tokens[0].sentenceId;
     },
     render: function() {
+        var that = this;
         var listNodes = this.props.tokens.map(function(token) {
-            return <Token terms={token.terms} />;
+            return <Token selectedToken={that.props.selectedToken} token={token} />;
         });
         return <span className="sentence"><span className="sentenceId">{this.getSentenceId()}</span>{listNodes}</span>;
     }
@@ -33,51 +34,40 @@ var Sentence = React.createClass({
 
 
 var Token = React.createClass({
-    getInitialState: function() {
-        return { active: false };
-    },
-    componentWillMount: function() {
-    },
     handleClick: function() {
-        var newState = !this.state.active;
-        this.setState({active: newState});
-        if(newState == true) {
-            EVENT_BUS.signal("clicked_token", {token: this});
-            EVENT_BUS.register("clicked_token", this);
-        } else {
-            EVENT_BUS.unregister("clicked_token", this);
-        }
+        EVENT_BUS.signal("clicked_token", this.getToken());
     },
-    handleSignal: function(what, props) {
-        if(what === 'clicked_token') {
-            if(props.token != this) {
-                this.setState({active: false});
-            }
-        }
+    getToken: function() {
+        return this.props.token;
     },
     computeTitle: function() {
-        return _(this.props.terms).map(function(v, k) {
+        return _(this.getToken().terms).map(function(v, k) {
             if(k.contains("ner") && v == "O") return "";
             return k+"="+v;
         }).reject(_.isEmpty).join('; ')
     },
     getTerm: function() {
         // grab CoNNL-specific "true_terms"
-        return this.props.terms.true_terms;
+        return this.getToken().terms.true_terms;
+    },
+    active: function() {
+        if(!this.props.selectedToken) { return false; }
+        return this.props.selectedToken.tokenId === this.getToken().tokenId;
     },
     render: function() {
         return <span onClick={this.handleClick}
-                     className={this.state.active ? "active-token" : "token"}
+                     className={this.active() ? "active-token" : "token"}
                      title={this.computeTitle()}>
-            {this.getTerm()}
+            {this.getToken().tokenId +" "+this.getTerm()}
         </span>;
     }
 });
 
 var SentenceList = React.createClass({
     render: function() {
+        var that = this;
         var sTags = _(this.props.sentences)
-            .map(function(tokens) { return <li><Sentence tokens={tokens} /></li>; })
+            .map(function(tokens) { return <li><Sentence selectedToken={that.props.selectedToken} tokens={tokens} /></li>; })
             .value();
         return <ul className="sentences">{sTags}</ul>;
     }
@@ -88,6 +78,7 @@ var RandomSentences = React.createClass({
         return {
             requestCount: this.props.requestCount || 5,
             response: {},
+            selected: null,
             waiting: true,
             error: null
         };
@@ -102,7 +93,17 @@ var RandomSentences = React.createClass({
             this.setState({error: err, response: {}, waiting: false})
         }.bind(this))
     },
+    handleSignal: function(what, props) {
+        if(what === 'clicked_token') {
+            if (!this.state.selected || this.state.selected.tokenId !== props.tokenId) {
+                this.setState({selected: props});
+            } else {
+                this.setState({selected: null});
+            }
+        }
+    },
     componentDidMount: function() {
+        EVENT_BUS.register('clicked_token', this);
         this.refreshData();
     },
     render: function() {
@@ -112,7 +113,7 @@ var RandomSentences = React.createClass({
             return <AjaxError err={this.state.error} />;
         } else {
             return <div>
-                <SentenceList sentences={this.state.response.sentences} />
+                <SentenceList selectedToken={this.state.selected} sentences={this.state.response.sentences} />
                 <hr />
                 {"Finding these "+ _.size(this.state.response.sentences)+ " sentences took "+this.state.response.time+"ms. "}
             </div>;
@@ -123,11 +124,5 @@ var RandomSentences = React.createClass({
 
 $(function() {
     React.render(<RandomSentences requestCount={5} />, document.getElementById("sentences"));
-/*postJSON("/api/randomSentences", {}, function(response){
- var html = '';
- html += 'Finding these sentences took: '+response.time+'ms.';
- html += React.renderToStaticMarkup(<SentenceList sentences={response.sentences} />);
- $('#sentences').html(html);
- });*/
 });
 
