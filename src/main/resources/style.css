@@ -7,8 +7,7 @@
 .active-token {
     display: inline-block;
     padding: 1pt;
-    background-color: #99f;
-    border: 0.5pt solid #66d;
+    border: 2px solid #000;
 }
 
 .sentenceId {
@@ -22,4 +21,17 @@
 .sentences {
     list-style: none;
     display:block;
+}
+
+.ner-I-MISC {
+    background-color: #f99;
+}
+.ner-I-ORG {
+    background-color: #9f9;
+}
+.ner-I-PER {
+    background-color: #99f;
+}
+.ner-I-LOC {
+    background-color: #f9f;
 }

@@ -54,8 +54,19 @@ var Token = React.createClass({
         return this.props.selectedToken.tokenId === this.getToken().tokenId;
     },
     render: function() {
+        var classes = [];
+        classes.push(this.active() ? "active-token" : "token");
+        var ner = this.getToken().terms.true_ner;
+        if(ner) {
+            classes.push("ner-"+ner);
+        }
+
+        var classStr = _.reduce(classes, function(accum, x) {
+            return accum + ' ' + x;
+        });
+
         return <span onClick={this.handleClick}
-                     className={this.active() ? "active-token" : "token"}
+                     className={classStr}
                      title={this.computeTitle()}>
             {this.getTerm()}
         </span>;
@@ -76,11 +87,6 @@ var TokenInfo = React.createClass({
     render: function() {
         var pairs = _(this.props.token.terms)
             .map(function(v,k) {return {key: k, value: v}})
-            /*
-            .filter(function(pair) {
-                if(pair.key.contains("overfit_")) return false;
-                return true;
-            })*/
             .value();
 
         pairs.push({key: "featureCount", value: _.size(this.props.token.indicators)});
