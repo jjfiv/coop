@@ -42,7 +42,6 @@ var Token = React.createClass({
     },
     computeTitle: function() {
         return _(this.getToken().terms).map(function(v, k) {
-            if(k.contains("ner") && v == "O") return "";
             return k+"="+v;
         }).reject(_.isEmpty).join('; ')
     },

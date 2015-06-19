@@ -17,15 +17,53 @@ var SearchBar = React.createClass({
     }
 });
 
+var AjaxRequest = React.createClass({
+    getInitialState: function() {
+        return {
+            request: null,
+            response: null,
+            waiting: false,
+            error: null
+        };
+    },
+    onSend: function(request) {
+        this.setState({response: {}, request:request, waiting: true, error: null});
+    },
+    onSuccess: function(data) {
+        this.setState({response: data, error: null, waiting: false});
+        this.props.onNewResponse(data);
+    },
+    onError: function (err) {
+        this.setState({error: err, response: null, waiting: false});
+        this.props.onNewResponse(null);
+    },
+    sendNewRequest: function(request) {
+        // don't fire off equivalent requests
+        if(_.isEqual(request, this.state.request)) {
+            return;
+        }
+        this.onSend(request);
+        postJSON(this.props.url, request, this.onSuccess, this.onError);
+    },
+    render: function() {
+        if(!this.state.request) {
+            return <div></div>;
+        } else if(this.state.waiting) {
+            return <div>Waiting for server response.</div>;
+        } else if(this.state.error != null) {
+            return <AjaxError err={this.state.error} />;
+        } else { //if(this.state.response) {
+            return <div>{"Request completed in "+this.state.response.time+"ms."}</div>
+        }
+    }
+});
+
 var SearchSentences = React.createClass({
     getInitialState: function() {
         return {
             requestCount: this.props.requestCount || 10,
-            query: {},
             response: {},
-            selected: null,
-            waiting: false,
-            error: null
+            selected: null
         };
     },
     handleSignal: function(what, props) {
@@ -41,42 +79,31 @@ var SearchSentences = React.createClass({
         EVENT_BUS.register('clicked_token', this);
     },
     handleSearch: function(txt) {
-        if(_.isEmpty(txt.trim())) {
+        txt = txt.trim();
+        if(_.isEmpty(txt)) {
             return;
         }
-        if(this.state.query.text === txt) { // don't search the same thing again.
-            return;
-        }
-        this.setState({response: {}, query:{text: txt}, waiting: true, error: null});
-        postJSON("/api/searchSentences", {
+        this.refs.ajax.sendNewRequest({
             count: this.state.requestCount,
             offset: 0,
             query: txt
-        }, function(data) {
-            this.setState({response: data, error: null, waiting: false});
-        }.bind(this), function (err) {
-            this.setState({error: err, response: {}, waiting: false})
-        }.bind(this))
+        });
+    },
+    onSearchResults: function(response) {
+        this.setState({response: response});
     },
     render: function() {
         var components = [
-            <SearchBar searchCallback={this.handleSearch.bind(this)} />
+            <SearchBar searchCallback={this.handleSearch} />,
+            <AjaxRequest ref={"ajax"} url={"/api/searchSentences"} onNewResponse={this.onSearchResults}  />
         ];
 
-        if(this.state.waiting) {
-            components.push(<div>Waiting for server response.</div>);
-        } else if(this.state.error != null) {
-            components.push(<AjaxError err={this.state.error} />);
-        } else if(this.state.response.results) {
+        if(this.state.response) {
             var response = this.state.response;
             var selected = this.state.selected;
-
             var sentences =
                 <SentenceList queryTerms={response.queryTerms} selectedToken={selected} sentences={response.results} />;
-            var footer = <div>
-                {"Finding these "+ _.size(response.results)+ " sentences took "+response.time+"ms. "}
-            </div>;
-            components.push(sentences, footer);
+            components.push(sentences);
 
 
             if(selected) {
