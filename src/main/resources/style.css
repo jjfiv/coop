@@ -1,13 +1,14 @@
 .token {
     display: inline-block;
     padding: 1pt;
-    padding-right: 0.2em;
+    padding-right: 2pt;
 }
 
 .active-token {
     display: inline-block;
     padding: 1pt;
-    border: 2px solid #000;
+    padding-right: 2pt;
+    background-color: #fd0;
 }
 
 .sentenceId {

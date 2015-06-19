@@ -22,6 +22,7 @@ var SearchSentences = React.createClass({
         return {
             requestCount: this.props.requestCount || 10,
             response: {},
+            highlightNER: true,
             selected: null
         };
     },
@@ -51,6 +52,9 @@ var SearchSentences = React.createClass({
     onSearchResults: function(response) {
         this.setState({response: response});
     },
+    toggleNERHighlight: function() {
+        this.setState({highlightNER: !this.state.highlightNER});
+    },
     render: function() {
         var components = [
             <SearchBar searchCallback={this.handleSearch} />,
@@ -60,8 +64,10 @@ var SearchSentences = React.createClass({
         if(this.state.response) {
             var response = this.state.response;
             var selected = this.state.selected;
+
+            components.push(<label>Highlight NER Truth Data: <input type={"checkbox"} checked={this.state.highlightNER} onChange={this.toggleNERHighlight} /></label>);
             var sentences =
-                <SentenceList queryTerms={response.queryTerms} selectedToken={selected} sentences={response.results} />;
+                <SentenceList highlightNER={this.state.highlightNER} queryTerms={response.queryTerms} selectedToken={selected} sentences={response.results} />;
             components.push(sentences);
 
 

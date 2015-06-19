@@ -26,9 +26,16 @@ var Sentence = React.createClass({
     render: function() {
         var that = this;
         var listNodes = this.props.tokens.map(function(token) {
-            return <Token selectedToken={that.props.selectedToken} token={token} />;
-        });
-        return <span className="sentence"><span className="sentenceId">{this.getSentenceId()}</span>{listNodes}</span>;
+            return <Token selectedToken={this.props.selectedToken} highlightNER={this.props.highlightNER} token={token} />;
+        }, this);
+
+        if(this.props.displaySentenceId) {
+            return <div className="sentence">
+            <span className="sentenceId">{this.getSentenceId()}</span>
+                {listNodes}
+        </div>;
+        }
+        return <div className="sentence">{listNodes}</div>;
     }
 });
 
@@ -55,9 +62,14 @@ var Token = React.createClass({
     },
     render: function() {
         var classes = [];
-        classes.push(this.active() ? "active-token" : "token");
         var ner = this.getToken().terms.true_ner;
-        if(ner) {
+        var active = this.active();
+        if(active) {
+            classes.push("active-token");
+        } else {
+            classes.push("token");
+        }
+        if(!active && this.props.highlightNER && ner) {
             classes.push("ner-"+ner);
         }
 
@@ -75,11 +87,12 @@ var Token = React.createClass({
 
 var SentenceList = React.createClass({
     render: function() {
-        var that = this;
         var sTags = _(this.props.sentences)
-            .map(function(tokens) { return <li><Sentence selectedToken={that.props.selectedToken} tokens={tokens} /></li>; })
+            .map(function(tokens) {
+                return <Sentence highlightNER={this.props.highlightNER} selectedToken={this.props.selectedToken} tokens={tokens} />;
+            }, this)
             .value();
-        return <ul className="sentences">{sTags}</ul>;
+        return <div className="sentences">{sTags}</div>;
     }
 });
 
