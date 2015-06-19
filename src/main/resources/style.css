@@ -1,6 +1,7 @@
 .token {
     display: inline-block;
     padding: 1pt;
+    padding-right: 0.2em;
 }
 
 .active-token {

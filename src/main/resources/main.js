@@ -93,12 +93,3 @@ var TokenInfo = React.createClass({
     }
 });
 
-var AjaxError = React.createClass({
-    render: function() {
-        var err = this.props.err;
-        if(err.responseText) {
-            return <textarea value={err.responseText}/>;
-        }
-        return <textarea value={JSON.stringify(this.props.err)}/>;
-    }
-});
