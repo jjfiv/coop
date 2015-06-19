@@ -2,7 +2,10 @@ package edu.umass.cs.jfoley.coop.conll;
 
 import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.util.IterableFns;
+import ciir.jfoley.chai.collections.util.QuickSort;
 import ciir.jfoley.chai.io.Directory;
+import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
@@ -13,6 +16,7 @@ import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.format.BlockedPostingsCoder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
+import edu.umass.cs.jfoley.coop.conll.classifier.ClassifierSystem;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
 import java.io.Closeable;
@@ -35,6 +39,9 @@ public class TermBasedIndexReader implements Closeable {
   public final IOMap<String, List<Integer>> featureIndex;
   public final IOMap<NamespacedLabel, List<Integer>> tokensByTerms;
   public final IOMap<NamespacedLabel, PostingMover<Integer>> sentencesByTerms;
+  public final IdMaps.Reader<String> features;
+
+  public final ClassifierSystem classifiers;
 
   public TermBasedIndexReader(Directory input) throws IOException {
     this.input = input;
@@ -68,6 +75,28 @@ public class TermBasedIndexReader implements Closeable {
         new BlockedPostingsCoder<Integer>(VarUInt.instance),
         input.childPath("sentencesByTerms")
     );
+
+    if(!input.child("features.fwd").exists()) {
+      List<String> featuresAboveThreshold = new ArrayList<>();
+      for (List<String> keyBatch : IterableFns.batches(featureIndex.keys(), 1000)) {
+        for (Pair<String, List<Integer>> kv : featureIndex.getInBulk(keyBatch)) {
+          if (kv.getValue().size() > 5) {
+            featuresAboveThreshold.add(kv.getKey());
+          }
+        }
+      }
+      QuickSort.sort(featuresAboveThreshold);
+
+      try (IdMaps.Writer<String> featuresWriter = GalagoIO.openIdMapsWriter(input.childPath("features"), VarUInt.instance, CharsetCoders.utf8)) {
+        for (int i = 0; i < featuresAboveThreshold.size(); i++) {
+          featuresWriter.put(i, featuresAboveThreshold.get(i));
+        }
+      }
+    }
+
+    this.features = GalagoIO.openIdMapsReader(input.childPath("features"), VarUInt.instance, CharsetCoders.utf8);
+
+    this.classifiers = new ClassifierSystem(this);
   }
 
   public int getSentenceCount() {
