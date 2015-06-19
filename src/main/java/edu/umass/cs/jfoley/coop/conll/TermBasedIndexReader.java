@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.conll;
 
 import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.QuickSort;
 import ciir.jfoley.chai.io.Directory;
@@ -17,11 +18,13 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.format.BlockedPostingsCoder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.conll.classifier.ClassifierSystem;
+import edu.umass.cs.jfoley.coop.conll.classifier.RandomlyInitClassifier;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -101,6 +104,25 @@ public class TermBasedIndexReader implements Closeable {
 
   public int getSentenceCount() {
     return IntMath.fromLong(sentenceCorpus.keyCount());
+  }
+
+  public List<RandomlyInitClassifier.SparseBooleanFeatures> pullFeatures(List<Integer> tokenIds) throws IOException {
+    List<RandomlyInitClassifier.SparseBooleanFeatures> posF = new ArrayList<>(tokenIds.size());
+    List<String> relevantFeatures = classifiers.featuresAboveThreshold;
+
+    for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
+      for (Pair<Integer, SentenceIndexedToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
+        IntList features = new IntList(kv.getValue().indicators.size());
+        for (String indicator : kv.getValue().indicators) {
+          int pos = Collections.binarySearch(relevantFeatures, indicator);
+          if(pos < 0) continue;
+          features.add(pos);
+        }
+        posF.add(new RandomlyInitClassifier.SparseBooleanFeatures(features));
+      }
+    }
+
+    return posF;
   }
 
   @Override

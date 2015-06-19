@@ -12,16 +12,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jfoley
  */
 public class ClassifierSystem {
   public final TermBasedIndexReader index;
-  final List<String> featuresAboveThreshold;
+  public final List<String> featuresAboveThreshold;
   private final File saveFile;
   Map<String, ClassifiedData> dataByClassifier;
   public static final MapCoder<String,ClassifiedData> coder = new MapCoder<>(CharsetCoders.utf8, new KryoCoder<>(ClassifiedData.class));
@@ -33,13 +33,13 @@ public class ClassifierSystem {
     if(saveFile.exists()) {
       load();
     } else {
-      dataByClassifier = new HashMap<>();
+      dataByClassifier = new ConcurrentHashMap<>();
     }
   }
 
   public synchronized void load() throws IOException {
     try (InputStream is = IO.openInputStream(saveFile)) {
-      dataByClassifier = coder.readImpl(is);
+      dataByClassifier = new ConcurrentHashMap<>(coder.readImpl(is));
     }
   }
 
@@ -58,7 +58,11 @@ public class ClassifierSystem {
     return output;
   }
 
-  public void addLabels(String classifier, List<String> positive, List<String> negative) throws IOException {
+  public synchronized void deleteClassifier(String classifier) {
+    this.dataByClassifier.remove(classifier);
+  }
+
+  public synchronized void addLabels(String classifier, List<String> positive, List<String> negative) throws IOException {
     ClassifiedData cd = dataByClassifier.get(classifier);
     boolean changed = false;
     if(cd == null) {
