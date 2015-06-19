@@ -20,8 +20,17 @@
 }
 
 .sentences {
-    list-style: none;
     display:block;
+    padding: 2pt;
+    margin: 2pt;
+}
+
+.sentence {
+    display:block;
+    padding: 2pt;
+    background-color: #eeeeee;
+    margin: 2pt;
+    margin-bottom: 10pt;
 }
 
 .ner-I-MISC {
@@ -35,4 +44,16 @@
 }
 .ner-I-LOC {
     background-color: #f9f;
+}
+
+.ajax {
+    font-style: italic;
+    font-size: 10pt;
+}
+
+label {
+    padding: 2pt;
+    border: 1pt solid #eee;
+    margin: 2pt;
+    display: inline-block;
 }

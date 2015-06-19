@@ -1,8 +1,20 @@
 
 var SearchBar = React.createClass({
+    getInitialState: function() {
+        return {
+            requestCount: this.props.requestCount || 10,
+        }
+    },
     handleSubmit: function() {
-        var domNode = React.findDOMNode(this.refs["query"]);
-        this.props.searchCallback(domNode.value);
+        var txt = React.findDOMNode(this.refs["query"]).value.trim();
+        if(_.isEmpty(txt)) {
+            return;
+        }
+        this.refs.ajax.sendNewRequest({
+            count: this.state.requestCount,
+            offset: 0,
+            query: txt
+        });
     },
     handleKeyPress: function(evt) {
         if(evt.which == 13) {
@@ -13,6 +25,7 @@ var SearchBar = React.createClass({
         return <div>
             <input onKeyPress={this.handleKeyPress} ref={"query"} type={"text"} placeholder={"Query"} />
             <input onClick={this.handleSubmit} type={"button"} value={"Go!"} />
+            <AjaxRequest ref={"ajax"} url={this.props.url} onNewResponse={this.props.searchCallback}  />
         </div>;
     }
 });
@@ -38,17 +51,6 @@ var SearchSentences = React.createClass({
     componentDidMount: function() {
         EVENT_BUS.register('clicked_token', this);
     },
-    handleSearch: function(txt) {
-        txt = txt.trim();
-        if(_.isEmpty(txt)) {
-            return;
-        }
-        this.refs.ajax.sendNewRequest({
-            count: this.state.requestCount,
-            offset: 0,
-            query: txt
-        });
-    },
     onSearchResults: function(response) {
         this.setState({response: response});
     },
@@ -57,8 +59,7 @@ var SearchSentences = React.createClass({
     },
     render: function() {
         var components = [
-            <SearchBar searchCallback={this.handleSearch} />,
-            <AjaxRequest ref={"ajax"} url={"/api/searchSentences"} onNewResponse={this.onSearchResults}  />
+            <SearchBar url={"/api/searchSentences"} searchCallback={this.onSearchResults} />
         ];
 
         if(this.state.response) {
