@@ -1,7 +1,9 @@
 package edu.umass.cs.jfoley.coop.conll.classifier;
 
 import ciir.jfoley.chai.Timing;
+import ciir.jfoley.chai.collections.ArrayListMap;
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.errors.FatalError;
@@ -102,22 +104,54 @@ public class RandomlyInitClassifier  {
           System.out.printf("Training Accuracy: %3.1f%%\n", 100.0 * accuracy);
           System.out.printf("Number of features: %d\n", classifier.getComplexity());
 
-          int correct = 0;
-          double total = testa.size();
-          for (Pair<String, SparseBooleanFeatures> kv : testa) {
-            String label = kv.left;
-            FeatureVector fv = kv.right;
-
-            boolean pred = classifier.predict(fv);
-            if(pred && Objects.equals(label, kind)) {
-              correct++;
-            }
-          }
-          System.out.printf("TestA Accuracy: %3.1f%%\n", 100.0 * correct / total);
+          System.out.println("TestA: " + evaluate(testa, kind, classifier).toString());
+          System.out.println("TestB: " + evaluate(testb, kind, classifier).toString());
         }
       }
 
 
     }
   }
+
+  public static Map<String,Double> evaluate(List<Pair<String, SparseBooleanFeatures>> testa, String kind, Classifier classifier) {
+    Map<String,Double> measures = new ArrayListMap<>();
+
+    TopKHeap<Pair<Boolean, Double>> ranked = new TopKHeap<>(1000, (Comparator<? super Pair<Boolean, Double>>) Pair.cmpRight().reversed());
+
+    int correct = 0;
+    double total = testa.size();
+    int totalOfKind = 0;
+    for (Pair<String, SparseBooleanFeatures> kv : testa) {
+      String label = kv.left;
+      FeatureVector fv = kv.right;
+
+      boolean pred = classifier.predict(fv);
+      boolean ofKind = Objects.equals(label, kind);
+      if(ofKind) totalOfKind++;
+      if(pred && ofKind) {
+        correct++;
+      }
+      ranked.offer(Pair.of(ofKind, -classifier.rank(fv)));
+    }
+    System.out.printf("TestA Accuracy: %3.1f%%\n", 100.0 * correct / total);
+
+    List<Pair<Boolean, Double>> sorted = ranked.getSorted();
+    int correctInRanked = 0;
+    Set<Integer> pranks = new HashSet<>(Arrays.asList(1,5,10,20,50,100));
+    for (int i = 0; i < sorted.size(); i++) {
+      Pair<Boolean, Double> pair = sorted.get(i);
+      if(pair.left) {
+        correctInRanked++;
+      }
+      int rank = i+1;
+      if(pranks.contains(rank)) {
+        measures.put("p@"+rank, correctInRanked / (double) rank);
+      }
+    }
+
+    measures.put("accuracy", 100.0 * correct / total);
+    measures.put("precision", correct / (double) totalOfKind);
+    return measures;
+  }
+
 }
