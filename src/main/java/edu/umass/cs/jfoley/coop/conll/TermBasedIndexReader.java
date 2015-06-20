@@ -18,7 +18,7 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.format.BlockedPostingsCoder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.conll.classifier.ClassifierSystem;
-import edu.umass.cs.jfoley.coop.conll.classifier.RandomlyInitClassifier;
+import edu.umass.cs.jfoley.coop.conll.classifier.SparseBooleanFeatures;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
 import java.io.Closeable;
@@ -106,8 +106,8 @@ public class TermBasedIndexReader implements Closeable {
     return IntMath.fromLong(sentenceCorpus.keyCount());
   }
 
-  public List<RandomlyInitClassifier.SparseBooleanFeatures> pullFeatures(List<Integer> tokenIds) throws IOException {
-    List<RandomlyInitClassifier.SparseBooleanFeatures> posF = new ArrayList<>(tokenIds.size());
+  public List<SparseBooleanFeatures> pullFeatures(List<Integer> tokenIds) throws IOException {
+    List<SparseBooleanFeatures> posF = new ArrayList<>(tokenIds.size());
     List<String> relevantFeatures = classifiers.featuresAboveThreshold;
 
     for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
@@ -118,7 +118,7 @@ public class TermBasedIndexReader implements Closeable {
           if(pos < 0) continue;
           features.add(pos);
         }
-        posF.add(new RandomlyInitClassifier.SparseBooleanFeatures(features));
+        posF.add(new SparseBooleanFeatures(features));
       }
     }
 

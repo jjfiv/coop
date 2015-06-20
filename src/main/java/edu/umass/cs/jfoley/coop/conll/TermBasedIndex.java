@@ -35,8 +35,6 @@ public class TermBasedIndex {
           System.out.println("Read "+reader.getCount()+" entries in "+ms+ "ms");
         }
 
-        if(file.getName().contains("test")) continue;
-
         Directory output = here.childDir(file.getName()+".stoken.index");
 
         try (TermBasedIndexWriter writer = new TermBasedIndexWriter(output)) {
