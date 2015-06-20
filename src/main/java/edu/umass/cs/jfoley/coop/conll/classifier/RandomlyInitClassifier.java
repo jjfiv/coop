@@ -200,7 +200,7 @@ public class RandomlyInitClassifier  {
           double accuracy = classifier.train(posF, negF);
           System.out.printf("Training Accuracy: %3.1f%%\n", 100.0 * accuracy);
           System.out.printf("Number of features: %d\n", classifier.getSparseFeatures().size());
-          System.out.printf("Features: %s\n", classifier.getSparseFeatures());
+          //System.out.printf("Features: %s\n", classifier.getSparseFeatures());
 
         }
       }
