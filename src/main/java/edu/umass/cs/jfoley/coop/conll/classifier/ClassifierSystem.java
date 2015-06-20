@@ -3,7 +3,7 @@ package edu.umass.cs.jfoley.coop.conll.classifier;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.IO;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
-import edu.umass.cs.ciir.waltz.coders.kinds.MapCoder;
+import edu.umass.cs.ciir.waltz.coders.kinds.InterleavedMapCoder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
 import org.lemurproject.galago.utility.Parameters;
@@ -24,7 +24,7 @@ public class ClassifierSystem {
   public final List<String> featuresAboveThreshold;
   private final File saveFile;
   Map<String, ClassifiedData> dataByClassifier;
-  public static final MapCoder<String,ClassifiedData> coder = new MapCoder<>(CharsetCoders.utf8, new KryoCoder<>(ClassifiedData.class));
+  public static final InterleavedMapCoder<String,ClassifiedData> coder = new InterleavedMapCoder<>(CharsetCoders.utf8, new KryoCoder<>(ClassifiedData.class));
 
   public ClassifierSystem(TermBasedIndexReader index) throws IOException {
     this.index = index;

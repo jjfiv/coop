@@ -70,8 +70,8 @@ public class ConllLoader {
     List<String> annotators = Arrays.asList("tokenize", "ssplit", "pos", "lemma", "ner");
     Properties props = new Properties();
     props.put("annotators", StrUtil.join(annotators, ","));
-    props.put("split.eolonly", true);
-    props.put("tokenize.whitespace", true);
+    props.put("split.eolonly", "true");
+    props.put("tokenize.whitespace", "true");
     return new StanfordCoreNLP(props);
   });
 
@@ -162,7 +162,7 @@ public class ConllLoader {
   }
 
   public static void main(String[] args) throws IOException {
-    Directory cdir = Directory.Read("/mnt/scratch/jfoley/conll2003");
+    Directory cdir = Directory.Read("/media/jfoley/flash/raw/conll2003");
 
     List<String> interestingChildren = Arrays.asList(
         "CoNLL03.eng.train",
