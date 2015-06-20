@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.conll.classifier;
 
 import ciir.jfoley.chai.Timing;
+import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.errors.FatalError;
@@ -19,13 +20,13 @@ public class RandomlyInitClassifier  {
 
   public static void main(String[] args) throws IOException {
 
-    List<SparseBooleanFeatures> testa = new ArrayList<>();
-    List<SparseBooleanFeatures> testb = new ArrayList<>();
+    List<Pair<String, SparseBooleanFeatures>> testa = new ArrayList<>();
+    List<Pair<String, SparseBooleanFeatures>> testb = new ArrayList<>();
     try (TermBasedIndexReader index = new TermBasedIndexReader(Directory.Read("./CoNLL03.eng.testa.run.stoken.index"))) {
       List<Integer> allTokens = IterableFns.intoList(index.tokenCorpus.keys());
       long pullTime = Timing.milliseconds(() -> {
         try {
-          testa.addAll(index.pullFeatures(allTokens));
+          testa.addAll(index.pullLabeledFeatures("true_ner", allTokens));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -36,7 +37,7 @@ public class RandomlyInitClassifier  {
       List<Integer> allTokens = IterableFns.intoList(index.tokenCorpus.keys());
       long pullTime = Timing.milliseconds(() -> {
         try {
-          testb.addAll(index.pullFeatures(allTokens));
+          testb.addAll(index.pullLabeledFeatures("true_ner", allTokens));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -101,6 +102,18 @@ public class RandomlyInitClassifier  {
           System.out.printf("Training Accuracy: %3.1f%%\n", 100.0 * accuracy);
           System.out.printf("Number of features: %d\n", classifier.getComplexity());
 
+          int correct = 0;
+          double total = testa.size();
+          for (Pair<String, SparseBooleanFeatures> kv : testa) {
+            String label = kv.left;
+            FeatureVector fv = kv.right;
+
+            boolean pred = classifier.predict(fv);
+            if(pred && Objects.equals(label, kind)) {
+              correct++;
+            }
+          }
+          System.out.printf("TestA Accuracy: %3.1f%%\n", 100.0 * correct / total);
         }
       }
 

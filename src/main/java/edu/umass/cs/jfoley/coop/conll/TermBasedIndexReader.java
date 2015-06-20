@@ -106,6 +106,27 @@ public class TermBasedIndexReader implements Closeable {
     return IntMath.fromLong(sentenceCorpus.keyCount());
   }
 
+  public List<Pair<String,SparseBooleanFeatures>> pullLabeledFeatures(String tokenSet, List<Integer> tokenIds) throws IOException {
+    List<Pair<String, SparseBooleanFeatures>> posF = new ArrayList<>(tokenIds.size());
+    List<String> relevantFeatures = classifiers.featuresAboveThreshold;
+
+    for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
+      for (Pair<Integer, SentenceIndexedToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
+        String label = kv.getValue().getTerms().get(tokenSet);
+
+        IntList features = new IntList(kv.getValue().indicators.size());
+        for (String indicator : kv.getValue().indicators) {
+          int pos = Collections.binarySearch(relevantFeatures, indicator);
+          if(pos < 0) continue;
+          features.add(pos);
+        }
+        posF.add(Pair.of(label, new SparseBooleanFeatures(features)));
+      }
+    }
+
+    return posF;
+  }
+
   public List<SparseBooleanFeatures> pullFeatures(List<Integer> tokenIds) throws IOException {
     List<SparseBooleanFeatures> posF = new ArrayList<>(tokenIds.size());
     List<String> relevantFeatures = classifiers.featuresAboveThreshold;
