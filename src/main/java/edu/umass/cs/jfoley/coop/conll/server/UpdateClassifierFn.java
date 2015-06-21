@@ -1,9 +1,11 @@
 package edu.umass.cs.jfoley.coop.conll.server;
 
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
+import edu.umass.cs.jfoley.coop.conll.classifier.LabeledToken;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,11 +19,21 @@ public class UpdateClassifierFn extends IndexServerFn {
 
   @Override
   public Parameters handleRequest(Parameters input) throws IOException {
-    String classifier = input.getString("classifier");
-    List<String> positives = input.getAsList("positives", String.class);
-    List<String> negatives = input.getAsList("positives", String.class);
+    long requestTime = System.currentTimeMillis();
 
-    index.classifiers.addLabels(classifier, positives, negatives);
+    String classifier = input.getString("classifier");
+    List<Parameters> labels = input.getAsList("labels", Parameters.class);
+
+    List<LabeledToken> ltok = new ArrayList<>(labels.size());
+    for (Parameters label : labels) {
+      int id = label.get("tokenId", -1);
+      if(id < 0) continue;
+      boolean positive = label.get("positive", true);
+      long time = Math.min(requestTime, label.get("time", requestTime)); // don't allow times being set in the future from JS
+      ltok.add(new LabeledToken(time, id, positive));
+    }
+
+    index.classifiers.addLabels(classifier, ltok);
     return index.classifiers.getInfo(classifier);
   }
 }

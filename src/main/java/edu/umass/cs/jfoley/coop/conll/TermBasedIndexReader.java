@@ -18,6 +18,7 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.format.BlockedPostingsCoder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.conll.classifier.ClassifierSystem;
+import edu.umass.cs.jfoley.coop.conll.classifier.FeatureVector;
 import edu.umass.cs.jfoley.coop.conll.classifier.SparseBooleanFeatures;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
@@ -106,8 +107,8 @@ public class TermBasedIndexReader implements Closeable {
     return IntMath.fromLong(sentenceCorpus.keyCount());
   }
 
-  public List<Pair<String,SparseBooleanFeatures>> pullLabeledFeatures(String tokenSet, List<Integer> tokenIds) throws IOException {
-    List<Pair<String, SparseBooleanFeatures>> posF = new ArrayList<>(tokenIds.size());
+  public List<Pair<String,FeatureVector>> pullLabeledFeatures(String tokenSet, List<Integer> tokenIds) throws IOException {
+    List<Pair<String, FeatureVector>> posF = new ArrayList<>(tokenIds.size());
     List<String> relevantFeatures = classifiers.featuresAboveThreshold;
 
     for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
@@ -127,8 +128,28 @@ public class TermBasedIndexReader implements Closeable {
     return posF;
   }
 
-  public List<SparseBooleanFeatures> pullFeatures(List<Integer> tokenIds) throws IOException {
-    List<SparseBooleanFeatures> posF = new ArrayList<>(tokenIds.size());
+
+  public List<Pair<SentenceIndexedToken, FeatureVector>> TokenFeatures(List<Integer> tokenIds) throws IOException {
+    List<Pair<SentenceIndexedToken, FeatureVector>> posF = new ArrayList<>(tokenIds.size());
+    List<String> relevantFeatures = classifiers.featuresAboveThreshold;
+
+    for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
+      for (Pair<Integer, SentenceIndexedToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
+        IntList features = new IntList(kv.getValue().indicators.size());
+        for (String indicator : kv.getValue().indicators) {
+          int pos = Collections.binarySearch(relevantFeatures, indicator);
+          if(pos < 0) continue;
+          features.add(pos);
+        }
+        posF.add(Pair.of(kv.getValue(), new SparseBooleanFeatures(features)));
+      }
+    }
+
+    return posF;
+  }
+
+  public List<FeatureVector> pullFeatures(List<Integer> tokenIds) throws IOException {
+    List<FeatureVector> posF = new ArrayList<>(tokenIds.size());
     List<String> relevantFeatures = classifiers.featuresAboveThreshold;
 
     for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
@@ -163,5 +184,9 @@ public class TermBasedIndexReader implements Closeable {
       data.add(kv.getValue());
     }
     return data;
+  }
+
+  public int numFeatures() {
+    return classifiers.featuresAboveThreshold.size();
   }
 }

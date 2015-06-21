@@ -22,8 +22,8 @@ public class RandomlyInitClassifier  {
 
   public static void main(String[] args) throws IOException {
 
-    List<Pair<String, SparseBooleanFeatures>> testa = new ArrayList<>();
-    List<Pair<String, SparseBooleanFeatures>> testb = new ArrayList<>();
+    List<Pair<String, FeatureVector>> testa = new ArrayList<>();
+    List<Pair<String, FeatureVector>> testb = new ArrayList<>();
     try (TermBasedIndexReader index = new TermBasedIndexReader(Directory.Read("./CoNLL03.eng.testa.run.stoken.index"))) {
       List<Integer> allTokens = IterableFns.intoList(index.tokenCorpus.keys());
       long pullTime = Timing.milliseconds(() -> {
@@ -80,8 +80,8 @@ public class RandomlyInitClassifier  {
           // Print info about prepared data:
           System.out.printf("%s\t%4d\t%5d\n", kind, positive.size(), negative.size());
 
-          List<SparseBooleanFeatures> posF = new ArrayList<>();
-          List<SparseBooleanFeatures> negF = new ArrayList<>();
+          List<FeatureVector> posF = new ArrayList<>();
+          List<FeatureVector> negF = new ArrayList<>();
           long pullPos = Timing.milliseconds(() -> {
             try {
               posF.addAll(index.pullFeatures(positive));
@@ -99,7 +99,7 @@ public class RandomlyInitClassifier  {
           System.out.println("Pull pos: " + pullPos + " pull neg: " + pullNeg);
 
           // train classifier:
-          Classifier classifier = new PerceptronClassifier(index.classifiers.featuresAboveThreshold.size());
+          Classifier classifier = new PerceptronClassifier(index.numFeatures());
           double accuracy = classifier.train(posF, negF);
           System.out.printf("Training Accuracy: %3.1f%%\n", 100.0 * accuracy);
           System.out.printf("Number of features: %d\n", classifier.getComplexity());
@@ -113,15 +113,15 @@ public class RandomlyInitClassifier  {
     }
   }
 
-  public static Map<String,Double> evaluate(List<Pair<String, SparseBooleanFeatures>> testa, String kind, Classifier classifier) {
+  public static Map<String,Double> evaluate(List<Pair<String, FeatureVector>> testa, String kind, Classifier classifier) {
     Map<String,Double> measures = new ArrayListMap<>();
 
-    TopKHeap<Pair<Boolean, Double>> ranked = new TopKHeap<>(1000, (Comparator<? super Pair<Boolean, Double>>) Pair.cmpRight().reversed());
+    TopKHeap<Pair<Boolean, Double>> ranked = new TopKHeap<>(1000, (Comparator<? super Pair<Boolean, Double>>) Pair.cmpRight());
 
     int correct = 0;
     double total = testa.size();
     int totalOfKind = 0;
-    for (Pair<String, SparseBooleanFeatures> kv : testa) {
+    for (Pair<String, FeatureVector> kv : testa) {
       String label = kv.left;
       FeatureVector fv = kv.right;
 
@@ -131,7 +131,7 @@ public class RandomlyInitClassifier  {
       if(pred && ofKind) {
         correct++;
       }
-      ranked.offer(Pair.of(ofKind, -classifier.rank(fv)));
+      ranked.offer(Pair.of(ofKind, classifier.rank(fv)));
     }
     System.out.printf("TestA Accuracy: %3.1f%%\n", 100.0 * correct / total);
 
