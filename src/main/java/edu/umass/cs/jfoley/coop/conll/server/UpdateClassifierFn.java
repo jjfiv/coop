@@ -34,6 +34,7 @@ public class UpdateClassifierFn extends IndexServerFn {
     }
 
     index.classifiers.addLabels(classifier, ltok);
+    index.classifiers.train(classifier);
     return index.classifiers.getInfo(classifier);
   }
 }

@@ -73,7 +73,7 @@ public class PerceptronClassifier extends Classifier {
   }
 
   @Override
-  double rank(FeatureVector fv) {
+  public double rank(FeatureVector fv) {
     double dotP = 0.0;
     for (Pair<Integer, Float> kv : fv) {
       dotP += w[kv.left] * kv.right;
@@ -83,7 +83,7 @@ public class PerceptronClassifier extends Classifier {
   }
 
   @Override
-  int getComplexity() {
+  public int getComplexity() {
     return this.getSparseFeatures().size();
   }
 

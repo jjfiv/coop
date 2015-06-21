@@ -97,6 +97,10 @@ public class ClassifierSystem {
     return classifier;
   }
 
+  public synchronized Classifier getOrTrain(String classifierName) throws IOException {
+    return cachedTrainedClassifier.getOrDefault(classifierName, train(classifierName));
+  }
+
 
   public synchronized List<ClassifiedToken> classifyTokens(String classifierName, List<Integer> tokens) throws IOException {
     Classifier classifier = cachedTrainedClassifier.getOrDefault(classifierName, train(classifierName));

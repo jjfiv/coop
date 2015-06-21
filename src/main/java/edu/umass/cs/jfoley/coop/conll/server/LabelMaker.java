@@ -32,6 +32,7 @@ public class LabelMaker implements WebHandler, Closeable {
     apiMethods.put("searchSentences", new SearchSentencesFn(index));
     apiMethods.put("updateClassifier", new UpdateClassifierFn(index));
     apiMethods.put("classifyTokens", new ClassifyTokensFn(index));
+    apiMethods.put("rankByClassifier", new RankByClassifierFn(index));
   }
 
   public void start(int port) throws WebServerException {
