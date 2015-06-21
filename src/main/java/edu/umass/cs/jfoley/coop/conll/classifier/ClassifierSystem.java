@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,6 +35,7 @@ public class ClassifierSystem {
   public ClassifierSystem(TermBasedIndexReader index) throws IOException {
     this.index = index;
     featuresAboveThreshold = IterableFns.intoList(index.features.reverseReader.keys());
+    this.cachedTrainedClassifier = new HashMap<>();
     this.saveFile = index.input.child("dataByClassifier");
     if(saveFile.exists()) {
       load();

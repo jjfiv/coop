@@ -6,7 +6,6 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
-import ciir.jfoley.chai.errors.FatalError;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.random.Sample;
 import edu.umass.cs.jfoley.coop.conll.SentenceIndexedToken;
@@ -24,22 +23,22 @@ public class RandomlyInitClassifier  {
 
     List<Pair<String, FeatureVector>> testa = new ArrayList<>();
     List<Pair<String, FeatureVector>> testb = new ArrayList<>();
-    try (TermBasedIndexReader index = new TermBasedIndexReader(Directory.Read("./CoNLL03.eng.testa.run.stoken.index"))) {
-      List<Integer> allTokens = IterableFns.intoList(index.tokenCorpus.keys());
+    try (TermBasedIndexReader testAIndex = new TermBasedIndexReader(Directory.Read("./CoNLL03.eng.testa.run.stoken.index"))) {
+      List<Integer> allTokens = IterableFns.intoList(testAIndex.tokenCorpus.keys());
       long pullTime = Timing.milliseconds(() -> {
         try {
-          testa.addAll(index.pullLabeledFeatures("true_ner", allTokens));
+          testa.addAll(testAIndex.pullLabeledFeatures("true_ner", allTokens));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
       });
       System.out.println("TestA pull time: "+pullTime);
     }
-    try (TermBasedIndexReader index = new TermBasedIndexReader(Directory.Read("./CoNLL03.eng.testb.run.stoken.index"))) {
-      List<Integer> allTokens = IterableFns.intoList(index.tokenCorpus.keys());
+    try (TermBasedIndexReader testBIndex = new TermBasedIndexReader(Directory.Read("./CoNLL03.eng.testb.run.stoken.index"))) {
+      List<Integer> allTokens = IterableFns.intoList(testBIndex.tokenCorpus.keys());
       long pullTime = Timing.milliseconds(() -> {
         try {
-          testb.addAll(index.pullLabeledFeatures("true_ner", allTokens));
+          testb.addAll(testBIndex.pullLabeledFeatures("true_ner", allTokens));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -47,7 +46,9 @@ public class RandomlyInitClassifier  {
       System.out.println("TestB pull time: "+pullTime);
     }
 
-    try (TermBasedIndexReader index = new TermBasedIndexReader(Directory.Read("./CoNLL03.eng.train.run.stoken.index"))) {
+    try (
+        TermBasedIndexReader index = new TermBasedIndexReader(Directory.Read("./CoNLL03.eng.train.run.stoken.index"));
+    ) {
 
       IntList counts = new IntList(Arrays.asList(1,10,20,50,100,1000,2000));
       List<String> kinds = Arrays.asList("I-PER", "I-LOC", "I-ORG", "I-MISC");
@@ -56,9 +57,12 @@ public class RandomlyInitClassifier  {
       for(String kind : kinds) {
         for (int count : counts) {
 
+          long time = System.currentTimeMillis();
+          index.classifiers.deleteClassifier(kind);
           // Prepare data
           List<Integer> positive = new IntList();
           List<Integer> negative = new IntList();
+          List<LabeledToken> labels = new ArrayList<>();
 
           while(positive.size() < count) {
             List<Integer> sentenceIds = Sample.randomIntegers(rand, 200, index.getSentenceCount());
@@ -66,6 +70,7 @@ public class RandomlyInitClassifier  {
               for (SentenceIndexedToken token : tokens) {
                 Map<String, String> terms = token.getTerms();
                 String ner = terms.get("true_ner");
+                labels.add(new LabeledToken(time, token.tokenId, ner.equals(kind)));
                 if (ner.equals(kind)) {
                   positive.add(token.tokenId);
                 } else if(negative.size() < count*4) {
@@ -80,29 +85,18 @@ public class RandomlyInitClassifier  {
           // Print info about prepared data:
           System.out.printf("%s\t%4d\t%5d\n", kind, positive.size(), negative.size());
 
-          List<FeatureVector> posF = new ArrayList<>();
-          List<FeatureVector> negF = new ArrayList<>();
-          long pullPos = Timing.milliseconds(() -> {
-            try {
-              posF.addAll(index.pullFeatures(positive));
-            } catch (IOException e) {
-              throw new FatalError(e);
-            }
-          });
-          long pullNeg = Timing.milliseconds(() -> {
-            try {
-              negF.addAll(index.pullFeatures(negative));
-            } catch (IOException e) {
-              throw new FatalError(e);
-            }
-          });
-          System.out.println("Pull pos: " + pullPos + " pull neg: " + pullNeg);
-
-          // train classifier:
-          Classifier classifier = new PerceptronClassifier(index.numFeatures());
-          double accuracy = classifier.train(posF, negF);
-          System.out.printf("Training Accuracy: %3.1f%%\n", 100.0 * accuracy);
+          index.classifiers.addLabels(kind, labels);
+          Classifier classifier = index.classifiers.train(kind);
           System.out.printf("Number of features: %d\n", classifier.getComplexity());
+
+          int correct = 0;
+          for (ClassifiedToken ctoken : index.classifiers.classifyTokens(kind, positive)) {
+            if(ctoken.positive && ctoken.token.getTerms().get("true_ner").equals(kind)) {
+              correct++;
+            }
+          }
+          System.out.println("Training Positive Correct: "+correct);
+
 
           System.out.println("TestA: " + evaluate(testa, kind, classifier).toString());
           System.out.println("TestB: " + evaluate(testb, kind, classifier).toString());

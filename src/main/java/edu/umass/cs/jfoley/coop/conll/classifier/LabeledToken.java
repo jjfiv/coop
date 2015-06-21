@@ -8,6 +8,9 @@ public class LabeledToken {
   public final int tokenId;
   public final boolean positive;
 
+  public LabeledToken() {
+    this(0, -1, false);
+  }
   public LabeledToken(long time, int tokenId, boolean positive) {
     this.time = time;
     this.tokenId = tokenId;
