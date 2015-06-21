@@ -1,5 +1,7 @@
 package edu.umass.cs.jfoley.coop.conll.classifier;
 
+import ciir.jfoley.chai.lang.annotations.UsedByReflection;
+
 /**
  * @author jfoley.
  */
@@ -8,6 +10,7 @@ public class LabeledToken {
   public final int tokenId;
   public final boolean positive;
 
+  @UsedByReflection
   public LabeledToken() {
     this(0, -1, false);
   }
