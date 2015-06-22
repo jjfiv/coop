@@ -2,7 +2,7 @@
 var SearchBar = React.createClass({
     getInitialState: function() {
         return {
-            requestCount: this.props.requestCount || 10,
+            requestCount: this.props.requestCount || 10
         }
     },
     handleSubmit: function() {

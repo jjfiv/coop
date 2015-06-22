@@ -4,6 +4,7 @@ import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
+import edu.umass.cs.jfoley.coop.conll.classifier.ListClassifiersFn;
 import org.lemurproject.galago.tupleflow.web.WebHandler;
 import org.lemurproject.galago.tupleflow.web.WebServer;
 import org.lemurproject.galago.tupleflow.web.WebServerException;
@@ -33,6 +34,7 @@ public class LabelMaker implements WebHandler, Closeable {
     apiMethods.put("updateClassifier", new UpdateClassifierFn(index));
     apiMethods.put("classifyTokens", new ClassifyTokensFn(index));
     apiMethods.put("rankByClassifier", new RankByClassifierFn(index));
+    apiMethods.put("listClassifiers", new ListClassifiersFn(index));
   }
 
   public void start(int port) throws WebServerException {
@@ -93,13 +95,15 @@ public class LabelMaker implements WebHandler, Closeable {
       return;
     }
 
+    if(path.equals("/")) {
+      path = "/index.html";
+    }
+
     String contentType = null;
     if(path.endsWith(".html")) {
       contentType = "text/html";
     } else if(path.endsWith(".js")) {
       contentType = "application/javascript";
-    } else if(path.endsWith(".jsx")) {
-      contentType = "text/jsx";
     } else if(path.endsWith(".css")) {
       contentType = "text/css";
     }

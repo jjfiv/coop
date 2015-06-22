@@ -1,6 +1,6 @@
 
 $(function() {
-    /*React.render(<RandomSentences requestCount={5} />, document.getElementById("rsentences"));*/
+    React.render(<ClassifierList />, document.getElementById("classifiers"));
     React.render(<SearchSentences />, document.getElementById("sentences"));
 });
 
