@@ -9,11 +9,15 @@ var ClassifierList = React.createClass({
         this.setState({classifiers: data.classifiers, time: data.time})
     },
     componentDidMount: function() {
+        this.refreshList();
+    },
+    refreshList: function() {
         this.refs.ajax.sendNewRequest({});
     },
     render: function() {
         var items = [];
-        items.push(<div>{"Classifier List"}</div>);
+        items.push(<span>{"Classifier List"}</span>);
+        items.push(<input type={"button"} onClick={this.refreshList} value={"Refresh"} />);
         items.push(<AjaxRequest ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.getClassifierList} />);
         if(this.state.classifiers) {
             items.push(<ul>{_(this.state.classifiers).map(function(info, name) {
