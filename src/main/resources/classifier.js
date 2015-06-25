@@ -21,8 +21,7 @@ var ClassifierList = React.createClass({
         items.push(<AjaxRequest ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.getClassifierList} />);
         if(this.state.classifiers) {
             items.push(<ul>{_(this.state.classifiers).map(function(info, name) {
-                console.log(info);
-                return <div>{name}</div>
+                return <div>{name+" +"+_.size(info.positive)+" -"+_.size(info.negative)}</div>
             }, this).value()}</ul>);
         }
 

@@ -112,3 +112,27 @@ var TokenInfo = React.createClass({
     }
 });
 
+// Todo: keep React component state without rendering? when you tab away from search results, they disappear right now...
+var TabComponent = React.createClass({
+    getInitialState: function() {
+        return {
+            activeTab: 0
+        }
+    },
+    select: function(index) {
+        this.setState({activeTab: index});
+    },
+    render: function() {
+        var children = this.props.children;
+        var tabButtons = _(children).map(function (child, idx) {
+            var tabc = this;
+            return <input type={"button"} value={child.name} onClick={function() { tabc.select(idx); }}/>;
+        }, this).value();
+
+        return <div>
+            <div>{tabButtons}</div><hr />
+            <div>{children[this.state.activeTab].content}</div>
+        </div>;
+    }
+});
+
