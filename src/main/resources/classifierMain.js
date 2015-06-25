@@ -33,7 +33,9 @@ var ClassifierMainView = React.createClass({
     getInitialState: function() {
         var urlp = getURLParams();
         return {
-            name: urlp.name
+            updating: true,
+            name: urlp.name,
+            info: null,
         };
     },
     updateInfo: function(info) {
@@ -42,20 +44,25 @@ var ClassifierMainView = React.createClass({
     componentDidMount: function() {
         this.refreshData(this.state.name);
     },
-    refreshData: function(name) {
-        this.refs.ajax.sendNewRequest({name: name});
+    refreshData: function() {
+        this.setState({updating: true});
+        this.refs.ajax.sendNewRequest({name: this.state.name});
     },
     render: function() {
         if(!this.state.name) { return <ClassifierList />; }
 
         var items = [];
-        items.push(<AjaxRequest quiet={true} ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.updateInfo} />);
+        items.push(<AjaxRequest quiet={false} ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.updateInfo} />);
 
+        if(this.state.updating) {
+            items.push(<div>Updating...</div>);
+        }
         var info = this.state.info;
         if (info) {
-            items.push(<div>{"Name: "}<span className={"fieldValue"}>{info.name}</span></div>);
-            items.push(<div>{"Description: "}<span className={"fieldValue"}>{info.description || <i>NONE</i>}</span></div>);
+            items.push(<label>{"Name: "}<span className={"fieldValue"}>{info.name}</span></label>);
+            items.push(<label>{"Description: "}<span className={"fieldValue"}>{info.description || <i>NONE</i>}</span></label>);
 
+            items.push(<LabelRandomSentence classifier={this.state.name} refresh={this.refreshData} />);
 
             items.push(<RecentLabels labels={info.labelEvents} count={10} />);
             //items.push(<pre>{JSON.stringify(this.state.info)}</pre>);
@@ -70,8 +77,15 @@ var RecentLabels = React.createClass({
         return {tokensById: {}};
     },
     componentDidMount: function() {
+        var tokenIds = _.map(this.props.labels, _.property("tokenId"));
         this.refs.ajaxTokens.sendNewRequest({
-            tokens: _.map(this.props.labels, _.property("tokenId"))
+            tokens: tokenIds
+        });
+    },
+    componentDidUpdate: function() {
+        var tokenIds = _.map(this.props.labels, _.property("tokenId"));
+        this.refs.ajaxTokens.sendNewRequest({
+            tokens: tokenIds
         });
     },
     receiveTokenInfo: function(data) {
@@ -112,13 +126,77 @@ var RecentLabels = React.createClass({
                 <th>Token</th>
                 <th>When</th>
             </tr>
+            <tbody>
             {rows}
+            </tbody>
         </table>
-            <AjaxRequest quiet={true} ref={"ajaxTokens"} url={"/api/pullTokens"} onNewResponse={this.receiveTokenInfo} />
+            <AjaxRequest quiet={true} pure={true} ref={"ajaxTokens"} url={"/api/pullTokens"} onNewResponse={this.receiveTokenInfo} />
         </label>;
     }
 });
 
+var LabelRandomSentence = React.createClass({
+    getInitialState: function() {
+        return {
+            started: false,
+            actionStarted: false,
+            sentence: null
+        }
+    },
+    beginLabeling: function() {
+        this.setState({started: true});
+        this.refs.randomSentence.sendNewRequest({count: 1});
+    },
+    onSentence: function(sdata) {
+        this.setState({sentence: sdata.sentences[0]});
+    },
+    labelSentenceNegative: function() {
+        var events = _(this.state.sentence).map(function(token) {
+            return {positive: false, time: (new Date()).getTime(), tokenId: token.tokenId };
+        }).value();
+
+        this.setState({actionStarted: true});
+        var that = this;
+        postJSON("/api/updateClassifier", {
+            classifier: this.props.classifier,
+            labels: events
+        }, function (donedata) {
+            that.finishPostingData();
+        }, function (errdata) {
+            throw new Error("AG!");
+        })
+    },
+    finishPostingData: function() {
+        this.props.refresh();
+        this.setState({sentence: null, actionStarted: false});
+        this.refs.randomSentence.sendNewRequest({count: 1});
+    },
+    skipSentence: function() {
+        this.setState({sentence: null, actionStarted: false});
+        this.refs.randomSentence.sendNewRequest({count: 1});
+    },
+    render: function() {
+        var items = [];
+
+        items.push(<AjaxRequest quiet={true} ref={"randomSentence"} url={"/api/randomSentences"} onNewResponse={this.onSentence} />);
+
+        if(!this.state.started) {
+            items.push(<div>Want to improve the accuracy? <input type={"button"} onClick={this.beginLabeling} value={"Label a random sentence"} />
+            </div>);
+        } else {
+            items.push(<div>Labeling a random sentence: </div>);
+            if(this.state.sentence) {
+                items.push(<Sentence tokens={this.state.sentence} />);
+                items.push(<Button disabled={this.state.actionStarted} onClick={this.skipSentence} label={"Skip!"} />);
+                items.push(<Button disabled={this.state.actionStarted} onClick={this.labelSentenceNegative} label={"No matching "+this.props.classifier+" here."} />)
+            }
+
+        }
+
+
+        return <div>{items}</div>;
+    }
+});
 
 $(function() {
 

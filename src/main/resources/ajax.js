@@ -30,7 +30,7 @@ var AjaxRequest = React.createClass({
     },
     sendNewRequest: function(request) {
         // don't fire off equivalent requests
-        if(_.isEqual(request, this.state.request)) {
+        if(this.props.pure && _.isEqual(request, this.state.request)) {
             return;
         }
         this.onSend(request);
