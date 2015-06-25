@@ -66,6 +66,21 @@ var ClassifierMainView = React.createClass({
 });
 
 var RecentLabels = React.createClass({
+    getInitialState: function() {
+        return {tokensById: {}};
+    },
+    componentDidMount: function() {
+        this.refs.ajaxTokens.sendNewRequest({
+            tokens: _.map(this.props.labels, _.property("tokenId"))
+        });
+    },
+    receiveTokenInfo: function(data) {
+        var tokensById = { };
+        _.forEach(data.tokens, function(tok) {
+            tokensById[''+tok.tokenId] = tok;
+        });
+        this.setState({tokensById: tokensById});
+    },
     render: function() {
         var recentFirst = _.sortBy(this.props.labels, function(evt) { return -evt.time; });
         var recentEvents = _(recentFirst)
@@ -75,10 +90,15 @@ var RecentLabels = React.createClass({
                 return evt;
             }).value();
 
+        var tokensById = this.state.tokensById;
+
         var rows = _(recentEvents).map(function(evt) {
             var date = new Date(evt.time);
+            var token = tokensById[''+evt.tokenId];
+            console.log(token);
             return <tr>
                 <td>{evt.tokenId}</td>
+                <td>{token ? token.terms.true_terms : "???"}</td>
                 <td>{evt.positive ? "POSITIVE" : "NEGATIVE"}</td>
                 <td>{date.toLocaleDateString()+" at "+date.toLocaleTimeString()}</td>
             </tr>
@@ -88,11 +108,14 @@ var RecentLabels = React.createClass({
         <table>
             <tr>
                 <th>TokenId</th>
+                <th>Token</th>
                 <th>Label</th>
                 <th>When</th>
             </tr>
             {rows}
-        </table></label>;
+        </table>
+            <AjaxRequest ref={"ajaxTokens"} url={"/api/pullTokens"} onNewResponse={this.receiveTokenInfo} />
+        </label>;
     }
 });
 
