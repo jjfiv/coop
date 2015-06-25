@@ -13,12 +13,20 @@ import java.util.Set;
  */
 public class ClassifiedData {
   public Set<LabeledToken> labelEvents;
+  public String name;
+  public String description;
 
   public ClassifiedData() {
-    this(new HashSet<>());
+    this(null, null, new HashSet<>());
   }
 
-  public ClassifiedData(Collection<? extends LabeledToken> labeledTokens) {
+  public ClassifiedData(String name) {
+    this(name, null, new HashSet<>());
+  }
+
+  public ClassifiedData(String name, String description, Collection<? extends LabeledToken> labeledTokens) {
+    this.name = name;
+    this.description = description;
     this.labelEvents = new HashSet<>(labeledTokens);
   }
 
@@ -45,6 +53,8 @@ public class ClassifiedData {
   public synchronized Parameters getInfo() {
     Parameters output = Parameters.create();
     output.put("totalEvents", labelEvents.size());
+    output.put("name", name);
+    output.put("description", description);
     output.put("positive", positive());
     output.put("negative", negative());
     return output;

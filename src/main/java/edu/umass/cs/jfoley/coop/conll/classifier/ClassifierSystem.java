@@ -71,7 +71,7 @@ public class ClassifierSystem {
     ClassifiedData cd = dataByClassifier.get(classifier);
     boolean changed = false;
     if(cd == null) {
-      cd = new ClassifiedData();
+      cd = new ClassifiedData(classifier);
       dataByClassifier.put(classifier, cd);
       changed = true;
     }

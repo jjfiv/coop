@@ -16,6 +16,10 @@ public class ListClassifiersFn extends IndexServerFn {
 
   @Override
   public Parameters handleRequest(Parameters input) throws IOException {
+    if(input.isString("name")) {
+      return index.classifiers.getInfo(input.getString("name"));
+    }
+
     Parameters output = Parameters.create();
     for (String classifierName : index.classifiers.dataByClassifier.keySet()) {
       output.put(classifierName, index.classifiers.getInfo(classifierName));

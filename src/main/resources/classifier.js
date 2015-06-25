@@ -33,7 +33,8 @@ var ClassifierList = React.createClass({
         var perClassifierButtons = [];
         perClassifierButtons.push(
             <input type={"button"} onClick={this.labelBest(name)} value={"Label Best"} />,
-            <input type={"button"} onClick={this.labelRandom(name)} value={"Label Random"} />
+            <input type={"button"} onClick={this.labelRandom(name)} value={"Label Random"} />,
+            <a href={"/classifier.html?name="+name}>{"View"}</a>
         );
 
         if(this.state.classifiers) {
