@@ -4,6 +4,11 @@
     padding-right: 2pt;
 }
 
+.inactiveTab {
+    display:none;
+    background-color: #f00;
+}
+
 .active-token {
     display: inline-block;
     padding: 1pt;
