@@ -30,6 +30,10 @@
     margin: 2pt;
 }
 
+td {
+    padding: 2pt;
+}
+
 .sentence {
     display:block;
     padding: 2pt;
@@ -49,6 +53,12 @@
 }
 .ner-I-LOC {
     background-color: #f9f;
+}
+
+.fieldValue {
+    background-color: #eee;
+    padding: 2pt;
+    margin: 2pt;
 }
 
 .ajax {

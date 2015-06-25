@@ -3,10 +3,8 @@ package edu.umass.cs.jfoley.coop.conll.classifier;
 import ciir.jfoley.chai.collections.list.IntList;
 import org.lemurproject.galago.utility.Parameters;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jfoley
@@ -55,6 +53,7 @@ public class ClassifiedData {
     output.put("totalEvents", labelEvents.size());
     output.put("name", name);
     output.put("description", description);
+    output.put("labelEvents", labelEvents.stream().map(LabeledToken::toJSON).collect(Collectors.toList()));
     output.put("positive", positive());
     output.put("negative", negative());
     return output;

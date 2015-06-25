@@ -1,6 +1,8 @@
 package edu.umass.cs.jfoley.coop.conll.classifier;
 
+import ciir.jfoley.chai.collections.ArrayListMap;
 import ciir.jfoley.chai.lang.annotations.UsedByReflection;
+import org.lemurproject.galago.utility.Parameters;
 
 /**
  * @author jfoley.
@@ -32,5 +34,13 @@ public class LabeledToken {
       return this.tokenId == rhs.tokenId && this.positive == rhs.positive && this.time == rhs.time;
     }
     return false;
+  }
+
+  public Parameters toJSON() {
+    ArrayListMap<String,Object> data = new ArrayListMap<>();
+    data.put("time", time);;
+    data.put("tokenId", tokenId);;
+    data.put("positive", positive);;
+    return Parameters.wrap(data);
   }
 }

@@ -51,11 +51,48 @@ var ClassifierMainView = React.createClass({
         var items = [];
         items.push(<AjaxRequest ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.updateInfo} />);
 
-        if (this.state.info) {
+        var info = this.state.info;
+        if (info) {
+            items.push(<div>{"Name: "}<span className={"fieldValue"}>{info.name}</span></div>);
+            items.push(<div>{"Description: "}<span className={"fieldValue"}>{info.description || ""}</span></div>);
+
+
+            items.push(<RecentLabels labels={info.labelEvents} count={10} />);
             items.push(<pre>{JSON.stringify(this.state.info)}</pre>);
         }
 
         return <div>{items}</div>;
+    }
+});
+
+var RecentLabels = React.createClass({
+    render: function() {
+        var recentFirst = _.sortBy(this.props.labels, function(evt) { return -evt.time; });
+        var recentEvents = _(recentFirst)
+            .filter(function(evt, index) { return index < this.props.count; }, this)
+            .map(function (evt) {
+                evt.date = new Date(evt.time);
+                return evt;
+            }).value();
+
+        var rows = _(recentEvents).map(function(evt) {
+            var date = new Date(evt.time);
+            return <tr>
+                <td>{evt.tokenId}</td>
+                <td>{evt.positive ? "POSITIVE" : "NEGATIVE"}</td>
+                <td>{date.toLocaleDateString()+" at "+date.toLocaleTimeString()}</td>
+            </tr>
+        }).value();
+
+        return <label> Recent Labels
+        <table>
+            <tr>
+                <th>TokenId</th>
+                <th>Label</th>
+                <th>When</th>
+            </tr>
+            {rows}
+        </table></label>;
     }
 });
 
