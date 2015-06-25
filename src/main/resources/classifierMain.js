@@ -62,6 +62,13 @@ var ClassifierMainView = React.createClass({
             items.push(<label>{"Name: "}<span className={"fieldValue"}>{info.name}</span></label>);
             items.push(<label>{"Description: "}<span className={"fieldValue"}>{info.description || <i>NONE</i>}</span></label>);
 
+            var totalCount = _.size(info.labelEvents);
+            var positiveCount = _.size(_.filter(info.labelEvents, function(evt) { return evt.positive; }));
+            var negativeCount = totalCount - positiveCount;
+
+            items.push(<label>{"Positive Labels: "}<span className={"fieldValue"}>{positiveCount+"/"+totalCount}</span></label>);
+            items.push(<label>{"Negative Labels: "}<span className={"fieldValue"}>{negativeCount+"/"+totalCount}</span></label>);
+
             items.push(<LabelRandomSentence classifier={this.state.name} refresh={this.refreshData} />);
 
             items.push(<RecentLabels labels={info.labelEvents} count={10} />);
