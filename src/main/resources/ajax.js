@@ -38,12 +38,18 @@ var AjaxRequest = React.createClass({
     },
     render: function() {
         if(!this.state.request) {
-            return <span></span>;
+            return <span />;
         } else if(this.state.waiting) {
+            if(this.props.quiet) {
+                return <span />;
+            }
             return <span className={"ajax ajaxWaiting"}>Waiting for server response.</span>;
         } else if(this.state.error != null) {
             return <AjaxError err={this.state.error} />;
         } else { //if(this.state.response) {
+            if(this.props.quiet) {
+                return <span />;
+            }
             return <span className={"ajax ajaxComplete"}>{"Request completed in "+this.state.response.time+"ms."}</span>
         }
     }

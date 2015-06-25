@@ -28,7 +28,7 @@ var ClassifierList = React.createClass({
         var items = [];
         items.push(<span>{"Classifier List"}</span>);
         items.push(<input type={"button"} onClick={this.refreshList} value={"Refresh"} />);
-        items.push(<AjaxRequest ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.getClassifierList} />);
+        items.push(<AjaxRequest quiet={true} ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.getClassifierList} />);
 
         var perClassifierButtons = [];
         perClassifierButtons.push(

@@ -49,16 +49,16 @@ var ClassifierMainView = React.createClass({
         if(!this.state.name) { return <ClassifierList />; }
 
         var items = [];
-        items.push(<AjaxRequest ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.updateInfo} />);
+        items.push(<AjaxRequest quiet={true} ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.updateInfo} />);
 
         var info = this.state.info;
         if (info) {
             items.push(<div>{"Name: "}<span className={"fieldValue"}>{info.name}</span></div>);
-            items.push(<div>{"Description: "}<span className={"fieldValue"}>{info.description || ""}</span></div>);
+            items.push(<div>{"Description: "}<span className={"fieldValue"}>{info.description || <i>NONE</i>}</span></div>);
 
 
             items.push(<RecentLabels labels={info.labelEvents} count={10} />);
-            items.push(<pre>{JSON.stringify(this.state.info)}</pre>);
+            //items.push(<pre>{JSON.stringify(this.state.info)}</pre>);
         }
 
         return <div>{items}</div>;
@@ -82,6 +82,9 @@ var RecentLabels = React.createClass({
         this.setState({tokensById: tokensById});
     },
     render: function() {
+        // TODO, group these by phrases first:
+        // Now have an add to phrase event if times are much different?
+        // How to group stream by event?
         var recentFirst = _.sortBy(this.props.labels, function(evt) { return -evt.time; });
         var recentEvents = _(recentFirst)
             .filter(function(evt, index) { return index < this.props.count; }, this)
@@ -95,11 +98,9 @@ var RecentLabels = React.createClass({
         var rows = _(recentEvents).map(function(evt) {
             var date = new Date(evt.time);
             var token = tokensById[''+evt.tokenId];
-            console.log(token);
-            return <tr>
+            return <tr className={evt.positive ? "positive" : "negative"}>
                 <td>{evt.tokenId}</td>
                 <td>{token ? token.terms.true_terms : "???"}</td>
-                <td>{evt.positive ? "POSITIVE" : "NEGATIVE"}</td>
                 <td>{date.toLocaleDateString()+" at "+date.toLocaleTimeString()}</td>
             </tr>
         }).value();
@@ -109,12 +110,11 @@ var RecentLabels = React.createClass({
             <tr>
                 <th>TokenId</th>
                 <th>Token</th>
-                <th>Label</th>
                 <th>When</th>
             </tr>
             {rows}
         </table>
-            <AjaxRequest ref={"ajaxTokens"} url={"/api/pullTokens"} onNewResponse={this.receiveTokenInfo} />
+            <AjaxRequest quiet={true} ref={"ajaxTokens"} url={"/api/pullTokens"} onNewResponse={this.receiveTokenInfo} />
         </label>;
     }
 });

@@ -32,6 +32,14 @@
 
 td {
     padding: 2pt;
+    border: 0pt;
+}
+
+tr.negative {
+    background-color:#faa;
+}
+tr.positive {
+    background-color:#afa;
 }
 
 .sentence {
