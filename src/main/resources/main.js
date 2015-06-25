@@ -116,14 +116,18 @@ var TabComponent = React.createClass({
     getInitialState: function() {
         return {
             activeTab: 0,
-            children: this.props.children
         }
     },
     select: function(index) {
         this.setState({activeTab: index});
     },
+    selectByName: function(name) {
+        _(this.props.children).findIndex(function(child) {
+            return child.name === name;
+        });
+    },
     render: function() {
-        var children = this.state.children;
+        var children = this.props.children;
         var tabButtons = _(children).map(function (child, idx) {
             var tabc = this;
             return <input type={"button"} value={child.name} onClick={function() { tabc.select(idx); }}/>;
