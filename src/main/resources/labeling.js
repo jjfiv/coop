@@ -1,4 +1,5 @@
 var LabelRandomSentence = React.createClass({
+    mixins: [AjaxHelper],
     getInitialState: function() {
         return {
             started: false,
