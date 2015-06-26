@@ -129,10 +129,24 @@ var LabelingWidget = React.createClass({
     },
     submitLabels: function() {
         var negative = _.difference(this.getAllIds(), this.state.positiveLabels);
+        var time = (new Date()).getTime();
         console.log({
                 positive: this.state.positiveLabels,
                 negative: negative
         });
+
+        var labelEvents = _.map(this.state.positiveLabels, function(id) {
+            return {time: time, positive: true, tokenId: id};
+        });
+
+        this.refs.ajaxUpdate.sendNewRequest({
+            classifier: this.props.name,
+            labels: labelEvents
+        });
+        this.setState({sending: true});
+    },
+    updateSuccess: function() {
+        this.setState({sending: false});
     },
     getAllIds: function() {
         return _(this.props.tokens).map(_.property("tokenId")).value();
@@ -156,17 +170,19 @@ var LabelingWidget = React.createClass({
             .value();
 
         var buttons = [];
-        if(!_.isEmpty(tokenSet)) {
-            buttons.push(<Button label={"Deselect"} onClick={this.deselect} />);
-            buttons.push(<Button label={"Label as "+this.props.name} onClick={this.labelPositive} />);
-        }
-        if(!_.isEmpty(this.state.positiveLabels)) {
-            buttons.push(<Button label={"Clear Labels"} onClick={this.clearPositive} />);
-            buttons.push(<Button label={"Submit Labels"} onClick={this.submitLabels} />);
-        }
+
+        var hasSelection = !_.isEmpty(tokenSet);
+        var hasPositiveLabels = !_.propertyIsEnumerable(this.state.positiveLabels);
+
+        // Always show all buttons, just turn them on/off as necessary.
+        var sending = this.state.sending;
+        buttons.push(<Button disabled={sending || !hasSelection} label={"Deselect"} onClick={this.deselect} />);
+        buttons.push(<Button disabled={sending || !hasSelection} label={"Label as "+this.props.name} onClick={this.labelPositive} />);
+        buttons.push(<Button disabled={sending || !hasPositiveLabels} label={"Clear Labels"} onClick={this.clearPositive} />);
+        buttons.push(<Button disabled={sending || !hasPositiveLabels} label={"Submit Labels"} onClick={this.submitLabels} />);
 
         return <div>
-            {}
+            <AjaxRequest quiet={true} ref={"ajaxUpdate"} url={"/api/updateClassifier"} onNewResponse={this.updateSuccess} />
             <div>{tokElems}</div>
             {buttons}
         </div>;
