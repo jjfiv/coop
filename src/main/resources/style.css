@@ -9,11 +9,23 @@
     background-color: #f00;
 }
 
+.noselect {
+    user-select: none;
+    -moz-user-select: none;
+}
+
 .active-token {
     display: inline-block;
     padding: 1pt;
     padding-right: 2pt;
     background-color: #fd0;
+}
+
+.positive-token {
+  display: inline-block;
+  padding: 1pt;
+  padding-right: 2pt;
+  background-color: #afa;
 }
 
 .sentenceId {

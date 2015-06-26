@@ -50,7 +50,7 @@ var LabelRandomSentence = React.createClass({
             items.push(<div>Labeling a random sentence: </div>);
             if(this.state.sentence) {
                 //items.push(<Sentence tokens={this.state.sentence} />);
-                items.push(<LabelingWidget tokens={this.state.sentence} />);
+                items.push(<LabelingWidget tokens={this.state.sentence} name={this.props.classifier} />);
                 items.push(<Button disabled={this.state.actionStarted} onClick={this.skipSentence} label={"Skip!"} />);
                 items.push(<Button disabled={this.state.actionStarted} onClick={this.labelSentenceNegative} label={"No matching "+this.props.classifier+" here."} />)
             }
@@ -63,26 +63,113 @@ var LabelRandomSentence = React.createClass({
 
 var LabelingWidget = React.createClass({
     propTypes: {
-        tokens: React.PropTypes.array.isRequired
+        tokens: React.PropTypes.array.isRequired,
+        name: React.PropTypes.string.isRequired
     },
     getInitialState: function() {
         return {
-            selectedTokens: [],
+            startDragToken: null,
+            hoverToken: null,
+            endDragToken: null,
+            positiveLabels: [],
         }
     },
+    mouseDown: function() {
+        return startDragToken != null;
+    },
     handleMouse: function(tok, what, evt) {
-        console.log(what+" "+tok.tokenId);
+        if(what === 'down') {
+            this.setState({
+                startDragToken: tok.tokenId,
+                hoverToken: null,
+                endDragToken: null
+            });
+        } else if(what === 'up') {
+            if(this.state.startDragToken != null) {
+                this.setState({
+                    endDragToken: tok.tokenId,
+                    hoverToken: null
+                });
+            }
+        } else if(what === 'over') {
+            if(this.state.startDragToken != null) {
+                this.setState({hoverToken: tok.tokenId});
+            }
+        } else if(what === 'out') {
+            if (this.state.startDragToken != null && this.state.hoverToken == tok.tokenId) {
+                this.setState({hoverToken: null});
+            }
+        } else {
+            console.log(what + " " + tok.tokenId);
+        }
+    },
+    selectedTokens: function() {
+        if(!this.state.startDragToken) {
+            return [];
+        }
+        var start = this.state.startDragToken;
+        var end = this.state.endDragToken || this.state.hoverToken || start;
+
+        var pts = _.sortBy([start, end]); // they might select backwards
+        return _.range(pts[0], pts[1]+1);
+    },
+    labelPositive: function() {
+        this.setState({positiveLabels: _.union(this.state.positiveLabels, this.selectedTokens())});
+        this.deselect();
+    },
+    deselect: function() {
+        this.setState({
+            startDragToken: null,
+            hoverToken: null,
+            endDragToken: null
+        });
+    },
+    clearPositive: function() {
+        this.setState({positiveLabels: []});
+    },
+    submitLabels: function() {
+        var negative = _.difference(this.getAllIds(), this.state.positiveLabels);
+        console.log({
+                positive: this.state.positiveLabels,
+                negative: negative
+        });
+    },
+    getAllIds: function() {
+        return _(this.props.tokens).map(_.property("tokenId")).value();
     },
     render: function() {
         var tokens = this.props.tokens;
 
+        var tokenSet = this.selectedTokens();
         var tokElems = _(tokens)
             .map(function(tok) {
-                return <LabelingToken token={tok} handleClick={this.clickToken} handleMouse={this.handleMouse} />
+                var id = tok.tokenId;
+                var active = _.contains(tokenSet, id);
+
+                return <LabelingToken
+                    token={tok}
+                    handleMouse={this.handleMouse}
+                    active={_.contains(tokenSet, id)}
+                    positive={_.contains(this.state.positiveLabels, id)}
+                    />
             }, this)
             .value();
 
-        return <div>{tokElems}</div>;
+        var buttons = [];
+        if(!_.isEmpty(tokenSet)) {
+            buttons.push(<Button label={"Deselect"} onClick={this.deselect} />);
+            buttons.push(<Button label={"Label as "+this.props.name} onClick={this.labelPositive} />);
+        }
+        if(!_.isEmpty(this.state.positiveLabels)) {
+            buttons.push(<Button label={"Clear Labels"} onClick={this.clearPositive} />);
+            buttons.push(<Button label={"Submit Labels"} onClick={this.submitLabels} />);
+        }
+
+        return <div>
+            {}
+            <div>{tokElems}</div>
+            {buttons}
+        </div>;
     }
 });
 
@@ -116,7 +203,12 @@ var LabelingToken = React.createClass({
         var classes = [];
         var ner = token.terms.true_ner;
         var active = this.props.active;
-        if(active) {
+        var positive = this.props.positive;
+
+        classes.push("noselect");
+        if(positive) {
+            classes.push("positive-token");
+        } else if(active) {
             classes.push("active-token");
         } else {
             classes.push("token");
@@ -135,11 +227,11 @@ var LabelingToken = React.createClass({
                 return handleMouse(token, what, evt);
             }
         };
-        return <span onClick={this.handleClick}
+        return <span className={"noselect"} onClick={this.handleClick}
                      onMouseOver={mouseHandler("over")}
                      onMouseOut={mouseHandler("out")}
                      onMouseDown={mouseHandler("down")}
-                     onMouseUp={mouseHandler("down")}
+                     onMouseUp={mouseHandler("up")}
                      className={classStr}
                      title={this.computeTitle()}>
             {this.getTerm()}
