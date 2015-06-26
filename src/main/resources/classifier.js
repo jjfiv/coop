@@ -30,15 +30,17 @@ var ClassifierList = React.createClass({
         items.push(<input type={"button"} onClick={this.refreshList} value={"Refresh"} />);
         items.push(<AjaxRequest quiet={true} ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.getClassifierList} />);
 
-        var perClassifierButtons = [];
-        perClassifierButtons.push(
-            <input type={"button"} onClick={this.labelBest(name)} value={"Label Best"} />,
-            <input type={"button"} onClick={this.labelRandom(name)} value={"Label Random"} />,
-            <a href={"/classifier.html?name="+name}>{"View"}</a>
-        );
 
         if(this.state.classifiers) {
             var rows = _(this.state.classifiers).map(function(info, name) {
+
+                var perClassifierButtons = [];
+                perClassifierButtons.push(
+                    <input type={"button"} onClick={this.labelBest(name)} value={"Label Best"} />,
+                    <input type={"button"} onClick={this.labelRandom(name)} value={"Label Random"} />,
+                    <a href={"/classifier.html?name="+name}>{"View"}</a>
+                );
+
                 var row = [];
                 row.push(<td>{name}</td>);
                 row.push(<td>{_.size(info.positive)}</td>);

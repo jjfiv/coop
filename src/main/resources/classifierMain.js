@@ -54,9 +54,6 @@ var ClassifierMainView = React.createClass({
         var items = [];
         items.push(<AjaxRequest quiet={false} ref={"ajax"} url={"/api/listClassifiers"} onNewResponse={this.updateInfo} />);
 
-        if(this.state.updating) {
-            items.push(<div>Updating...</div>);
-        }
         var info = this.state.info;
         if (info) {
             items.push(<label>{"Name: "}<span className={"fieldValue"}>{info.name}</span></label>);
