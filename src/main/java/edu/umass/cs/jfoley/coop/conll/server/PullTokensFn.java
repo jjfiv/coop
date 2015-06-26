@@ -21,6 +21,7 @@ public class PullTokensFn extends IndexServerFn {
 
   @Override
   public Parameters handleRequest(Parameters input) throws IOException {
+    System.err.println(input);
     IntList request = new IntList();
     for (Long token : input.getAsList("tokens", Long.class)) {
       request.add(IntMath.fromLong(token.longValue()));

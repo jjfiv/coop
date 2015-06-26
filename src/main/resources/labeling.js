@@ -1,5 +1,4 @@
 var LabelRandomSentence = React.createClass({
-    mixins: [AjaxHelper],
     getInitialState: function() {
         return {
             started: false,
@@ -50,14 +49,100 @@ var LabelRandomSentence = React.createClass({
         } else {
             items.push(<div>Labeling a random sentence: </div>);
             if(this.state.sentence) {
-                items.push(<Sentence tokens={this.state.sentence} />);
+                //items.push(<Sentence tokens={this.state.sentence} />);
+                items.push(<LabelingWidget tokens={this.state.sentence} />);
                 items.push(<Button disabled={this.state.actionStarted} onClick={this.skipSentence} label={"Skip!"} />);
                 items.push(<Button disabled={this.state.actionStarted} onClick={this.labelSentenceNegative} label={"No matching "+this.props.classifier+" here."} />)
             }
-
         }
 
-
         return <div>{items}</div>;
+    }
+});
+
+
+var LabelingWidget = React.createClass({
+    propTypes: {
+        tokens: React.PropTypes.array.isRequired
+    },
+    getInitialState: function() {
+        return {
+            selectedTokens: [],
+        }
+    },
+    handleMouse: function(tok, what, evt) {
+        console.log(what+" "+tok.tokenId);
+    },
+    render: function() {
+        var tokens = this.props.tokens;
+
+        var tokElems = _(tokens)
+            .map(function(tok) {
+                return <LabelingToken token={tok} handleClick={this.clickToken} handleMouse={this.handleMouse} />
+            }, this)
+            .value();
+
+        return <div>{tokElems}</div>;
+    }
+});
+
+var LabelingToken = React.createClass({
+    getDefaultProps: function() {
+        return {
+            highlightNER: false,
+            active: false,
+            hover: false,
+            handleClick: function() { },
+            handleMouse: function() { }
+        }
+    },
+    getToken: function() {
+        return this.props.token;
+    },
+    computeTitle: function() {
+        return _(this.getToken().terms).map(function(v, k) {
+            return k+"="+v;
+        }).reject(_.isEmpty).join('; ')
+    },
+    getTerm: function() {
+        // grab CoNNL-specific "true_terms"
+        return this.getToken().terms.true_terms;
+    },
+    handleClick: function() {
+        this.props.handleClick(this.getToken());
+    },
+    render: function() {
+        var token = this.getToken();
+        var classes = [];
+        var ner = token.terms.true_ner;
+        var active = this.props.active;
+        if(active) {
+            classes.push("active-token");
+        } else {
+            classes.push("token");
+        }
+        if(!active && this.props.highlightNER && ner) {
+            classes.push("ner-"+ner);
+        }
+
+        var classStr = _.reduce(classes, function(accum, x) {
+            return accum + ' ' + x;
+        });
+
+        var handleMouse = this.props.handleMouse;
+        var mouseHandler = function(what) {
+            return function(evt) {
+                return handleMouse(token, what, evt);
+            }
+        };
+        return <span onClick={this.handleClick}
+                     onMouseOver={mouseHandler("over")}
+                     onMouseOut={mouseHandler("out")}
+                     onMouseDown={mouseHandler("down")}
+                     onMouseUp={mouseHandler("down")}
+                     className={classStr}
+                     title={this.computeTitle()}>
+            {this.getTerm()}
+        </span>;
     }
 });

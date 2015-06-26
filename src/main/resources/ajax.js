@@ -18,6 +18,9 @@ function standardErrorHandler(err) {
 }
 
 var AjaxError = React.createClass({
+    propTypes: {
+        retry: React.PropTypes.func
+    },
     renderError: function() {
         var err = this.props.err;
         if(err.responseText) {
@@ -27,10 +30,11 @@ var AjaxError = React.createClass({
     },
     render: function() {
         var items = [];
-        items.push(this.rendererror());
-        if(this.props.retry) {
-            items.push(<Button onClick={this.props.retry} value={"Try Again"} />);
-        }
+        items.push(this.renderError());
+        //if(this.props.retry) {
+            //items.push(<Button onClick={this.props.retry} label={"Try Again"} />);
+        //}
+        return <div>{items}</div>;
     }
 });
 
@@ -52,13 +56,16 @@ var AjaxHelper = React.createMixin({
     },
     onSuccess: function(data) {
         this.setState({response: data, error: null, waiting: false});
-        this.onNewResponse(data);
+        this.props.onNewResponse(data);
     },
     onError: function (err) {
         this.setState({error: err, response: null, waiting: false});
         this.props.onNewResponse(null);
     },
     sendNewRequest: function(request) {
+        if (this.props.pure && _.isEqual(request, this.state.request)) {
+            return;
+        }
         this.onSend(request);
         postJSON(this.props.url, request, this.onSuccess, this.onError);
     },

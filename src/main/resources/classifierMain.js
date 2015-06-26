@@ -86,8 +86,11 @@ var RecentLabels = React.createClass({
             tokens: tokenIds
         });
     },
-    componentDidUpdate: function() {
-        var tokenIds = _.map(this.props.labels, _.property("tokenId"));
+    componentDidUpdate: function(props, state) {
+        var alreadyLoaded = _.keys(this.state.tokensById);
+        var tokenIds = _(this.props.labels)
+            .map(_.property("tokenId"))
+            .value();
         this.refs.ajaxTokens.sendNewRequest({
             tokens: tokenIds
         });

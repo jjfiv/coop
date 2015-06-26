@@ -37,7 +37,7 @@ public class SentenceIndexedToken implements Comparable<SentenceIndexedToken> {
     p.put("sentenceId", sentenceId);
     p.put("tokenId", tokenId);
     p.put("terms", Parameters.wrap(terms));
-    p.put("indicators", new ArrayList<>(indicators));
+    //p.put("indicators", new ArrayList<>(indicators));
     return p;
   }
 
