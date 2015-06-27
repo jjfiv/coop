@@ -94,6 +94,8 @@ label {
 }
 
 body, #top {
+  font-family: "Helvetica Neue",Arial,arial,sans-serif;
+  font-size: 12pt;
   margin:0;
   padding:0;
 }

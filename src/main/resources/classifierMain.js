@@ -144,7 +144,5 @@ var RecentLabels = React.createClass({
 
 
 $(function() {
-
-
-    React.render(<ClassifierMainView />, document.getElementById("classifierInfo"));
+    React.render(<ClassifierMainView />, document.getElementById("content"));
 });

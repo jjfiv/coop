@@ -16,12 +16,23 @@ var NavBar = React.createClass({
             var offset = url.indexOf(host);
 
             console.log(url.substr(offset + host.length));
-            return <a key={link.name} className={"nav"} href={_.first(link.url)}>{link.name}</a>
+            var href = link.url;
+            if(_.isArray(link.url)) {
+                href = _.first(link.url);
+            }
+            return <a key={link.name} className={"nav"} href={href}>{link.name}</a>
         }).value();
         console.log(linkElems);
 
         linkElems.push(
-            <input key={"search"} className={"rightNav"} id={"searchBox"} type={"text"} title={"Search Sentences"} placeholder={"Search Sentences"} />
+            <input
+                key={"search"}
+                className={"rightnav"}
+                id={"searchBox"}
+                type={"text"}
+                title={"Search Sentences"}
+                placeholder={"Search Sentences"}
+                />
         );
 
         return <div id={"header"}>{linkElems}</div>;
@@ -31,7 +42,7 @@ var NavBar = React.createClass({
 $(function() {
     var links = [
         { name: "Home", "url": ["/", "/index.html"] },
-        { name: "Search", "url": "/search.html" }
+        { name: "Labels", "url": "/labels.html" }
     ];
 
     React.render(<NavBar links={links} />, document.getElementById("top"));
