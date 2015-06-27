@@ -92,3 +92,71 @@ label {
     margin: 2pt;
     display: inline-block;
 }
+
+body {
+  margin:0;
+  padding:0;
+}
+#header {
+  margin: 0;
+  padding:2pt;
+  display:block;
+  background-color:#fff;
+  vertical-align: middle;
+  text-align: right;
+}
+#subheader {
+  margin: 0;
+  padding:0;
+  background-color: #dfd;
+  display:block;
+  vertical-align: middle;
+  text-align: right;
+}
+a.active.nav {
+  text-decoration: underline;
+}
+a.nav {
+  display: inline-block;
+  color: #000;
+  margin: 2pt;
+  margin-right: 0;
+  border-radius:2pt;
+  padding: 8pt;
+  text-decoration:none;
+  vertical-align: middle;
+}
+a:hover.nav {
+  background-color: #dfd;
+}
+a.subnav {
+  display: inline-block;
+  color: #000;
+  margin: 2pt;
+  margin-right: 0;
+  border-radius:2pt;
+  padding: 8pt;
+  text-decoration:none;
+  vertical-align: middle;
+}
+a:hover.subnav {
+  background-color: #bfb;
+}
+a.active.subnav {
+  text-decoration: underline;
+}
+
+.button {
+  display: inline-block;
+  margin: 2pt;
+  border-radius:2pt;
+  padding: 8pt;
+  text-decoration:none;
+  background-color: #bfb;
+  user-select:none;
+  -moz-user-select:none;
+  cursor:pointer;
+}
+.button:hover {
+  background-color: #9d9;
+}

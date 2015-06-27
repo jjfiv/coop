@@ -31,9 +31,9 @@ var AjaxError = React.createClass({
     render: function() {
         var items = [];
         items.push(this.renderError());
-        //if(this.props.retry) {
-            //items.push(<Button onClick={this.props.retry} label={"Try Again"} />);
-        //}
+        if(this.props.retry) {
+            items.push(<Button onClick={this.props.retry} label={"Try Again"} />);
+        }
         return <div>{items}</div>;
     }
 });
