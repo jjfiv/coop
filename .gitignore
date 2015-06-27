@@ -7,3 +7,4 @@ target
 *.out
 *.err
 data/
+src/main/resources/libs/

@@ -93,7 +93,7 @@ label {
     display: inline-block;
 }
 
-body {
+body, #top {
   margin:0;
   padding:0;
 }
@@ -101,17 +101,9 @@ body {
   margin: 0;
   padding:2pt;
   display:block;
-  background-color:#fff;
+  background-color:#dfd;
   vertical-align: middle;
-  text-align: right;
-}
-#subheader {
-  margin: 0;
-  padding:0;
-  background-color: #dfd;
-  display:block;
-  vertical-align: middle;
-  text-align: right;
+  min-width: 450px;
 }
 a.active.nav {
   text-decoration: underline;
@@ -127,23 +119,11 @@ a.nav {
   vertical-align: middle;
 }
 a:hover.nav {
-  background-color: #dfd;
-}
-a.subnav {
-  display: inline-block;
-  color: #000;
-  margin: 2pt;
-  margin-right: 0;
-  border-radius:2pt;
-  padding: 8pt;
-  text-decoration:none;
-  vertical-align: middle;
-}
-a:hover.subnav {
   background-color: #bfb;
 }
-a.active.subnav {
-  text-decoration: underline;
+.rightnav {
+  float:right;
+  margin-left: auto;
 }
 
 .button {
@@ -160,3 +140,15 @@ a.active.subnav {
 .button:hover {
   background-color: #9d9;
 }
+
+#searchBox {
+  display: inline-block;
+  border: 1px solid #090;
+  background-color: #fff;
+  margin: 5pt;
+  border-radius:2pt;
+  padding: 5pt;
+  width: 20em;
+  vertical-align: middle;
+}
+
