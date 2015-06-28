@@ -71,6 +71,10 @@ var LabelsPage = React.createClass({
             return <ClassifierInfo key={name} data={val} />
         }).value();
 
+        if(_.size(items) == 0) {
+            items.push(<div key="notfound">No classifiers returned from server!</div>)
+        }
+
         var setState = this.setState;
         return <div>
             <AjaxRequest
