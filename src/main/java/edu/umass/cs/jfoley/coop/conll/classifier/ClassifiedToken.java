@@ -7,14 +7,14 @@ import org.lemurproject.galago.utility.lists.Scored;
  * @author jfoley.
  */
 public class ClassifiedToken extends Scored {
-  public String classifierName; // name of the classifier
+  public int classifierId; // name of the classifier
   public boolean positive; // threshold-applied score
   public SentenceIndexedToken token; // token-instance.
   public int tokenId; // token id
 
-  public ClassifiedToken(String classifierName, boolean positive, double score, SentenceIndexedToken token) {
+  public ClassifiedToken(int classifierId, boolean positive, double score, SentenceIndexedToken token) {
     super(score);
-    this.classifierName = classifierName;
+    this.classifierId = classifierId;
     this.positive = positive;
     this.score = score;
     this.token = token;
@@ -27,6 +27,6 @@ public class ClassifiedToken extends Scored {
 
   @Override
   public ClassifiedToken clone(double score) {
-    return new ClassifiedToken(classifierName, positive, score, token);
+    return new ClassifiedToken(classifierId, positive, score, token);
   }
 }

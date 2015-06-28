@@ -6,9 +6,44 @@ var HomePage = React.createClass({
     }
 });
 
+var KeyValueEditable = React.createClass({
+    getInitialState: function() {
+        return { editing: this.props.editByDefault };
+    },
+    startEditing: function() {
+        this.setState({editing: true});
+    },
+    handleKey: function(evt) {
+        if(evt.which == 13) {
+            this.setState({editing: false});
+
+            var oldValue = this.props.value;
+            var newValue = React.findDOMNode(this.refs.newValue).value.trim();
+            if(_.isEmpty(newValue) || newValue === oldValue) {
+                return;
+            }
+
+            this.props.notifyNewValue(this.props.key, newValue);
+        }
+    },
+    render: function() {
+        var valueElement = (!this.state.editing) ?
+            <span>{this.props.value || "NONE"}<Button onClick={this.startEditing} label={"Edit"} /></span> :
+            <input ref={"newValue"} onKeyPress={this.handleKey} type={"text"} defaultValue={this.props.value || ""} />;
+
+            return <label className={"edit"}>
+                <span>{this.props.label + ": "}</span>
+                {valueElement}</label>;
+    }
+});
+
 var ClassifierInfo = React.createClass({
     render: function() {
-        return <pre>{JSON.stringify(this.props.data, null, 2)}</pre>;
+        var data = this.props.data;
+        var items = [];
+        items.push(<KeyValueEditable key={"name"} label={"Name"} value={data.name} />);
+        items.push(<KeyValueEditable key={"desc"} label={"Description"} value={data.description} />);
+        return <div className={"classifierInfo"}>{items}</div>;
     }
 });
 
@@ -27,11 +62,13 @@ var LabelsPage = React.createClass({
         console.log(data);
         this.setState({classifiers: data.classifiers});
     },
+    onUpdateClassifiers: function(data) {
+
+    },
     render: function() {
         console.log(this.state.classifiers || {});
         var items = _(this.state.classifiers || {}).map(function(val, name) {
-            console.log(val);
-            return <ClassifierInfo data={val} />
+            return <ClassifierInfo key={name} data={val} />
         }).value();
 
         var setState = this.setState;
@@ -41,6 +78,12 @@ var LabelsPage = React.createClass({
                 quiet={true}
                 pure={false}
                 onNewResponse={this.onGetClassifiers}
+                url={"/api/listClassifiers"} />
+            <AjaxRequest
+                ref={"updateClassifier"}
+                quiet={true}
+                pure={false}
+                onNewResponse={this.onUpdateClassifiers}
                 url={"/api/listClassifiers"} />
         <div className={"classifiers"}>{items}</div>
         </div>

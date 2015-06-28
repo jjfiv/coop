@@ -11,9 +11,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javaVersion>1.8</javaVersion>
-    <galagoVersion>3.8-SNAPSHOT</galagoVersion>
-    <chaiVersion>0.6-SNAPSHOT</chaiVersion>
-    <waltzVersion>0.3-SNAPSHOT</waltzVersion>
+    <galagoVersion>3.9-SNAPSHOT</galagoVersion>
+    <chaiVersion>0.7-SNAPSHOT</chaiVersion>
+    <waltzVersion>0.4-SNAPSHOT</waltzVersion>
     <nlpVersion>3.5.0</nlpVersion>
     <mainClass>edu.umass.cs.jfoley.coop.Main</mainClass>
   </properties>
@@ -97,6 +97,12 @@
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
       <version>3.0.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.187</version>
     </dependency>
 
   </dependencies>

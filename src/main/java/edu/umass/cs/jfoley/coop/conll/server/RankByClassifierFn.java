@@ -16,6 +16,7 @@ import edu.umass.cs.jfoley.coop.conll.classifier.SparseBooleanFeatures;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,10 +31,10 @@ public class RankByClassifierFn extends IndexServerFn {
   }
 
   @Override
-  public Parameters handleRequest(Parameters input) throws IOException {
-    String classifierName = input.getString("classifier");
-    Classifier classifier = index.classifiers.getOrTrain(classifierName);
-    if(classifier == null) throw new IllegalArgumentException("No such classifier: "+classifierName);
+  public Parameters handleRequest(Parameters input) throws IOException, SQLException {
+    int classifierId = input.getInt("classifier");
+    Classifier classifier = index.classifiers.getOrTrain(classifierId);
+    if(classifier == null) throw new IllegalArgumentException("No such classifier: "+classifierId);
 
     IntList features = new IntList();
     for (int fid : classifier.getSparseFeatures().keys()) {
@@ -59,7 +60,7 @@ public class RankByClassifierFn extends IndexServerFn {
       SparseBooleanFeatures fv = new SparseBooleanFeatures(active);
       boolean pred = classifier.predict(fv);
       double score = classifier.rank(fv);
-      ClassifiedToken ctoken = new ClassifiedToken(classifierName, pred, score, null);
+      ClassifiedToken ctoken = new ClassifiedToken(classifierId, pred, score, null);
       heap.offer(ctoken);
     }
 

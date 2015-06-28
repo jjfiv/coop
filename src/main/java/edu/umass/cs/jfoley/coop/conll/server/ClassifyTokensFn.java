@@ -5,6 +5,7 @@ import edu.umass.cs.jfoley.coop.conll.classifier.ClassifiedToken;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +18,8 @@ public class ClassifyTokensFn extends IndexServerFn {
   }
 
   @Override
-  public Parameters handleRequest(Parameters input) throws IOException {
-    String classifier = input.getString("classifier");
+  public Parameters handleRequest(Parameters input) throws IOException, SQLException {
+    int classifier = input.getInt("classifier");
     List<Integer> tokenIds = input.getAsList("tokens", Integer.class);
 
     List<Parameters> output = new ArrayList<>();

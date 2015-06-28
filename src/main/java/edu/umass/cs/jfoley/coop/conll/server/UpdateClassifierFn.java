@@ -5,6 +5,7 @@ import edu.umass.cs.jfoley.coop.conll.classifier.LabeledToken;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,23 +19,32 @@ public class UpdateClassifierFn extends IndexServerFn {
   }
 
   @Override
-  public Parameters handleRequest(Parameters input) throws IOException {
+  public Parameters handleRequest(Parameters input) throws IOException, SQLException {
     long requestTime = System.currentTimeMillis();
 
-    String classifier = input.getString("classifier");
+    int classifier = input.getInt("classifier");
     List<Parameters> labels = input.getAsList("labels", Parameters.class);
 
-    List<LabeledToken> ltok = new ArrayList<>(labels.size());
-    for (Parameters label : labels) {
-      int id = label.get("tokenId", -1);
-      if(id < 0) continue;
-      boolean positive = label.get("positive", true);
-      long time = Math.min(requestTime, label.get("time", requestTime)); // don't allow times being set in the future from JS
-      ltok.add(new LabeledToken(time, id, positive));
+    if(input.isString("name")) {
+      index.classifiers.setName(classifier, input.getString("name"));
     }
 
-    index.classifiers.addLabels(classifier, ltok);
-    index.classifiers.train(classifier);
-    return index.classifiers.getInfo(classifier);
+    if(labels.size() > 0) {
+      List<LabeledToken> ltok = new ArrayList<>(labels.size());
+      for (Parameters label : labels) {
+        int id = label.get("tokenId", -1);
+        if (id < 0) continue;
+        boolean positive = label.get("positive", true);
+        long time = Math.min(requestTime, label.get("time", requestTime)); // don't allow times being set in the future from JS
+        ltok.add(new LabeledToken(time, id, positive));
+      }
+
+      index.classifiers.addLabels(classifier, ltok);
+      index.classifiers.train(classifier);
+    }
+
+    // now returns partial "listClassifiers" output:
+    return Parameters.parseArray(
+        classifier, index.classifiers.getInfo(classifier));
   }
 }

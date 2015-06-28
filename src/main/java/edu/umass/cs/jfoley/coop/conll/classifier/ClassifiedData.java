@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.conll.classifier;
 
 import ciir.jfoley.chai.collections.list.IntList;
+import ciir.jfoley.chai.lang.annotations.UsedByReflection;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.util.*;
@@ -11,9 +12,11 @@ import java.util.stream.Collectors;
  */
 public class ClassifiedData {
   public Set<LabeledToken> labelEvents;
+  public String id;
   public String name;
   public String description;
 
+  @UsedByReflection
   public ClassifiedData() {
     this(null, null, new HashSet<>());
   }
@@ -23,6 +26,7 @@ public class ClassifiedData {
   }
 
   public ClassifiedData(String name, String description, Collection<? extends LabeledToken> labeledTokens) {
+    this.id = name;
     this.name = name;
     this.description = description;
     this.labelEvents = new HashSet<>(labeledTokens);
@@ -61,5 +65,9 @@ public class ClassifiedData {
 
   public boolean add(List<LabeledToken> labeled) {
     return labelEvents.addAll(labeled);
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 }

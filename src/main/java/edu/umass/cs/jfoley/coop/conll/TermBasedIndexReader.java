@@ -176,6 +176,7 @@ public class TermBasedIndexReader implements Closeable {
     featureIndex.close();
     tokensByTerms.close();
     sentencesByTerms.close();
+    classifiers.close();
   }
 
   public List<List<SentenceIndexedToken>> pullSentences(List<Integer> ids) throws IOException {

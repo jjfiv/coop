@@ -93,6 +93,13 @@ label {
     display: inline-block;
 }
 
+label.edit {
+  display: block;
+  padding: 2pt;
+  margin:2pt;
+  border: 0;
+}
+
 body, #top {
   font-family: "Helvetica Neue",Arial,arial,sans-serif;
   font-size: 12pt;
@@ -154,3 +161,7 @@ a:hover.nav {
   vertical-align: middle;
 }
 
+div.classifierInfo {
+  margin-left: 6pt;
+  border-bottom: 1px solid #ddd;
+}

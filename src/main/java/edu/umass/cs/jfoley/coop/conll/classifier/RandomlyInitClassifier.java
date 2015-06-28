@@ -12,6 +12,7 @@ import edu.umass.cs.jfoley.coop.conll.SentenceIndexedToken;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -19,7 +20,7 @@ import java.util.*;
  */
 public class RandomlyInitClassifier  {
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, SQLException {
 
     List<Pair<String, FeatureVector>> testa = new ArrayList<>();
     List<Pair<String, FeatureVector>> testb = new ArrayList<>();
@@ -58,7 +59,7 @@ public class RandomlyInitClassifier  {
         for (int count : counts) {
 
           long time = System.currentTimeMillis();
-          index.classifiers.deleteClassifier(kind);
+          //index.classifiers.deleteClassifier(kind);
           // Prepare data
           List<Integer> positive = new IntList();
           List<Integer> negative = new IntList();
@@ -85,12 +86,13 @@ public class RandomlyInitClassifier  {
           // Print info about prepared data:
           System.out.printf("%s\t%4d\t%5d\n", kind, positive.size(), negative.size());
 
-          index.classifiers.addLabels(kind, labels);
-          Classifier classifier = index.classifiers.train(kind);
+          int classifierId = index.classifiers.create(kind);
+          index.classifiers.addLabels(classifierId, labels);
+          Classifier classifier = index.classifiers.train(classifierId);
           System.out.printf("Number of features: %d\n", classifier.getComplexity());
 
           int correct = 0;
-          for (ClassifiedToken ctoken : index.classifiers.classifyTokens(kind, positive)) {
+          for (ClassifiedToken ctoken : index.classifiers.classifyTokens(classifierId, positive)) {
             if(ctoken.positive && ctoken.token.getTerms().get("true_ner").equals(kind)) {
               correct++;
             }
