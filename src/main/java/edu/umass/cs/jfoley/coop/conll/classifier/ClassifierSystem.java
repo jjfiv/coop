@@ -162,7 +162,15 @@ public class ClassifierSystem implements Closeable {
     return classifier.id;
   }
 
-  public List<LabelInfo> getAllInfo() throws SQLException {
-    return labels.queryForAll();
+  public List<Parameters> getAllInfo() throws SQLException {
+    List<Parameters> output = new ArrayList<>();
+    for (LabelInfo labelInfo : labels.queryForAll()) {
+      Parameters info = labelInfo.toJSON();
+      Pair<IntList,IntList> judgments = this.getJudgments(labelInfo.id);
+      info.put("positives", judgments.left.size());
+      info.put("negatives", judgments.right.size());
+      output.add(info);
+    }
+    return output;
   }
 }

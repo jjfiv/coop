@@ -43,6 +43,10 @@ var ClassifierInfo = React.createClass({
         var items = [];
         items.push(<KeyValueEditable key={"name"} label={"Name"} value={data.name} />);
         items.push(<KeyValueEditable key={"desc"} label={"Description"} value={data.description} />);
+
+        var total = data.positives + data.negatives;;
+
+        items.push(<span key="pos">{"Positives: "+data.positives+" Negatives: "+data.negatives+" Total: "+total}</span>);
         return <div className={"classifierInfo"}>{items}</div>;
     }
 });
@@ -75,7 +79,6 @@ var LabelsPage = React.createClass({
             items.push(<div key="notfound">No classifiers returned from server!</div>)
         }
 
-        var setState = this.setState;
         return <div>
             <AjaxRequest
                 ref={"listClassifiers"}
