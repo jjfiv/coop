@@ -102,21 +102,36 @@ var LabelsPage = React.createClass({
 });
 
 var Content = React.createClass({
+    getInitialState: function() {
+        return {};
+    },
+    componentDidMount: function() {
+        EVENTS.register('changeContent', this.onChangeContent);
+        EVENTS.signal('changeContent', this.props.defaultContent);
+    },
+    onChangeContent: function(content) {
+        pushURLParams(content);
+        if(!_.isUndefined(content.query)) {
+            EVENTS.signal('changeQuery', content.query);
+        }
+        this.setState(content);
+        EVENTS.signal('changePage', this.getPage());
+    },
+    getPage: function() {
+        return this.state.p || "home";
+    },
     render: function() {
-        switch(this.props.page) {
+        switch(this.getPage()) {
             case "home": return <HomePage />;
-            case "labels": return <LabelsPage param={this.props.param} />;
-
-            default: return <div>{"No content for page \""+this.props.page+"\""}</div>;
+            case "labels": return <LabelsPage param={this.state} />;
+            case "search": return <pre>{JSON.stringify(this.state)}</pre>;
+            default: return <div>{"No content for page \""+page+"\""}</div>;
         }
     }
 });
 
 $(function() {
-    var param = getURLParams();
-    var page = param.p || "home";
-
-    React.render(<Content page={page} param={param} />, document.getElementById("content"));
+    React.render(<Content defaultContent={getURLParams()} />, document.getElementById("content"));
 });
 
 

@@ -11,19 +11,15 @@ var Classifiers = React.createClass({
         EVENTS.signal('listClassifiers');
     },
     sendUpdate: function(request) {
-        console.log(request);
         this.refs.update.sendNewRequest(request);
     },
     onUpdate: function(data) {
-        console.log(data);
         EVENTS.signal('classifier', data);
     },
     sendList: function(request) {
-        console.log(request);
         this.refs.list.sendNewRequest(request || {});
     },
     onList: function(data) {
-        console.log(data);
         EVENTS.signal('classifiers', data.classifiers);
     },
     render: function() {

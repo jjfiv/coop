@@ -4,10 +4,45 @@ function makeClasses(classList) {
     });
 }
 
-var NavBar = React.createClass({
-    componentWillMount: function() {
-
+var SearchBox = React.createClass({
+    getInitialState: function() {
+        return { query: "" };
     },
+    componentDidMount: function() {
+        EVENTS.register('changeQuery', this.changeQuery);
+    },
+    handleKey: function(evt) {
+        // submit:
+        if(evt.which == 13) {
+            EVENTS.signal("changeContent",
+                {
+                    p: "search",
+                    query: React.findDOMNode(this.refs.search).value.trim()
+                });
+        }
+    },
+    changeQuery: function(query) {
+        this.setState({query: query});
+    },
+    handleChange: function(evt) {
+        this.changeQuery(evt.target.value);
+    },
+    render: function () {
+        return <input
+            ref={"search"}
+            className={"rightnav"}
+            onKeyPress={this.handleKey}
+            id={"searchBox"}
+            type={"text"}
+            title={"Search Sentences"}
+            onChange={this.handleChange}
+            value={this.state.query}
+            placeholder={"Search Sentences"}
+            />
+    }
+});
+
+var NavBar = React.createClass({
     render: function() {
         console.log(this.props.links);
         var linkElems = _(this.props.links).map(function(link) {
@@ -17,18 +52,8 @@ var NavBar = React.createClass({
             }
             return <a key={link.name} className={"nav"} href={href}>{link.name}</a>
         }).value();
-        console.log(linkElems);
 
-        linkElems.push(
-            <input
-                key={"search"}
-                className={"rightnav"}
-                id={"searchBox"}
-                type={"text"}
-                title={"Search Sentences"}
-                placeholder={"Search Sentences"}
-                />
-        );
+        linkElems.push(<SearchBox key={"search"} />);
 
         return <div id={"header"}>{linkElems}</div>;
     }

@@ -29,6 +29,16 @@ function getURLParams() {
     return urlParams;
 }
 
+var pushURLParams = function(params) {
+    var urlParams = "?" + _(params).map(function(val, key) {
+        //console.log(key + ":" + vals);
+        return encodeURIComponent(key) + "=" + encodeURIComponent(val);
+    }).join('&');
+
+    // update URL without reloading!
+    History.pushState(null, null, urlParams);
+};
+
 /**
  * Usage: <Button visible={true,false} disabled={true,false} onClick={whatFn} label={text label} />
  */
