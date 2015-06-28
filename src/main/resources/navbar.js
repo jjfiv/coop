@@ -11,11 +11,6 @@ var NavBar = React.createClass({
     render: function() {
         console.log(this.props.links);
         var linkElems = _(this.props.links).map(function(link) {
-            var url = window.location.href;
-            var host = window.location.host;
-            var offset = url.indexOf(host);
-
-            console.log(url.substr(offset + host.length));
             var href = link.url;
             if(_.isArray(link.url)) {
                 href = _.first(link.url);
@@ -41,8 +36,8 @@ var NavBar = React.createClass({
 
 $(function() {
     var links = [
-        { name: "Home", "url": ["/", "/index.html"] },
-        { name: "Labels", "url": "/labels.html" }
+        { name: "Home", "url": ["/", "/?p=home", "/index.html"] },
+        { name: "Labels", "url": "/?p=labels" }
     ];
 
     React.render(<NavBar links={links} />, document.getElementById("top"));
