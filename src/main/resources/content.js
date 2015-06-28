@@ -6,9 +6,45 @@ var HomePage = React.createClass({
     }
 });
 
-var LabelsPage = React.createClass({
+var ClassifierInfo = React.createClass({
     render: function() {
-        return <div><b>Hello</b><pre>{JSON.stringify(this.props.param)}</pre></div>;
+        return <pre>{JSON.stringify(this.props.data, null, 2)}</pre>;
+    }
+});
+
+var LabelsPage = React.createClass({
+    getInitialState: function() {
+        return {
+            classifiers: null
+        }
+    },
+    componentDidMount: function() {
+        console.log("didMount");
+        this.refs.listClassifiers.sendNewRequest({});
+    },
+    onGetClassifiers: function(data) {
+        console.log("onGet: ");
+        console.log(data);
+        this.setState({classifiers: data.classifiers});
+    },
+    render: function() {
+        console.log(this.state.classifiers || {});
+        var items = _(this.state.classifiers || {}).map(function(val, name) {
+            console.log(val);
+            return <ClassifierInfo data={val} />
+        }).value();
+
+        var setState = this.setState;
+        return <div>
+            <AjaxRequest
+                ref={"listClassifiers"}
+                quiet={true}
+                pure={false}
+                onNewResponse={this.onGetClassifiers}
+                url={"/api/listClassifiers"} />
+        <div className={"classifiers"}>{items}</div>
+        </div>
+
     }
 });
 

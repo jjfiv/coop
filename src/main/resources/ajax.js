@@ -38,10 +38,12 @@ var AjaxError = React.createClass({
     }
 });
 
-var AjaxHelper = React.createMixin({
+var AjaxRequest = React.createClass({
     propTypes: {
         onNewResponse: React.PropTypes.func.isRequired,
-        url: React.PropTypes.string.isRequired
+        url: React.PropTypes.string.isRequired,
+        pure: React.PropTypes.bool,
+        quiet: React.PropTypes.bool
     },
     getInitialState: function() {
         return {
@@ -70,7 +72,7 @@ var AjaxHelper = React.createMixin({
         postJSON(this.props.url, request, this.onSuccess, this.onError);
     },
     onRetry: function() {
-        sendNewRequest(this.state.request);
+        this.sendNewRequest(this.state.request);
     },
     renderAjaxState: function(quiet) {
         if(this.state.error != null) {
@@ -87,20 +89,7 @@ var AjaxHelper = React.createMixin({
         }
 
         return <span />;
-    }
-});
-
-var AjaxOnMount = React.createMixin({
-    propTypes: {
-        initialArguments: React.PropTypes.object.isRequired
     },
-    componentDidMount: function () {
-        sendNewRequest(this.props.initialArguments)
-    }
-});
-
-var AjaxRequest = React.createClass({
-    mixins: [AjaxHelper],
     render: function() {
         return this.renderAjaxState(this.props.quiet);
     }
