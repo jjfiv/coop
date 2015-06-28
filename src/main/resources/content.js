@@ -8,7 +8,10 @@ var HomePage = React.createClass({
 
 var KeyValueEditable = React.createClass({
     getInitialState: function() {
-        return { editing: this.props.editByDefault };
+        return {
+            editing: this.props.editByDefault,
+            showEditButton: false
+        };
     },
     startEditing: function() {
         this.setState({editing: true});
@@ -26,12 +29,18 @@ var KeyValueEditable = React.createClass({
             this.props.onEditValue(this.props.propName, newValue);
         }
     },
+    onMouseOver: function() {
+        if(!this.state.editing) { this.setState({showEditButton: true}); }
+    },
+    onMouseOut: function() {
+        if(!this.state.editing) { this.setState({showEditButton: false}); }
+    },
     render: function() {
         var valueElement = (!this.state.editing) ?
-            <span>{this.props.value || "NONE"}<Button onClick={this.startEditing} label={"Edit"} /></span> :
+            <span>{(this.props.value || "NONE") +" "}<Button visible={this.state.showEditButton} onClick={this.startEditing} label={"Edit"} /></span> :
             <input ref={"newValue"} onKeyPress={this.handleKey} type={"text"} defaultValue={this.props.value || ""} />;
 
-            return <label className={"edit"}>
+            return <label onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut} className={"edit"}>
                 <span>{this.props.label + ": "}</span>
                 {valueElement}</label>;
     }
@@ -70,14 +79,12 @@ var LabelsPage = React.createClass({
         this.refs["listClassifiers"].sendNewRequest({});
     },
     onGetClassifiers: function(data) {
-        console.log(data);
         this.setState({classifiers: data.classifiers});
     },
     doUpdateClassifier: function(request) {
         this.refs["updateClassifier"].sendNewRequest(request);
     },
     onUpdateClassifiers: function(data) {
-        console.log(data);
         this.setState({
             classifiers: _(this.state.classifiers).map(function(old_info) {
                 if(old_info.id == data.id) { return data; }

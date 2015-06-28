@@ -30,11 +30,18 @@ function getURLParams() {
 }
 
 /**
- * Usage: <Button disabled={true,false} onClick={whatFn} label={text label} />
+ * Usage: <Button visible={true,false} disabled={true,false} onClick={whatFn} label={text label} />
  */
 var Button = React.createClass({
+    getDefaultProps: function() {
+        return {
+            visible: true,
+            disabled: false
+        };
+    },
     render: function() {
         return <input
+            className={this.props.visible ? "normal" : "hidden"}
             disabled={this.props.disabled}
             type={"button"}
             onClick={this.props.onClick}
