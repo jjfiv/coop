@@ -41,17 +41,6 @@ $(function() {
     ];
 
     React.render(<NavBar links={links} />, document.getElementById("top"));
+    React.render(<Globals />, document.getElementById("globals"));
 });
 
-/*<div id="header">
-    <a class="nav" href="#">Home</a>
-    <a class="nav" href="#">Search</a>
-    <a class="nav" href="#">Explore</a>
-    <a class="active nav" href="#">Labels</a>
-</div>
-<div id="subheader">
-    <a class="subnav" href="#">Label Most Likely</a>
-    <a class="subnav" href="#">Label Most Confusing</a>
-<a class="subnav" href="#">Label Least Likely</a>
-<a class="subnav active" href="#">Label Randomly</a>
-</div>*/

@@ -47,14 +47,11 @@ var KeyValueEditable = React.createClass({
 });
 
 var ClassifierInfo = React.createClass({
-    propTypes: {
-        updateFn: React.PropTypes.func.isRequired
-    },
     onEditValue: function(key, value) {
         var request = {};
         request.classifier = this.props.data.id;
         request[key] = value;
-        this.props.updateFn(request)
+        EVENTS.signal('updateClassifier', request);
     },
     render: function() {
         var data = this.props.data;
@@ -71,18 +68,14 @@ var ClassifierInfo = React.createClass({
 
 var LabelsPage = React.createClass({
     getInitialState: function() {
-        return {
-            classifiers: null
-        }
+        return { classifiers: null }
     },
     componentDidMount: function() {
-        this.refs["listClassifiers"].sendNewRequest({});
+        EVENTS.register('classifiers', this.onGetClassifiers);
+        EVENTS.register('classifier', this.onUpdateClassifiers);
     },
     onGetClassifiers: function(data) {
-        this.setState({classifiers: data.classifiers});
-    },
-    doUpdateClassifier: function(request) {
-        this.refs["updateClassifier"].sendNewRequest(request);
+        this.setState({classifiers: data});
     },
     onUpdateClassifiers: function(data) {
         this.setState({
@@ -94,7 +87,7 @@ var LabelsPage = React.createClass({
     },
     render: function() {
         var items = _(this.state.classifiers || []).map(function(val) {
-            return <ClassifierInfo updateFn={this.doUpdateClassifier} key={val.id} data={val} />
+            return <ClassifierInfo key={val.id} data={val} />
         }, this).value();
 
         if(_.size(items) == 0) {
@@ -102,19 +95,7 @@ var LabelsPage = React.createClass({
         }
 
         return <div>
-            <AjaxRequest
-                ref={"listClassifiers"}
-                quiet={true}
-                pure={false}
-                onNewResponse={this.onGetClassifiers}
-                url={"/api/listClassifiers"} />
-            <AjaxRequest
-                ref={"updateClassifier"}
-                quiet={true}
-                pure={false}
-                onNewResponse={this.onUpdateClassifiers}
-                url={"/api/updateClassifier"} />
-        <div className={"classifiers"}>{items}</div>
+            <div className={"classifiers"}>{items}</div>
         </div>
 
     }
