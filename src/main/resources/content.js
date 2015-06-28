@@ -23,7 +23,7 @@ var KeyValueEditable = React.createClass({
                 return;
             }
 
-            this.props.notifyNewValue(this.props.key, newValue);
+            this.props.onEditValue(this.props.propName, newValue);
         }
     },
     render: function() {
@@ -38,13 +38,22 @@ var KeyValueEditable = React.createClass({
 });
 
 var ClassifierInfo = React.createClass({
+    propTypes: {
+        updateFn: React.PropTypes.func.isRequired
+    },
+    onEditValue: function(key, value) {
+        var request = {};
+        request.classifier = this.props.data.id;
+        request[key] = value;
+        this.props.updateFn(request)
+    },
     render: function() {
         var data = this.props.data;
         var items = [];
-        items.push(<KeyValueEditable key={"name"} label={"Name"} value={data.name} />);
-        items.push(<KeyValueEditable key={"desc"} label={"Description"} value={data.description} />);
+        items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"name"} key={0} label={"Name"} value={data.name} />);
+        items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"description"} key={1} label={"Description"} value={data.description} />);
 
-        var total = data.positives + data.negatives;;
+        var total = data.positives + data.negatives;
 
         items.push(<span key="pos">{"Positives: "+data.positives+" Negatives: "+data.negatives+" Total: "+total}</span>);
         return <div className={"classifierInfo"}>{items}</div>;
@@ -58,22 +67,28 @@ var LabelsPage = React.createClass({
         }
     },
     componentDidMount: function() {
-        console.log("didMount");
-        this.refs.listClassifiers.sendNewRequest({});
+        this.refs["listClassifiers"].sendNewRequest({});
     },
     onGetClassifiers: function(data) {
-        console.log("onGet: ");
         console.log(data);
         this.setState({classifiers: data.classifiers});
     },
+    doUpdateClassifier: function(request) {
+        this.refs["updateClassifier"].sendNewRequest(request);
+    },
     onUpdateClassifiers: function(data) {
-
+        console.log(data);
+        this.setState({
+            classifiers: _(this.state.classifiers).map(function(old_info) {
+                if(old_info.id == data.id) { return data; }
+                return old_info;
+            })
+        });
     },
     render: function() {
-        console.log(this.state.classifiers || {});
-        var items = _(this.state.classifiers || {}).map(function(val, name) {
-            return <ClassifierInfo key={name} data={val} />
-        }).value();
+        var items = _(this.state.classifiers || []).map(function(val) {
+            return <ClassifierInfo updateFn={this.doUpdateClassifier} key={val.id} data={val} />
+        }, this).value();
 
         if(_.size(items) == 0) {
             items.push(<div key="notfound">No classifiers returned from server!</div>)
@@ -91,7 +106,7 @@ var LabelsPage = React.createClass({
                 quiet={true}
                 pure={false}
                 onNewResponse={this.onUpdateClassifiers}
-                url={"/api/listClassifiers"} />
+                url={"/api/updateClassifier"} />
         <div className={"classifiers"}>{items}</div>
         </div>
 

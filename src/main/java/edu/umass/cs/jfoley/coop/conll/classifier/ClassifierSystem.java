@@ -57,7 +57,12 @@ public class ClassifierSystem implements Closeable {
     Parameters output = Parameters.create();
     LabelInfo labelInfo = labels.queryForId(id);
     if(labelInfo == null) return output;
-    return labelInfo.toJSON();
+
+    output = labelInfo.toJSON();
+    Pair<IntList,IntList> judgments = this.getJudgments(labelInfo.id);
+    output.put("positives", judgments.left.size());
+    output.put("negatives", judgments.right.size());
+    return output;
   }
 
   public void deleteClassifier(int id) throws SQLException {
@@ -136,9 +141,14 @@ public class ClassifierSystem implements Closeable {
     return ctokens;
   }
 
-  public void setName(int classifierId, String name) throws SQLException {
-    LabelInfo info = labels.queryForId(classifierId);
+  public void setName(int classifier, String name) throws SQLException {
+    LabelInfo info = labels.queryForId(classifier);
     info.name = name;
+    labels.update(info);
+  }
+  public void setDescription(int classifier, String description) throws SQLException {
+    LabelInfo info = labels.queryForId(classifier);
+    info.description = description;
     labels.update(info);
   }
 
@@ -173,4 +183,5 @@ public class ClassifierSystem implements Closeable {
     }
     return output;
   }
+
 }

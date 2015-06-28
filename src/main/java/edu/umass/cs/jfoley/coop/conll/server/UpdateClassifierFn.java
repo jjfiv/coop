@@ -20,6 +20,7 @@ public class UpdateClassifierFn extends IndexServerFn {
 
   @Override
   public Parameters handleRequest(Parameters input) throws IOException, SQLException {
+    System.out.println(input.toString());
     long requestTime = System.currentTimeMillis();
 
     int classifier = input.getInt("classifier");
@@ -27,6 +28,9 @@ public class UpdateClassifierFn extends IndexServerFn {
 
     if(input.isString("name")) {
       index.classifiers.setName(classifier, input.getString("name"));
+    }
+    if(input.isString("description")) {
+      index.classifiers.setDescription(classifier, input.getString("description"));
     }
 
     if(labels.size() > 0) {
@@ -43,8 +47,6 @@ public class UpdateClassifierFn extends IndexServerFn {
       index.classifiers.train(classifier);
     }
 
-    // now returns partial "listClassifiers" output:
-    return Parameters.parseArray(
-        classifier, index.classifiers.getInfo(classifier));
+    return index.classifiers.getInfo(classifier);
   }
 }
