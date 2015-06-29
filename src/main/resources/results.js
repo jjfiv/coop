@@ -42,36 +42,6 @@ var ResultView = React.createClass({
             return <SentenceView key={idx} tokens={tokens} />
         }, this));
 
-        items.push(<div key="buttons" style={{textAlign: "right"}}>
-            <Button
-            label={"<"}
-            title={"Load Previous Sentence"}
-            onClick={this.loadPrevious}
-            disabled={this.state.sentences[0].sentenceId==0} />
-
-            <Button
-            label={"Label"}
-            title={"Label this Sentence"}
-            onClick={this.labelSentence} />
-
-            <Button
-            label={"Save"}
-            title={"Save this Sentence"}
-            onClick={this.labelSentence} />
-
-            <Button
-            label={"Note"}
-            title={"Add a Note to this Sentence"}
-            onClick={this.labelSentence} />
-
-            <Button
-            label={">"}
-            title={"Load Next Sentence"}
-            onClick={this.loadNext}
-            disabled={this.state.didNotHaveNext} />
-        </div>);
-
-
         return <div className={"resultView"}>{items}</div>
     }
 });
