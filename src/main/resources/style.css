@@ -28,7 +28,7 @@
   width: 500px;
   height: 140px;
   overflow-x: initial;
-  overflow-y:scroll;
+  overflow-y: auto;
 }
 
 .sentenceView {
