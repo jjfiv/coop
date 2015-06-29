@@ -20,7 +20,7 @@ function createEventBus() {
     };
     event_bus.async_signal= function (event_string, props) {
         _.defer(function() {
-            signal(event_string, props);
+            event_bus.signal(event_string, props);
         })
     };
     event_bus.debounced_async_signal= _.debounce(event_bus.async_signal.bind(event_bus), 50);

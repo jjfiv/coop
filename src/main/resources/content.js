@@ -103,22 +103,26 @@ var LabelsPage = React.createClass({
 
 var SearchResultsPage = React.createClass({
     getInitialState: function() {
-        return {};
+        if(this.props.param.query) {
+            EVENTS.async_signal('searchSentences', this.props.param);
+        }
+        return {waiting: false, response: null};
     },
     componentDidMount: function() {
         EVENTS.register("searchSentences", this.onStartSearch);
         EVENTS.register('searchSentencesResponse', this.onSentences);
     },
     onStartSearch: function() {
-        this.setState({});
+        this.setState({waiting: true});
     },
     onSentences: function(response) {
-        this.setState(response);
+        this.setState({waiting: false, response: response});
     },
     render: function() {
-        if(this.state.results) {
+        if(this.state.response) {
+            var response = this.state.response;
             return <div>
-                <div>{"Found "+this.state.totalHits+" results in "+this.state.time+"ms for query "+ strjoin(this.state.queryTerms) +"."}</div>
+                <div>{"Found "+response.totalHits+" results in "+response.time+"ms for query "+ strjoin(response.queryTerms) +"."}</div>
             </div>;
         } else {
             return <div>
@@ -130,7 +134,7 @@ var SearchResultsPage = React.createClass({
 
 var Content = React.createClass({
     getInitialState: function() {
-        return {};
+        return this.props.defaultContent;
     },
     componentDidMount: function() {
         EVENTS.register('changeContent', this.onChangeContent);
