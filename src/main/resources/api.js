@@ -35,13 +35,10 @@ var API = React.createClass({
         EVENTS.signal('searchSentencesResponse', response);
     },
     sendPullSentences: function(request) {
-        console.log("sendPullSentences");
-        console.log(request);
         console.assert(_.isArray(request));
         this.refs.pullSentences.sendNewRequest({sentences: request});
     },
     onPullSentences: function(response) {
-        console.log(response);
         EVENTS.signal('pullSentencesResponse', response.sentences);
     },
     render: function() {

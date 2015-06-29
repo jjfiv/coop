@@ -36,7 +36,7 @@ var ResultView = React.createClass({
         var items = [];
 
         var sid = this.state.sentences[0][0].sentenceId;
-        items.push(<a href={"?p=view&id="+sid} key={"num"}>{" #"+sid}</a>);
+        items.push(<InternalLink key="link" page="view" args={{id:sid}} label={"S#"+sid} />);
 
         items.push(this.state.sentences.map(function(tokens, idx) {
             return <SentenceView key={idx} tokens={tokens} />
@@ -63,7 +63,6 @@ var DocumentView = React.createClass({
     },
     getInitialState: function() {
         EVENTS.register('pullSentencesResponse', this.onLoadedSentences);
-        console.log(this.props);
         return {
             loaded: [],
             minId: this.props.id - this.props.before,
@@ -79,7 +78,6 @@ var DocumentView = React.createClass({
         return _.difference(this.getWanted(), this.state.loaded);
     },
     onLoadedSentences: function(sentences) {
-        console.log(sentences);
         var missing = this.getMissing();
         var kept = [];
         var newLoaded = [];
@@ -97,7 +95,6 @@ var DocumentView = React.createClass({
         _.forEach(kept, function(s) { newSentences.push(s); });
         _.forEach(this.state.sentences, function(s) { newSentences.push(s); });
 
-        console.log(newSentences);
         // put them in order:
         var mergedSentences = _.sortBy(newSentences, function(s) { return s[0].sentenceId; });
         this.setState({

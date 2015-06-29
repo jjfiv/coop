@@ -138,6 +138,9 @@ var Content = React.createClass({
         return this.props.defaultContent;
     },
     componentDidMount: function() {
+        History.Adapter.bind(window, 'statechange', function() {
+            EVENTS.signal('changeContent', getURLParams());
+        });
         EVENTS.register('changeContent', this.onChangeContent);
         EVENTS.signal('changeContent', this.props.defaultContent);
     },

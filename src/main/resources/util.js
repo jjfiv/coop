@@ -29,15 +29,15 @@ function getURLParams() {
     return urlParams;
 }
 
-var pushURLParams = function(params) {
-    var urlParams = "?" + _(params).map(function(val, key) {
-        //console.log(key + ":" + vals);
-        return encodeURIComponent(key) + "=" + encodeURIComponent(val);
-    }).join('&');
-
-    // update URL without reloading!
-    History.pushState(null, null, urlParams);
-};
+function makeURLFromParams(params) {
+    return "?" + _(params).map(function(val, key) {
+            //console.log(key + ":" + vals);
+            return encodeURIComponent(key) + "=" + encodeURIComponent(val);
+        }).join('&');
+}
+function pushURLParams(params) {
+    History.pushState(null, null, makeURLFromParams(params));
+}
 
 function strjoin(strs) {
     return _.reduce(strs, function (a, b) {
@@ -64,5 +64,30 @@ var Button = React.createClass({
             onClick={this.props.onClick}
             value={this.props.label}
             />;
+    }
+});
+
+var InternalLink = React.createClass({
+    propTypes: {
+        styles: React.PropTypes.arrayOf(React.PropTypes.string),
+        label: React.PropTypes.string.isRequired,
+        page: React.PropTypes.string.isRequired,
+        args: React.PropTypes.object
+    },
+    getInitialState: function() {
+        return {
+            args: _.merge({}, {p: this.props.page}, this.props.args)
+        }
+    },
+    handleClick: function(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        EVENTS.signal('changeContent', this.state.args);
+    },
+    render: function() {
+        return <a
+            className={strjoin(this.props.styles)}
+            href={makeURLFromParams(this.state.args)}
+            onClick={this.handleClick}>{this.props.label}</a>
     }
 });

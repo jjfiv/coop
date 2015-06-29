@@ -44,7 +44,7 @@ var NavBar = React.createClass({
             if(_.isArray(link.url)) {
                 href = _.first(link.url);
             }
-            return <a key={link.name} className={"nav"} href={href}>{link.name}</a>
+            return <InternalLink key={link.name} styles={["nav"]} page={link.page} label={link.name} args={link.args || {}} />
         }).value();
 
         linkElems.push(<SearchBox key={"search"} />);
@@ -55,8 +55,8 @@ var NavBar = React.createClass({
 
 $(function() {
     var links = [
-        { name: "Home", "url": ["/", "/?p=home", "/index.html"] },
-        { name: "Labels", "url": "/?p=labels" }
+        { name: "Home", "page": "home" },
+        { name: "Labels", "page": "labels" }
     ];
 
     React.render(<NavBar links={links} />, document.getElementById("top"));
