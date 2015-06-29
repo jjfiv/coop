@@ -71,6 +71,8 @@ public class SearchSentencesFn extends IndexServerFn {
     Parameters results = Parameters.create();
     results.put("totalHits", totalHits);
     results.put("queryTerms", terms);
+    results.put("field", field);
+    results.put("operation", operation);
     results.put("results", pullSentenceJSON(pageHits));
     return results;
   }

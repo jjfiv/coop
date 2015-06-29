@@ -60,6 +60,7 @@ var Button = React.createClass({
             className={this.props.visible ? "normal" : "hidden"}
             disabled={this.props.disabled}
             type={"button"}
+            title={this.props.title || this.props.label}
             onClick={this.props.onClick}
             value={this.props.label}
             />;
