@@ -7,6 +7,7 @@ var Globals = React.createClass({
         EVENTS.register('updateClassifier', this.sendUpdate);
         EVENTS.register('listClassifiers', this.sendList);
         EVENTS.register('searchSentences', this.sendSearchSentences);
+        EVENTS.register('pullSentences', this.sendPullSentences);
 
         // test that signals work:
         EVENTS.signal('listClassifiers');
@@ -33,6 +34,16 @@ var Globals = React.createClass({
     onSearchSentences: function(response) {
         EVENTS.signal('searchSentencesResponse', response);
     },
+    sendPullSentences: function(request) {
+        console.log("sendPullSentences");
+        console.log(request);
+        console.assert(_.isArray(request));
+        this.refs.pullSentences.sendNewRequest({sentences: request});
+    },
+    onPullSentences: function(response) {
+        console.log(response);
+        EVENTS.signal('pullSentencesResponse', response.sentences);
+    },
     render: function() {
         var quiet = true;
         return <div>
@@ -54,6 +65,12 @@ var Globals = React.createClass({
                 pure={true}
                 onNewResponse={this.onSearchSentences}
                 url={"/api/searchSentences"} />
+            <AjaxRequest
+                ref={"pullSentences"}
+                quiet={quiet}
+                pure={false}
+                onNewResponse={this.onPullSentences}
+                url={"/api/pullSentences"} />
             </div>;
     }
 });

@@ -157,9 +157,13 @@ var Content = React.createClass({
 
         var pages = {
             home: <HomePage />,
-            labels: <LabelsPage param={this.state} />,
-            search: <SearchResultsPage param={this.state} />
+            labels: <LabelsPage param={this.state}/>,
+            search: <SearchResultsPage param={this.state}/>,
         };
+
+        if (page == "view" && this.state.id) {
+            pages.view = <DocumentView key="view" id={parseInt(this.state.id)} />;
+        }
 
         var anyVisible = false;
         var items = _.map(pages, function(v,k) {

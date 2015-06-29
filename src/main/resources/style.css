@@ -33,6 +33,8 @@
 
 .sentenceView {
   padding: 10px;
+}
+.special.sentenceView {
   background-color: #efe;
 }
 
