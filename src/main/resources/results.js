@@ -87,7 +87,8 @@ var DocumentView = React.createClass({
     getDefaultProps: function() {
         return {
             before: 2,
-            after: 2
+            after: 2,
+            step: 1
         };
     },
     getInitialState: function() {
@@ -97,6 +98,7 @@ var DocumentView = React.createClass({
             loaded: [],
             minId: this.props.id - this.props.before,
             maxId: this.props.id + this.props.after,
+            waiting: false,
             sentences: []
         };
     },
@@ -120,6 +122,7 @@ var DocumentView = React.createClass({
         });
         if(_.size(kept) == 0) return;
 
+        this.setState({waiting: false});
         var newSentences = [];
         _.forEach(kept, function(s) { newSentences.push(s); });
         _.forEach(this.state.sentences, function(s) { newSentences.push(s); });
@@ -133,12 +136,22 @@ var DocumentView = React.createClass({
         })
     },
     pullMissingSentences: function() {
-        console.log("pullSentences");
-        console.log(this.getMissing());
-        EVENTS.signal('pullSentences', this.getMissing());
+        var missing = this.getMissing();
+        if(_.isEmpty(missing)) return;
+        this.setState({waiting: true});
+        EVENTS.signal('pullSentences', missing);
     },
     componentWillMount: function() {
         this.pullMissingSentences();
+    },
+    loadBefore: function() {
+        this.setState(
+            {minId: _.max([0, this.state.minId - this.props.step])},
+            this.pullMissingSentences);
+    },
+    loadAfter: function() {
+        this.setState({maxId: this.state.maxId + this.props.step},
+            this.pullMissingSentences);
     },
     render: function() {
         var loaded = this.state.loaded;
@@ -147,11 +160,13 @@ var DocumentView = React.createClass({
         var items = _(this.state.sentences).map(function(tokens) {
             var sid = tokens[0].sentenceId;
             return <SentenceView special={this.props.id == sid} key={sid} tokens={tokens} />
-        }, this)
-            .value();
-        console.log(items);
+        }, this).value();
 
-        return <div>{items}</div>;
+        return <div>
+            <Button disabled={this.state.waiting} label={"Load More Before"} onClick={this.loadBefore}/>
+            <div>{items}</div>;
+            <Button disabled={this.state.waiting} label={"Load More After"} onClick={this.loadAfter}/>
+            </div>
     }
 });
 
