@@ -164,6 +164,7 @@ var LabelingWidget = React.createClass({
                     token={tok}
                     handleMouse={this.handleMouse}
                     active={_.contains(tokenSet, id)}
+                    nativeSelectable={false}
                     positive={_.contains(this.state.positiveLabels, id)}
                     />
             }, this)
@@ -194,7 +195,9 @@ var LabelingToken = React.createClass({
         return {
             highlightNER: false,
             active: false,
+            positive: false,
             hover: false,
+            nativeSelectable: true,
             handleClick: function() { },
             handleMouse: function() { }
         }
@@ -221,7 +224,9 @@ var LabelingToken = React.createClass({
         var active = this.props.active;
         var positive = this.props.positive;
 
-        classes.push("noselect");
+        if(!this.props.nativeSelectable) {
+            classes.push("noselect");
+        }
         if(positive) {
             classes.push("positive-token");
         } else if(active) {
@@ -232,10 +237,6 @@ var LabelingToken = React.createClass({
         if(!active && this.props.highlightNER && ner) {
             classes.push("ner-"+ner);
         }
-
-        var classStr = _.reduce(classes, function(accum, x) {
-            return accum + ' ' + x;
-        });
 
         var handleMouse = this.props.handleMouse;
         var mouseHandler = function(what) {
@@ -248,7 +249,7 @@ var LabelingToken = React.createClass({
                      onMouseOut={mouseHandler("out")}
                      onMouseDown={mouseHandler("down")}
                      onMouseUp={mouseHandler("up")}
-                     className={classStr}
+                     className={strjoin(classes)}
                      title={this.computeTitle()}>
             {this.getTerm()}
         </span>;

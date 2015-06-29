@@ -101,6 +101,20 @@ var LabelsPage = React.createClass({
     }
 });
 
+var SearchResults = React.createClass({
+    render: function() {
+        var items = _.map(this.props.results, function(item, result_idx) {
+            var terms = _.map(item, function(term, term_idx) {
+                return <LabelingToken
+                    key={term_idx} token={term} />
+            });
+            return <div key={result_idx}>{terms}</div>;
+            //return <pre key={result_idx}>{JSON.stringify(item)}</pre>;
+        });
+        return <div>{items}</div>;
+    }
+});
+
 var SearchResultsPage = React.createClass({
     getInitialState: function() {
         if(this.props.param.query) {
@@ -123,6 +137,7 @@ var SearchResultsPage = React.createClass({
             var response = this.state.response;
             return <div>
                 <div>{"Found "+response.totalHits+" results in "+response.time+"ms for query "+ strjoin(response.queryTerms) +"."}</div>
+                <SearchResults results={response.results} />
             </div>;
         } else {
             return <div>
