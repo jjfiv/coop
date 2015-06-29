@@ -101,6 +101,33 @@ var LabelsPage = React.createClass({
     }
 });
 
+var SearchResultsPage = React.createClass({
+    getInitialState: function() {
+        return {};
+    },
+    componentDidMount: function() {
+        EVENTS.register("searchSentences", this.onStartSearch);
+        EVENTS.register('searchSentencesResponse', this.onSentences);
+    },
+    onStartSearch: function() {
+        this.setState({});
+    },
+    onSentences: function(response) {
+        this.setState(response);
+    },
+    render: function() {
+        if(this.state.results) {
+            return <div>
+                <div>{"Found "+this.state.totalHits+" results in "+this.state.time+"ms for query "+ strjoin(this.state.queryTerms) +"."}</div>
+            </div>;
+        } else {
+            return <div>
+                <pre>{JSON.stringify(this.props.param)}</pre>
+            </div>;
+        }
+    }
+});
+
 var Content = React.createClass({
     getInitialState: function() {
         return {};
@@ -121,12 +148,25 @@ var Content = React.createClass({
         return this.state.p || "home";
     },
     render: function() {
-        switch(this.getPage()) {
-            case "home": return <HomePage />;
-            case "labels": return <LabelsPage param={this.state} />;
-            case "search": return <pre>{JSON.stringify(this.state)}</pre>;
-            default: return <div>{"No content for page \""+page+"\""}</div>;
+        var page = this.getPage();
+
+        var pages = {
+            home: <HomePage />,
+            labels: <LabelsPage param={this.state} />,
+            search: <SearchResultsPage param={this.state} />
+        };
+
+        var anyVisible = false;
+        var items = _.map(pages, function(v,k) {
+            var visible = (page === k);
+            anyVisible |= visible;
+            return <div key={k} className={(visible) ? "normal" : "none"}>{v}</div>;
+        }, this);
+
+        if(!anyVisible) {
+            items.push(<div key={404}>{"No content for page \""+page+"\""}</div>)
         }
+        return <div>{items}</div>;
     }
 });
 

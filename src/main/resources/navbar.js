@@ -1,9 +1,3 @@
-function makeClasses(classList) {
-    return _.reduce(classList, function (a, b) {
-        return a + " " + b;
-    });
-}
-
 var SearchBox = React.createClass({
     getInitialState: function() {
         return { query: "" };
@@ -14,11 +8,11 @@ var SearchBox = React.createClass({
     handleKey: function(evt) {
         // submit:
         if(evt.which == 13) {
-            EVENTS.signal("changeContent",
-                {
-                    p: "search",
-                    query: React.findDOMNode(this.refs.search).value.trim()
-                });
+            var query = React.findDOMNode(this.refs.search).value.trim();
+            if(_.isEmpty(query)) return;
+
+            EVENTS.signal("searchSentences", {query: query});
+            EVENTS.signal("changeContent", { p: "search", query: query });
         }
     },
     changeQuery: function(query) {

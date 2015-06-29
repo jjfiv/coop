@@ -1,11 +1,12 @@
 // Classifiers
-var SingletonClassifiers = null;
-var Classifiers = React.createClass({
+var SingletonGlobals = null;
+var Globals = React.createClass({
     componentDidMount: function() {
-        console.assert(SingletonClassifiers == null);
-        SingletonClassifiers = this;
+        console.assert(SingletonGlobals == null);
+        SingletonGlobals = this;
         EVENTS.register('updateClassifier', this.sendUpdate);
         EVENTS.register('listClassifiers', this.sendList);
+        EVENTS.register('searchSentences', this.sendSearchSentences);
 
         // test that signals work:
         EVENTS.signal('listClassifiers');
@@ -22,6 +23,16 @@ var Classifiers = React.createClass({
     onList: function(data) {
         EVENTS.signal('classifiers', data.classifiers);
     },
+    sendSearchSentences: function(request) {
+        if(_.isEmpty(request.query.trim())) {
+            // skip silly queries:
+            return;
+        }
+        this.refs.search.sendNewRequest(request);
+    },
+    onSearchSentences: function(response) {
+        EVENTS.signal('searchSentencesResponse', response);
+    },
     render: function() {
         var quiet = true;
         return <div>
@@ -37,6 +48,12 @@ var Classifiers = React.createClass({
                 pure={false}
                 onNewResponse={this.onUpdate}
                 url={"/api/updateClassifier"} />
+            <AjaxRequest
+                ref={"search"}
+                quiet={quiet}
+                pure={true}
+                onNewResponse={this.onSearchSentences}
+                url={"/api/searchSentences"} />
             </div>;
     }
 });

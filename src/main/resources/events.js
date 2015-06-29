@@ -28,9 +28,3 @@ function createEventBus() {
 }
 
 var EVENTS = createEventBus();
-var Globals = React.createClass({
-    render: function() {
-        return React.createElement('div', {}, [React.createElement(Classifiers, {key:0})]);
-        //return <div><Classifiers /></div>;
-    }
-});

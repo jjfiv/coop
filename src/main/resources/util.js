@@ -39,6 +39,12 @@ var pushURLParams = function(params) {
     History.pushState(null, null, urlParams);
 };
 
+function strjoin(strs) {
+    return _.reduce(strs, function (a, b) {
+        return a + " " + b;
+    });
+}
+
 /**
  * Usage: <Button visible={true,false} disabled={true,false} onClick={whatFn} label={text label} />
  */

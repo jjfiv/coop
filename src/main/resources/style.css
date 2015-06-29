@@ -14,6 +14,9 @@
     -moz-user-select: none;
 }
 .normal {}
+.none {
+  display:none;
+}
 .hidden {
   visibility:hidden;
 }
