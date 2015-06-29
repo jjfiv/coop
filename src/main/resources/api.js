@@ -1,9 +1,9 @@
 // Classifiers
-var SingletonGlobals = null;
-var Globals = React.createClass({
+var SingletonAPI = null;
+var API = React.createClass({
     componentDidMount: function() {
-        console.assert(SingletonGlobals == null);
-        SingletonGlobals = this;
+        console.assert(SingletonAPI == null);
+        SingletonAPI = this;
         EVENTS.register('updateClassifier', this.sendUpdate);
         EVENTS.register('listClassifiers', this.sendList);
         EVENTS.register('searchSentences', this.sendSearchSentences);

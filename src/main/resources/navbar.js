@@ -60,6 +60,6 @@ $(function() {
     ];
 
     React.render(<NavBar links={links} />, document.getElementById("top"));
-    React.render(<Globals />, document.getElementById("globals"));
+    React.render(<API />, document.getElementById("globals"));
 });
 
