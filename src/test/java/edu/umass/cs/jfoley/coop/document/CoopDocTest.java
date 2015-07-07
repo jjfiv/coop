@@ -26,6 +26,7 @@ public class CoopDocTest {
     expected.add("he also write the beatles ' song `` do not pass i by '' and `` octopus 's garden '' , and be credit as a co-writer of other , such as `` what go on '' and `` flying '' .");
 
     CoopDoc doc = tokenizer.createDocument("ringo", ringo);
+    doc.setIdentifier(132);
     List<List<CoopToken>> sentences = doc.getSentences();
     for (int i = 0; i < sentences.size(); i++) {
       List<CoopToken> coopTokens = sentences.get(i);
