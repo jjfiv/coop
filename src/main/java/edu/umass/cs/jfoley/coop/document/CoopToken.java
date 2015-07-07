@@ -25,8 +25,8 @@ public class CoopToken implements Comparable<CoopToken> {
   Map<String,String> terms;
   @TaggedFieldSerializer.Tag(5)
   Set<String> indicators;
-  //@TaggedFieldSerializer.Tag(6)
-  //Set<String> enclosingTags;
+  @TaggedFieldSerializer.Tag(6)
+  Set<String> enclosingTags;
 
   public CoopToken() {
     document = -1;
@@ -65,6 +65,10 @@ public class CoopToken implements Comparable<CoopToken> {
     p.put("terms", Parameters.wrap(terms));
     //p.put("indicators", new ArrayList<>(indicators));
     return p;
+  }
+
+  public Set<String> getTags() {
+    return enclosingTags;
   }
 
   public int id() {

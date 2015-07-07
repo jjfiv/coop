@@ -20,6 +20,7 @@ import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.conll.classifier.ClassifierSystem;
 import edu.umass.cs.jfoley.coop.conll.classifier.FeatureVector;
 import edu.umass.cs.jfoley.coop.conll.classifier.SparseBooleanFeatures;
+import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.CoopToken;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
@@ -38,12 +39,16 @@ public class TermBasedIndexReader implements Closeable {
   public final IOMap<Integer, Integer> tokenToSentence;
   public final IOMap<Integer, List<CoopToken>> sentenceCorpus;
   public final IOMap<Integer, CoopToken> tokenCorpus;
+  public final IOMap<Integer, CoopDoc> documentCorpus;
   /**
    * Inverted index for features
    */
   public final IOMap<String, List<Integer>> featureIndex;
   public final IOMap<NamespacedLabel, List<Integer>> tokensByTerms;
+  public final IOMap<String, List<Integer>> tokensByTags;
   public final IOMap<NamespacedLabel, PostingMover<Integer>> sentencesByTerms;
+  public final IOMap<NamespacedLabel, PostingMover<Integer>> documentsByTerms;
+  public final IdMaps.Reader<String> documentNames;
   public final IdMaps.Reader<String> features;
 
   public final ClassifierSystem classifiers;
@@ -67,19 +72,33 @@ public class TermBasedIndexReader implements Closeable {
         VarUInt.instance, tokenCoder,
         input.childPath("tokenCorpus")
     );
+    documentCorpus  = GalagoIO.openIOMap(
+        VarUInt.instance, new KryoCoder<>(CoopDoc.class),
+        input.childPath("documentCorpus")
+    );
     featureIndex = GalagoIO.openIOMap(
         CharsetCoders.utf8, new DeltaIntListCoder(),
         input.childPath("featureIndex")
+    );
+    tokensByTags = GalagoIO.openIOMap(
+        CharsetCoders.utf8, new DeltaIntListCoder(),
+        input.childPath("tokensByTags")
     );
     tokensByTerms = GalagoIO.openIOMap(
         NamespacedLabel.coder, new DeltaIntListCoder(),
         input.childPath("tokensByTerms")
     );
+    documentsByTerms = GalagoIO.openIOMap(
+        NamespacedLabel.coder,
+        new BlockedPostingsCoder<>(VarUInt.instance),
+        input.childPath("documentsByTerms")
+    );
     sentencesByTerms = GalagoIO.openIOMap(
         NamespacedLabel.coder,
-        new BlockedPostingsCoder<Integer>(VarUInt.instance),
+        new BlockedPostingsCoder<>(VarUInt.instance),
         input.childPath("sentencesByTerms")
     );
+    documentNames = GalagoIO.openIdMapsReader(input.childPath("documentNames"), VarUInt.instance, CharsetCoders.utf8);
 
     if(!input.child("features.fwd").exists()) {
       List<String> featuresAboveThreshold = new ArrayList<>();

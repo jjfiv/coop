@@ -139,6 +139,20 @@ public class CoopDoc implements Comparable<CoopDoc> {
           output.get(i).indicators = Collections.singleton("NO-FEATURES-ERR");
         }
       }
+      for (int i = 0; i < output.size(); i++) {
+        int pos = i+begin;
+        Set<String> enclosingTags = new HashSet<>();
+        for (Map.Entry<String, SpanList> kv : tags.entrySet()) {
+          if(kv.getKey().equals("sentence")) continue;
+
+          if(kv.getValue().contains(pos)) {
+            enclosingTags.add(kv.getKey());
+          }
+        }
+
+        output.get(i).enclosingTags = enclosingTags;
+      }
+
 
       outSentences.add(output);
     }
