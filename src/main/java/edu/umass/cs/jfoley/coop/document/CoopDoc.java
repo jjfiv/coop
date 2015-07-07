@@ -38,6 +38,8 @@ public class CoopDoc implements Comparable<CoopDoc> {
   private Map<String, DocVar> variables;
   @TaggedFieldSerializer.Tag(7)
   private String rawText = null;
+  @TaggedFieldSerializer.Tag(8)
+  private String url = null;
 
   public CoopDoc() {
     this.name = null;
@@ -272,5 +274,9 @@ public class CoopDoc implements Comparable<CoopDoc> {
         this.tags.put(tag, kv.getValue());
       }
     }
+  }
+
+  public void setURL(String url) {
+    this.url = url;
   }
 }

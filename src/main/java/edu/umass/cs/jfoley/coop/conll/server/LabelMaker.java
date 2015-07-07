@@ -49,7 +49,10 @@ public class LabelMaker implements WebHandler, Closeable {
   }
 
   public static void main(String[] args) throws IOException, WebServerException {
-    LabelMaker lm = new LabelMaker(Directory.Read("./CoNLL03.eng.train.run.stoken.index"));
+    //String index = "./CoNLL03.eng.train.run.stoken.index";
+    String index = "./clue0401tw.index";
+
+    LabelMaker lm = new LabelMaker(Directory.Read(index));
     lm.start(1234);
     lm.join();
     // forces shutdown

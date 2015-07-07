@@ -205,14 +205,34 @@ var LabelingToken = React.createClass({
     getToken: function() {
         return this.props.token;
     },
-    computeTitle: function() {
+    computeTermsString: function() {
         return _(this.getToken().terms).map(function(v, k) {
             return k+"="+v;
         }).reject(_.isEmpty).join('; ')
     },
+    computeTitle: function() {
+        var pieces = [];
+        pieces.push(this.computeTermsString());
+        var tags = this.tags();
+        if(!_.isEmpty(tags)) {
+            pieces.push(strjoin(tags));
+        }
+        return strjoin(pieces);
+    },
+    tags: function() {
+        var token = this.getToken();
+        if(token.tags && !_.isEmpty(token.tags)) {
+            return token.tags;
+        }
+        return [];
+    },
+    hasTags: function() {
+        return !_.isEmpty(this.tags());
+    },
     getTerm: function() {
         // grab CoNNL-specific "true_terms"
-        return this.getToken().terms.true_terms;
+        var terms = this.getToken().terms;
+        return terms.true_terms || terms.tokens;
     },
     handleClick: function() {
         this.props.handleClick(this.getToken());
@@ -236,6 +256,9 @@ var LabelingToken = React.createClass({
         }
         if(!active && this.props.highlightNER && ner) {
             classes.push("ner-"+ner);
+        }
+        if(this.hasTags()) {
+            classes.push("has-tags");
         }
 
         var handleMouse = this.props.handleMouse;

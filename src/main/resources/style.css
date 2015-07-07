@@ -48,6 +48,10 @@
   background-color: #afa;
 }
 
+.has-tags {
+    font-style: italic;
+}
+
 .sentenceId {
     display: inline-block;
     width: 3em;

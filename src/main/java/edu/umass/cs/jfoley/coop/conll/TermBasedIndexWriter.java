@@ -112,6 +112,7 @@ public class TermBasedIndexWriter implements Closeable {
     IntList tokenIds = new IntList();
     TObjectIntHashMap<NamespacedLabel> ttf = new TObjectIntHashMap<>();
     for (CoopToken token : sentence) {
+      token.setSentence(sentenceId);
       int tokenId = tokenIndex++;
 
       tokens.add(token);
@@ -174,5 +175,9 @@ public class TermBasedIndexWriter implements Closeable {
     documentNames.close();
 
     output.ls(System.out);
+  }
+
+  public int documentCount() {
+    return documentIndex;
   }
 }

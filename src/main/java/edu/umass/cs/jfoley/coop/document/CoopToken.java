@@ -5,10 +5,7 @@ import com.esotericsoftware.kryo.serializers.TaggedFieldSerializer;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author jfoley
@@ -64,6 +61,9 @@ public class CoopToken implements Comparable<CoopToken> {
     p.put("tokenId", index);
     p.put("terms", Parameters.wrap(terms));
     //p.put("indicators", new ArrayList<>(indicators));
+    if(!enclosingTags.isEmpty()) {
+      p.put("tags", new ArrayList<>(enclosingTags));
+    }
     return p;
   }
 
@@ -73,5 +73,9 @@ public class CoopToken implements Comparable<CoopToken> {
 
   public int id() {
     return index;
+  }
+
+  public void setSentence(int sentence) {
+    this.sentence = sentence;
   }
 }

@@ -101,6 +101,7 @@ public class TermBasedIndexReader implements Closeable {
     documentNames = GalagoIO.openIdMapsReader(input.childPath("documentNames"), VarUInt.instance, CharsetCoders.utf8);
 
     if(!input.child("features.fwd").exists()) {
+      System.err.println("Creating features file: N="+featureIndex.keyCount());
       List<String> featuresAboveThreshold = new ArrayList<>();
       for (List<String> keyBatch : IterableFns.batches(featureIndex.keys(), 1000)) {
         for (Pair<String, List<Integer>> kv : featureIndex.getInBulk(keyBatch)) {
@@ -110,6 +111,7 @@ public class TermBasedIndexReader implements Closeable {
         }
       }
       QuickSort.sort(featuresAboveThreshold);
+      System.err.println("Creating features file: N*="+featuresAboveThreshold.size());
 
       try (IdMaps.Writer<String> featuresWriter = GalagoIO.openIdMapsWriter(input.childPath("features"), VarUInt.instance, CharsetCoders.utf8)) {
         for (int i = 0; i < featuresAboveThreshold.size(); i++) {
