@@ -56,7 +56,8 @@ var NavBar = React.createClass({
 $(function() {
     var links = [
         { name: "Home", "page": "home" },
-        { name: "Labels", "page": "labels" }
+        { name: "Labels", "page": "labels" },
+        { name: "Tags", "page": "tags" }
     ];
 
     React.render(<NavBar links={links} />, document.getElementById("top"));

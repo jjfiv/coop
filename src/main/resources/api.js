@@ -8,6 +8,7 @@ var API = React.createClass({
         EVENTS.register('listClassifiers', this.sendList);
         EVENTS.register('searchSentences', this.sendSearchSentences);
         EVENTS.register('pullSentences', this.sendPullSentences);
+        EVENTS.register('listTagsRequest', this.sendListTags);
 
         // test that signals work:
         EVENTS.signal('listClassifiers');
@@ -23,6 +24,12 @@ var API = React.createClass({
     },
     onList: function(data) {
         EVENTS.signal('classifiers', data.classifiers);
+    },
+    sendListTags() {
+        this.refs.listTags.sendNewRequest({});
+    },
+    onListTags(data) {
+        EVENTS.signal('listTagsResponse', data.tags);
     },
     sendSearchSentences: function(request) {
         if(_.isEmpty(request.query.trim())) {
@@ -44,6 +51,12 @@ var API = React.createClass({
     render: function() {
         var quiet = true;
         return <div>
+            <AjaxRequest
+                ref={"listTags"}
+                quiet={quiet}
+                pure={false}
+                onNewResponse={this.onListTags}
+                url={"/api/listTags"} />
             <AjaxRequest
                 ref={"list"}
                 quiet={quiet}

@@ -189,3 +189,10 @@ div.classifierInfo {
   margin-left: 6pt;
   border-bottom: 1px solid #ddd;
 }
+
+.error {
+    font-weight: bold;
+    color: #000;
+    background-color: #f99;
+}
+
