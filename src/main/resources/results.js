@@ -35,8 +35,13 @@ var ResultView = React.createClass({
     render: function () {
         var items = [];
 
+        var docId = this.state.sentences[0][0].documentId;
         var sid = this.state.sentences[0][0].sentenceId;
-        items.push(<InternalLink key="link" page="view" args={{id:sid}} label={"S#"+sid} />);
+
+        if(docId) {
+            items.push(<span key="doc-link" page="view" args={{document:sid}} >{"D#"+docId+" "}</span>);
+        }
+        items.push(<InternalLink key="sentence-link" page="view" args={{id:sid}} label={"S#"+sid} />);
 
         items.push(this.state.sentences.map(function(tokens, idx) {
             return <SentenceView key={idx} tokens={tokens} />
