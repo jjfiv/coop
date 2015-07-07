@@ -74,6 +74,8 @@ var TagsAvailable = React.createClass({
         } else {
             var items = [];
 
+            items.push(<HelpButton text={"Tags are like labels, but they are generally pre-defined for a given collection. You can use them to help build your own labels."}/>);
+
             var lf = this.state.filter;
 
             var matchCount = 0;

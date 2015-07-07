@@ -56,8 +56,10 @@ var Button = React.createClass({
         };
     },
     render: function() {
+        var classes = [];
+        classes.push(this.props.visible ? "normal" : "hidden");
         return <input
-            className={this.props.visible ? "normal" : "hidden"}
+            className={strjoin(classes)}
             disabled={this.props.disabled}
             type={"button"}
             title={this.props.title || this.props.label}
@@ -89,5 +91,26 @@ var InternalLink = React.createClass({
             className={strjoin(this.props.styles)}
             href={makeURLFromParams(this.state.args)}
             onClick={this.handleClick}>{this.props.label}</a>
+    }
+});
+
+var HelpButton = React.createClass({
+    propTypes: {
+        text: React.PropTypes.string.isRequired
+    },
+    getInitialState() {
+        return {active: false};
+    },
+    handleClick(evt) {
+        this.setState({active: !this.state.active});
+    },
+    render() {
+        var text = this.props.text;
+        var items = [];
+        items.push(<Button title={text} onClick={this.handleClick} label={"?"} />);
+        if(this.state.active) {
+            items.push(<span>{" "+text}</span>);
+        }
+        return <div title={text}>{items}</div>;
     }
 });

@@ -162,8 +162,8 @@ a:hover.nav {
 .button {
   display: inline-block;
   margin: 2pt;
-  border-radius:2pt;
-  padding: 8pt;
+  border-radius:7pt;
+  padding: 2pt;
   text-decoration:none;
   background-color: #bfb;
   user-select:none;
