@@ -1,7 +1,10 @@
 package edu.umass.cs.jfoley.coop.document;
 
+import ciir.jfoley.chai.collections.chained.ChaiIterable;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.fn.GenerateFn;
+import com.esotericsoftware.kryo.DefaultSerializer;
+import com.esotericsoftware.kryo.serializers.TaggedFieldSerializer;
 import edu.umass.cs.ciir.waltz.postings.extents.InterleavedSpans;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
@@ -16,15 +19,23 @@ import java.util.*;
  * My pet peeve are java classes named Document.
  * @author jfoley
  */
+@DefaultSerializer(TaggedFieldSerializer.class)
 public class CoopDoc implements Comparable<CoopDoc> {
   public static final int UNKNOWN_DOCID = -1;
 
-  private String name;
-  private Map<String,List<String>> terms;
-  private List<Set<String>> termLevelIndicators;
-  private Map<String, SpanList> tags;
+  @TaggedFieldSerializer.Tag(1)
   private int identifier;
+  @TaggedFieldSerializer.Tag(2)
+  private String name;
+  @TaggedFieldSerializer.Tag(3)
+  private Map<String,List<String>> terms;
+  @TaggedFieldSerializer.Tag(4)
+  private List<Set<String>> termLevelIndicators;
+  @TaggedFieldSerializer.Tag(5)
+  private Map<String, SpanList> tags;
+  @TaggedFieldSerializer.Tag(6)
   private Map<String, DocVar> variables;
+  @TaggedFieldSerializer.Tag(7)
   private String rawText = null;
 
   public CoopDoc() {
@@ -54,19 +65,21 @@ public class CoopDoc implements Comparable<CoopDoc> {
   }
 
   public Parameters toJSON() {
-    return Parameters.parseArray(
-        "name", name,
-        "identifier", identifier,
-        "terms", Parameters.wrap(terms),
-        "tags", Parameters.wrap(MapFns.mapValues(tags, (spanList) -> {
+    Parameters docp = Parameters.create();
+    docp.put("name", name);
+    docp.put("identifier", identifier);
+    docp.put("terms", Parameters.wrap(terms));
+    docp.put("termFeatures", ChaiIterable.create(termLevelIndicators).map(ArrayList::new).intoList());
+    docp.put("tags", Parameters.wrap(MapFns.mapValues(tags, (spanList) -> {
           List<List<Integer>> reallyNaiveSpanList = new ArrayList<>();
           for (Span span : spanList) {
             reallyNaiveSpanList.add(Arrays.asList(span.begin, span.end));
           }
           return reallyNaiveSpanList;
-        })),
-        "variables", getJSONVars()
-    );
+        })));
+    docp.put("variables", getJSONVars());
+    docp.put("rawText", rawText);
+    return docp;
   }
 
   public List<CoopToken> tokens() {
@@ -192,5 +205,20 @@ public class CoopDoc implements Comparable<CoopDoc> {
 
   public void setTermLevelIndicators(List<Set<String>> termLevelIndicators) {
     this.termLevelIndicators = termLevelIndicators;
+  }
+
+  public void addTags(Map<String, SpanList> spans) {
+    for (Map.Entry<String, SpanList> kv : spans.entrySet()) {
+      String tag = kv.getKey();
+      if(this.tags.containsKey(tag)) {
+        // merge if tag already exists
+        for (Span span : kv.getValue()) {
+          addTag(tag, span.begin, span.end);
+        }
+      } else {
+        // add in bulk if possible:
+        this.tags.put(tag, kv.getValue());
+      }
+    }
   }
 }

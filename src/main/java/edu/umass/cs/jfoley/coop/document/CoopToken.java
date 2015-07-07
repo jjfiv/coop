@@ -1,5 +1,8 @@
 package edu.umass.cs.jfoley.coop.document;
 
+import com.esotericsoftware.kryo.DefaultSerializer;
+import com.esotericsoftware.kryo.serializers.TaggedFieldSerializer;
+
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,10 +12,15 @@ import java.util.Set;
 /**
  * @author jfoley
  */
+@DefaultSerializer(TaggedFieldSerializer.class)
 public class CoopToken implements Comparable<CoopToken> {
-  int document;
+  @TaggedFieldSerializer.Tag(1)
   int index;
+  @TaggedFieldSerializer.Tag(2)
+  int document;
+  @TaggedFieldSerializer.Tag(3)
   Map<String,String> terms;
+  @TaggedFieldSerializer.Tag(4)
   Set<String> indicators;
   // TODO? Set<String> enclosingTags;
 
