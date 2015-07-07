@@ -6,40 +6,6 @@ var HomePage = React.createClass({
     }
 });
 
-var TagsAvailable = React.createClass({
-    getInitialState() {
-        return {
-            tags: null
-        }
-    },
-    componentDidMount() {
-        EVENTS.register('listTagsResponse', this.onListTags);
-        EVENTS.signal('listTagsRequest');
-    },
-    componentWillUnmount() {
-        EVENTS.unregister('listTagsResponse', this.onListTags);
-    },
-    onListTags(tags) {
-        this.setState({tags: tags});
-    },
-    render() {
-        if(this.state.tags == null) {
-            return <span>Loading...</span>;
-        } else {
-            var items = [];
-
-            items.push(<input type="text" />);
-            items.push(<div>{
-                _(this.state.tags).map(function(tag) {
-                    return <TagView tag={tag} />;
-                }, this).value()
-            }</div>);
-
-            return <div>{items}</div>;
-        }
-    }
-});
-
 var KeyValueEditable = React.createClass({
     getInitialState: function() {
         return {
