@@ -75,7 +75,7 @@ public class ConllLoader {
     return new StanfordCoreNLP(props);
   });
 
-  public static void makeDocument(List<String> lines, SinkFn<CoopDoc> output) {
+  public static void makeDocument(String name, List<String> lines, SinkFn<CoopDoc> output) {
     int linesIndex = 0;
     if(lines.isEmpty()) return;
     if(lines.get(0).isEmpty()) linesIndex = 1;
@@ -108,6 +108,7 @@ public class ConllLoader {
     }
 
     CoopDoc document = new CoopDoc();
+    document.setName(name);
     for (List<Integer> kv : ListFns.sliding(sentenceBreaks, 2)) {
       int begin = kv.get(0);
       int end = kv.get(1);
@@ -178,13 +179,13 @@ public class ConllLoader {
           for (String line : iter) {
             if (line.startsWith("-DOCSTART-")) {
               System.out.println(interestingChild+" "+i++);
-              makeDocument(withinDocument, writer);
+              makeDocument(interestingChild, withinDocument, writer);
               withinDocument.clear();
               continue;
             }
             withinDocument.add(line.trim());
           }
-          makeDocument(withinDocument, writer);
+          makeDocument(interestingChild, withinDocument, writer);
         }
       }
     }

@@ -123,7 +123,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
         List<String> entries = ListFns.slice(kv.getValue(), begin, end);
         for (int i = 0; i < entries.size(); i++) {
           if(output.size() <= i) {
-            output.add(new CoopToken(this.name, i));
+            output.add(new CoopToken(this.name, begin+i));
           }
           CoopToken it = output.get(i);
           it.terms.put(kv.getKey(), entries.get(i));
