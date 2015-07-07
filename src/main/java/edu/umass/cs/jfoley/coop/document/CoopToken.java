@@ -20,22 +20,23 @@ public class CoopToken implements Comparable<CoopToken> {
   @TaggedFieldSerializer.Tag(2)
   int sentence;
   @TaggedFieldSerializer.Tag(3)
-  String document;
+  int document;
   @TaggedFieldSerializer.Tag(4)
   Map<String,String> terms;
   @TaggedFieldSerializer.Tag(5)
   Set<String> indicators;
-  // TODO? Set<String> enclosingTags;
+  //@TaggedFieldSerializer.Tag(6)
+  //Set<String> enclosingTags;
 
   public CoopToken() {
-    document = null;
+    document = -1;
     sentence = -1;
     index = -1;
     terms = new HashMap<>();
     indicators = new HashSet<>();
   }
 
-  public CoopToken(String document, int index) {
+  public CoopToken(int document, int index) {
     this();
     this.document = document;
     this.index = index;
@@ -58,9 +59,7 @@ public class CoopToken implements Comparable<CoopToken> {
 
   public Parameters toJSON() {
     Parameters p = Parameters.create();
-    if(document != null) {
-      p.put("document", document);
-    }
+    p.put("documentId", document);
     p.put("sentenceId", sentence);
     p.put("tokenId", index);
     p.put("terms", Parameters.wrap(terms));

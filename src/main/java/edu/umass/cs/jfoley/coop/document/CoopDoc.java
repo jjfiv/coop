@@ -84,6 +84,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
   }
 
   public List<CoopToken> tokens() {
+    assert(identifier >= 0);
     int expectedSize = MapFns.firstValue(terms, Collections.emptyList()).size();
 
     List<CoopToken> output = new ArrayList<>(expectedSize);
@@ -91,7 +92,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
       List<String> entries = kv.getValue();
       for (int i = 0; i < entries.size(); i++) {
         if(output.size() <= i) {
-          output.add(new CoopToken(this.name, i));
+          output.add(new CoopToken(identifier, i));
         }
         CoopToken it = output.get(i);
         it.terms.put(kv.getKey(), entries.get(i));
@@ -109,6 +110,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
   }
 
   public List<List<CoopToken>> getSentences() {
+    assert(identifier >= 0);
     SpanList sentences = tags.get("sentence");
 
     List<List<CoopToken>> outSentences = new ArrayList<>();
@@ -123,7 +125,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
         List<String> entries = ListFns.slice(kv.getValue(), begin, end);
         for (int i = 0; i < entries.size(); i++) {
           if(output.size() <= i) {
-            output.add(new CoopToken(this.name, begin+i));
+            output.add(new CoopToken(identifier, begin+i));
           }
           CoopToken it = output.get(i);
           it.terms.put(kv.getKey(), entries.get(i));

@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.conll;
 
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
+import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
@@ -11,6 +12,7 @@ import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.streaming.StreamingPostingBuilder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
+import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.CoopToken;
 import edu.umass.cs.jfoley.coop.index.general.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
@@ -27,6 +29,7 @@ import java.util.Map;
  */
 public class TermBasedIndexWriter implements Closeable {
   public final Directory output;
+  private int documentIndex;
   private int sentenceIndex;
   private int tokenIndex;
 
@@ -34,12 +37,14 @@ public class TermBasedIndexWriter implements Closeable {
   final IOMapWriter<Integer, Integer> tokenToSentence;
   final IOMapWriter<Integer, List<CoopToken>> sentenceCorpus;
   final IOMapWriter<Integer, CoopToken> tokenCorpus;
+  final IdMaps.Writer<String> documentNames;
   /**
    * Inverted index for features
    */
   final DocumentSetWriter<String> featureIndex;
   final DocumentSetWriter<NamespacedLabel> tokensByTerms;
   final StreamingPostingBuilder<NamespacedLabel, Integer> sentencesByTerms;
+  final StreamingPostingBuilder<NamespacedLabel, Integer> documentsByTerms;
 
   public TermBasedIndexWriter(Directory output) throws IOException {
     this.output = output;
@@ -79,9 +84,15 @@ public class TermBasedIndexWriter implements Closeable {
         NamespacedLabel.coder, VarUInt.instance,
         GalagoIO.getRawIOMapWriter(output.childPath("sentencesByTerms"))
     );
+    documentsByTerms = new StreamingPostingBuilder<>(
+        NamespacedLabel.coder, VarUInt.instance,
+        GalagoIO.getRawIOMapWriter(output.childPath("documentsByTerms"))
+    );
+
+    documentNames = GalagoIO.openIdMapsWriter("docnames", VarUInt.instance, CharsetCoders.utf8);
   }
 
-  public void addSentence(List<CoopToken> sentence) throws IOException {
+  private void addSentence(List<CoopToken> sentence, TObjectIntHashMap<NamespacedLabel> docfreqs) throws IOException {
 
     List<CoopToken> tokens = new ArrayList<>();
 
@@ -109,11 +120,27 @@ public class TermBasedIndexWriter implements Closeable {
 
     ttf.forEachEntry((k, count) -> {
       sentencesByTerms.add(k, sentenceId, count);
+      docfreqs.adjustOrPutValue(k, count, count);
       return true;
     });
 
     sentenceToTokens.put(sentenceId, tokenIds);
     sentenceCorpus.put(sentenceId, tokens);
+  }
+
+  public void addDocument(CoopDoc doc) throws IOException {
+    int docId = documentIndex++;
+    doc.setIdentifier(docId);
+    documentNames.put(docId, doc.getName());
+    TObjectIntHashMap<NamespacedLabel> docfreqs = new TObjectIntHashMap<>();
+    for (List<CoopToken> coopTokens : doc.getSentences()) {
+      addSentence(coopTokens, docfreqs);
+    }
+
+    docfreqs.forEachEntry((k, count) -> {
+      documentsByTerms.add(k, docId, count);
+      return true;
+    });
   }
 
   @Override
@@ -125,5 +152,7 @@ public class TermBasedIndexWriter implements Closeable {
     featureIndex.close();
     tokensByTerms.close();
     sentencesByTerms.close();
+    documentsByTerms.close();
+    documentNames.close();
   }
 }
