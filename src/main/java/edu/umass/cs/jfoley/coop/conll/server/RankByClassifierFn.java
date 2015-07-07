@@ -8,11 +8,11 @@ import ciir.jfoley.chai.collections.util.Comparing;
 import edu.umass.cs.ciir.waltz.dociter.movement.AnyOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.IdSetMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
-import edu.umass.cs.jfoley.coop.conll.SentenceIndexedToken;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
 import edu.umass.cs.jfoley.coop.conll.classifier.ClassifiedToken;
 import edu.umass.cs.jfoley.coop.conll.classifier.Classifier;
 import edu.umass.cs.jfoley.coop.conll.classifier.SparseBooleanFeatures;
+import edu.umass.cs.jfoley.coop.document.CoopToken;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class RankByClassifierFn extends IndexServerFn {
       tokensById.put(ctoken.getTokenId(), ctoken);
     }
 
-    for (Pair<Integer, SentenceIndexedToken> kv : index.tokenCorpus.getInBulk(resultIds)) {
+    for (Pair<Integer, CoopToken> kv : index.tokenCorpus.getInBulk(resultIds)) {
       tokensById.get(kv.getKey()).token = kv.getValue();
     }
 

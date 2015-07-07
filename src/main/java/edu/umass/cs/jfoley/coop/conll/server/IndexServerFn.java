@@ -1,7 +1,7 @@
 package edu.umass.cs.jfoley.coop.conll.server;
 
-import edu.umass.cs.jfoley.coop.conll.SentenceIndexedToken;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
+import edu.umass.cs.jfoley.coop.document.CoopToken;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
@@ -21,9 +21,9 @@ public abstract class IndexServerFn implements ServerFn {
   public List<List<Parameters>> pullSentenceJSON(List<Integer> ids) throws IOException {
     List<List<Parameters>> sentences = new ArrayList<>();
 
-    for (List<SentenceIndexedToken> sentence : index.pullSentences(ids)) {
+    for (List<CoopToken> sentence : index.pullSentences(ids)) {
       List<Parameters> tokens = new ArrayList<>();
-      for (SentenceIndexedToken stoken : sentence) {
+      for (CoopToken stoken : sentence) {
         tokens.add(stoken.toJSON());
       }
       sentences.add(tokens);

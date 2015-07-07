@@ -10,10 +10,10 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import edu.umass.cs.ciir.waltz.dbindex.DBConfig;
 import edu.umass.cs.ciir.waltz.dbindex.SQLIterable;
-import edu.umass.cs.jfoley.coop.conll.SentenceIndexedToken;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
 import edu.umass.cs.jfoley.coop.conll.classifier.labeldb.LabelInfo;
 import edu.umass.cs.jfoley.coop.conll.classifier.labeldb.LabelJudgment;
+import edu.umass.cs.jfoley.coop.document.CoopToken;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
@@ -130,8 +130,8 @@ public class ClassifierSystem implements Closeable {
     }
 
     List<ClassifiedToken> ctokens = new ArrayList<>();
-    for (Pair<SentenceIndexedToken, FeatureVector> kv : index.TokenFeatures(tokens)) {
-      SentenceIndexedToken tok = kv.getKey();
+    for (Pair<CoopToken, FeatureVector> kv : index.TokenFeatures(tokens)) {
+      CoopToken tok = kv.getKey();
       FeatureVector fv = kv.getValue();
       boolean pred = classifier.predict(fv);
       double score = classifier.rank(fv);

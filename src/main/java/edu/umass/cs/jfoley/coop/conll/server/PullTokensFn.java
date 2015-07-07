@@ -3,8 +3,8 @@ package edu.umass.cs.jfoley.coop.conll.server;
 import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
-import edu.umass.cs.jfoley.coop.conll.SentenceIndexedToken;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
+import edu.umass.cs.jfoley.coop.document.CoopToken;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ public class PullTokensFn extends IndexServerFn {
     }
 
     List<Parameters> tokens = new ArrayList<>();
-    for (Pair<Integer, SentenceIndexedToken> kv : index.tokenCorpus.getInBulk(request)) {
+    for (Pair<Integer, CoopToken> kv : index.tokenCorpus.getInBulk(request)) {
       tokens.add(kv.getValue().toJSON());
     }
 

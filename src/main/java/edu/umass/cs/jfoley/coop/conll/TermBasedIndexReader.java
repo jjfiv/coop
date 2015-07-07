@@ -20,6 +20,7 @@ import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.conll.classifier.ClassifierSystem;
 import edu.umass.cs.jfoley.coop.conll.classifier.FeatureVector;
 import edu.umass.cs.jfoley.coop.conll.classifier.SparseBooleanFeatures;
+import edu.umass.cs.jfoley.coop.document.CoopToken;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
 import java.io.Closeable;
@@ -35,8 +36,8 @@ public class TermBasedIndexReader implements Closeable {
   public final Directory input;
   public final IOMap<Integer, List<Integer>> sentenceToTokens;
   public final IOMap<Integer, Integer> tokenToSentence;
-  public final IOMap<Integer, List<SentenceIndexedToken>> sentenceCorpus;
-  public final IOMap<Integer, SentenceIndexedToken> tokenCorpus;
+  public final IOMap<Integer, List<CoopToken>> sentenceCorpus;
+  public final IOMap<Integer, CoopToken> tokenCorpus;
   /**
    * Inverted index for features
    */
@@ -57,7 +58,7 @@ public class TermBasedIndexReader implements Closeable {
         VarUInt.instance, VarUInt.instance,
         input.childPath("tokenToSentence")
     );
-    Coder<SentenceIndexedToken> tokenCoder = new KryoCoder<>(SentenceIndexedToken.class);
+    Coder<CoopToken> tokenCoder = new KryoCoder<>(CoopToken.class);
     sentenceCorpus = GalagoIO.openIOMap(
         VarUInt.instance, new ListCoder<>(tokenCoder),
         input.childPath("sentenceCorpus")
@@ -112,11 +113,11 @@ public class TermBasedIndexReader implements Closeable {
     List<String> relevantFeatures = classifiers.featuresAboveThreshold;
 
     for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
-      for (Pair<Integer, SentenceIndexedToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
+      for (Pair<Integer, CoopToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
         String label = kv.getValue().getTerms().get(tokenSet);
 
-        IntList features = new IntList(kv.getValue().indicators.size());
-        for (String indicator : kv.getValue().indicators) {
+        IntList features = new IntList(kv.getValue().getIndicators().size());
+        for (String indicator : kv.getValue().getIndicators()) {
           int pos = Collections.binarySearch(relevantFeatures, indicator);
           if(pos < 0) continue;
           features.add(pos);
@@ -129,14 +130,14 @@ public class TermBasedIndexReader implements Closeable {
   }
 
 
-  public List<Pair<SentenceIndexedToken, FeatureVector>> TokenFeatures(List<Integer> tokenIds) throws IOException {
-    List<Pair<SentenceIndexedToken, FeatureVector>> posF = new ArrayList<>(tokenIds.size());
+  public List<Pair<CoopToken, FeatureVector>> TokenFeatures(List<Integer> tokenIds) throws IOException {
+    List<Pair<CoopToken, FeatureVector>> posF = new ArrayList<>(tokenIds.size());
     List<String> relevantFeatures = classifiers.featuresAboveThreshold;
 
     for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
-      for (Pair<Integer, SentenceIndexedToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
-        IntList features = new IntList(kv.getValue().indicators.size());
-        for (String indicator : kv.getValue().indicators) {
+      for (Pair<Integer, CoopToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
+        IntList features = new IntList(kv.getValue().getIndicators().size());
+        for (String indicator : kv.getValue().getIndicators()) {
           int pos = Collections.binarySearch(relevantFeatures, indicator);
           if(pos < 0) continue;
           features.add(pos);
@@ -153,9 +154,9 @@ public class TermBasedIndexReader implements Closeable {
     List<String> relevantFeatures = classifiers.featuresAboveThreshold;
 
     for (List<Integer> tokenBatch : IterableFns.batches(tokenIds, 1000)) {
-      for (Pair<Integer, SentenceIndexedToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
-        IntList features = new IntList(kv.getValue().indicators.size());
-        for (String indicator : kv.getValue().indicators) {
+      for (Pair<Integer, CoopToken> kv : tokenCorpus.getInBulk(tokenBatch)) {
+        IntList features = new IntList(kv.getValue().getIndicators().size());
+        for (String indicator : kv.getValue().getIndicators()) {
           int pos = Collections.binarySearch(relevantFeatures, indicator);
           if(pos < 0) continue;
           features.add(pos);
@@ -179,9 +180,9 @@ public class TermBasedIndexReader implements Closeable {
     classifiers.close();
   }
 
-  public List<List<SentenceIndexedToken>> pullSentences(List<Integer> ids) throws IOException {
-    ArrayList<List<SentenceIndexedToken>> data = new ArrayList<>();
-    for (Pair<Integer, List<SentenceIndexedToken>> kv : sentenceCorpus.getInBulk(ids)) {
+  public List<List<CoopToken>> pullSentences(List<Integer> ids) throws IOException {
+    ArrayList<List<CoopToken>> data = new ArrayList<>();
+    for (Pair<Integer, List<CoopToken>> kv : sentenceCorpus.getInBulk(ids)) {
       data.add(kv.getValue());
     }
     return data;

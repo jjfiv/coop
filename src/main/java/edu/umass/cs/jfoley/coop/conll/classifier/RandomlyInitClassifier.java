@@ -8,8 +8,8 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.random.Sample;
-import edu.umass.cs.jfoley.coop.conll.SentenceIndexedToken;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
+import edu.umass.cs.jfoley.coop.document.CoopToken;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -67,15 +67,15 @@ public class RandomlyInitClassifier  {
 
           while(positive.size() < count) {
             List<Integer> sentenceIds = Sample.randomIntegers(rand, 200, index.getSentenceCount());
-            for (List<SentenceIndexedToken> tokens : index.pullSentences(sentenceIds)) {
-              for (SentenceIndexedToken token : tokens) {
+            for (List<CoopToken> tokens : index.pullSentences(sentenceIds)) {
+              for (CoopToken token : tokens) {
                 Map<String, String> terms = token.getTerms();
                 String ner = terms.get("true_ner");
-                labels.add(new LabeledToken(time, token.tokenId, ner.equals(kind)));
+                labels.add(new LabeledToken(time, token.id(), ner.equals(kind)));
                 if (ner.equals(kind)) {
-                  positive.add(token.tokenId);
+                  positive.add(token.id());
                 } else if(negative.size() < count*4) {
-                  negative.add(token.tokenId);
+                  negative.add(token.id());
                 }
                 if(positive.size() == count) break;
               }

@@ -32,8 +32,8 @@ public class TermBasedIndexWriter implements Closeable {
 
   final IOMapWriter<Integer, List<Integer>> sentenceToTokens;
   final IOMapWriter<Integer, Integer> tokenToSentence;
-  final IOMapWriter<Integer, List<SentenceIndexedToken>> sentenceCorpus;
-  final IOMapWriter<Integer, SentenceIndexedToken> tokenCorpus;
+  final IOMapWriter<Integer, List<CoopToken>> sentenceCorpus;
+  final IOMapWriter<Integer, CoopToken> tokenCorpus;
   /**
    * Inverted index for features
    */
@@ -54,7 +54,7 @@ public class TermBasedIndexWriter implements Closeable {
         VarUInt.instance, VarUInt.instance,
         output.childPath("tokenToSentence")
     );
-    Coder<SentenceIndexedToken> tokenCoder = new KryoCoder<>(SentenceIndexedToken.class);
+    Coder<CoopToken> tokenCoder = new KryoCoder<>(CoopToken.class);
     sentenceCorpus = GalagoIO.getIOMapWriter(
         VarUInt.instance, new ListCoder<>(tokenCoder),
         output.childPath("sentenceCorpus")
@@ -83,16 +83,13 @@ public class TermBasedIndexWriter implements Closeable {
 
   public void addSentence(List<CoopToken> sentence) throws IOException {
 
-    List<SentenceIndexedToken> tokens = new ArrayList<>();
+    List<CoopToken> tokens = new ArrayList<>();
 
     int sentenceId = sentenceIndex++;
     IntList tokenIds = new IntList();
     TObjectIntHashMap<NamespacedLabel> ttf = new TObjectIntHashMap<>();
-    for (CoopToken coopToken : sentence) {
+    for (CoopToken token : sentence) {
       int tokenId = tokenIndex++;
-      SentenceIndexedToken token = new SentenceIndexedToken(sentenceId, tokenId);
-      token.indicators = coopToken.getIndicators();
-      token.terms = coopToken.getTerms();
 
       tokens.add(token);
       tokenIds.add(tokenId);
@@ -107,7 +104,7 @@ public class TermBasedIndexWriter implements Closeable {
         ttf.adjustOrPutValue(termTypeAndTerm, 1, 1);
       }
 
-      tokenToSentence.put(tokenId, sentenceIndex);
+      tokenToSentence.put(tokenId, sentenceId);
     }
 
     ttf.forEachEntry((k, count) -> {

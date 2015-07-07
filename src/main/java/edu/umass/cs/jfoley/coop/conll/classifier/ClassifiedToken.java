@@ -1,6 +1,6 @@
 package edu.umass.cs.jfoley.coop.conll.classifier;
 
-import edu.umass.cs.jfoley.coop.conll.SentenceIndexedToken;
+import edu.umass.cs.jfoley.coop.document.CoopToken;
 import org.lemurproject.galago.utility.lists.Scored;
 
 /**
@@ -9,16 +9,16 @@ import org.lemurproject.galago.utility.lists.Scored;
 public class ClassifiedToken extends Scored {
   public int classifierId; // name of the classifier
   public boolean positive; // threshold-applied score
-  public SentenceIndexedToken token; // token-instance.
+  public CoopToken token; // token-instance.
   public int tokenId; // token id
 
-  public ClassifiedToken(int classifierId, boolean positive, double score, SentenceIndexedToken token) {
+  public ClassifiedToken(int classifierId, boolean positive, double score, CoopToken token) {
     super(score);
     this.classifierId = classifierId;
     this.positive = positive;
     this.score = score;
     this.token = token;
-    this.tokenId = token.tokenId;
+    this.tokenId = token.id();
   }
 
   public int getTokenId() {

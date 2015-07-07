@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.document;
 
 import ciir.jfoley.chai.collections.chained.ChaiIterable;
+import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.fn.GenerateFn;
 import com.esotericsoftware.kryo.DefaultSerializer;
@@ -90,7 +91,7 @@ public class CoopDoc implements Comparable<CoopDoc> {
       List<String> entries = kv.getValue();
       for (int i = 0; i < entries.size(); i++) {
         if(output.size() <= i) {
-          output.add(new CoopToken(this.identifier, i));
+          output.add(new CoopToken(this.name, i));
         }
         CoopToken it = output.get(i);
         it.terms.put(kv.getKey(), entries.get(i));
@@ -105,6 +106,41 @@ public class CoopDoc implements Comparable<CoopDoc> {
     }
 
     return output;
+  }
+
+  public List<List<CoopToken>> getSentences() {
+    SpanList sentences = tags.get("sentence");
+
+    List<List<CoopToken>> outSentences = new ArrayList<>();
+    for (Span sentence : sentences) {
+      int begin = sentence.begin;
+      int end = sentence.end;
+      assert(end > begin);
+
+      List<CoopToken> output = new ArrayList<>();
+
+      for (Map.Entry<String, List<String>> kv : terms.entrySet()) {
+        List<String> entries = ListFns.slice(kv.getValue(), begin, end);
+        for (int i = 0; i < entries.size(); i++) {
+          if(output.size() <= i) {
+            output.add(new CoopToken(this.name, i));
+          }
+          CoopToken it = output.get(i);
+          it.terms.put(kv.getKey(), entries.get(i));
+        }
+      }
+      List<Set<String>> features = ListFns.slice(termLevelIndicators, begin, end);
+      for (int i = 0; i < output.size(); i++) {
+        if(i < features.size()) {
+          output.get(i).indicators = features.get(i);
+        } else {
+          output.get(i).indicators = Collections.singleton("NO-FEATURES-ERR");
+        }
+      }
+
+      outSentences.add(output);
+    }
+    return outSentences;
   }
 
   public String getName() { return name; }
