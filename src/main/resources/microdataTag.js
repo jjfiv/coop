@@ -25,13 +25,13 @@ var TagView = React.createClass({
     render() {
         var tag = this.props.tag;
         if(!tag) {
-            return <div className={"error"}>Error</div>;
+           return <span className={"error"}>Error</span>;
         }
         var mtag = parseMicrodataTag(tag);
         if(mtag) {
             return <MicrodataTagView data={mtag} />;
         }
-        return <div>{tag}</div>;
+        return <span>{tag}</span>;
     }
 });
 
@@ -41,9 +41,9 @@ var MicrodataTagView = React.createClass({
         var cat = <a href={"http://schema.org/"+data.category}>{data.category}</a>;
         var attr = <a href={"http://schema.org/"+data.attribute}>{data.attribute}</a>;
         if(data.attribute) {
-            return <div>{[cat, <span>{" / "}</span>, attr]}</div>;
+            return <span>{[cat, <span>{" / "}</span>, attr]}</span>;
         } else {
-            return <div>{cat}</div>;
+            return <span>{cat}</span>;
         }
     }
 });
@@ -51,7 +51,8 @@ var MicrodataTagView = React.createClass({
 var TagsAvailable = React.createClass({
     getInitialState() {
         return {
-            tags: null
+            tags: null,
+            filter: '',
         }
     },
     componentDidMount() {
@@ -64,20 +65,40 @@ var TagsAvailable = React.createClass({
     onListTags(tags) {
         this.setState({tags: tags});
     },
+    handleChange(evt) {
+        this.setState({filter: evt.target.value.toLowerCase()});
+    },
     render() {
         if(this.state.tags == null) {
             return <span>Loading...</span>;
         } else {
             var items = [];
 
-            items.push(<input type="text" />);
-            items.push(<div>{
-                _(this.state.tags).map(function(tag) {
-                    return <TagView tag={tag} />;
-                }, this).value()
-            }</div>);
+            var lf = this.state.filter;
 
-            return <div>{items}</div>;
+            var matchCount = 0;
+            var total = _.size(this.state.tags);
+
+            var tags = _(this.state.tags).map(function(tag) {
+                var matching = _.isEmpty(lf) || _.contains(tag.toLowerCase(),lf);
+                var style = matching ? "normal" : "none";
+                if(matching) {
+                    matchCount += 1;
+                }
+                return <div key={tag} className={style}><TagView
+                    tag={tag} /></div>;
+            }, this).value();
+
+            var filterItems = [];
+            filterItems.push(<input key={"input"} type="text" onChange={this.handleChange} value={this.state.filter} placeholder={"Filter Tags"} title={"Filter Tags"} />);
+            if(matchCount != total) {
+                filterItems.push(<span className={"info"}>{" Displaying "+matchCount+" out of "+total+" tags."}</span>)
+            }
+            items.push(<div>{filterItems}</div>);
+            items.push(<div className={"content"}>{tags}</div>);
+
+
+            return <div className={"content"}>{items}</div>;
         }
     }
 });

@@ -196,3 +196,10 @@ div.classifierInfo {
     background-color: #f99;
 }
 
+.content {
+    margin: 5pt;
+}
+
+.info {
+    color: #666;
+}
