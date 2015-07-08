@@ -1,5 +1,5 @@
 var SentenceView = React.createClass({
-    render: function() {
+    render() {
         var terms = _.map(this.props.tokens, function(term, term_idx) {
             return <LabelingToken
                 key={term_idx} token={term} />
@@ -15,7 +15,7 @@ var SentenceView = React.createClass({
 
 /** This starts off with the sentence that is the current hit, but it may request more sentences on either side: */
 var ResultView = React.createClass({
-    getInitialState: function () {
+    getInitialState () {
         EVENTS.register('onPulledSentence', this.onPulledSentence);
         return {
             requestedSentences: [],
@@ -23,16 +23,16 @@ var ResultView = React.createClass({
             didNotHaveNext: false
         }
     },
-    onPulledSentence: function (tokens) {
+    onPulledSentence (tokens) {
         var sentenceId = tokens[0].sentenceId;
     },
-    loadPrevious: function() {
+    loadPrevious() {
 
     },
-    loadNext: function() {
+    loadNext() {
 
     },
-    render: function () {
+    render () {
         var items = [];
 
         var docId = this.state.sentences[0][0].documentId;
@@ -59,14 +59,14 @@ var DocumentView = React.createClass({
         // how many to load after
         after: React.PropTypes.number
     },
-    getDefaultProps: function() {
+    getDefaultProps() {
         return {
             before: 2,
             after: 2,
             step: 1
         };
     },
-    getInitialState: function() {
+    getInitialState() {
         EVENTS.register('pullSentencesResponse', this.onLoadedSentences);
         return {
             loaded: [],
@@ -76,13 +76,13 @@ var DocumentView = React.createClass({
             sentences: []
         };
     },
-    getWanted: function() {
+    getWanted() {
         return _.range(this.state.minId, this.state.maxId+1);
     },
-    getMissing: function() {
+    getMissing() {
         return _.difference(this.getWanted(), this.state.loaded);
     },
-    onLoadedSentences: function(sentences) {
+    onLoadedSentences(sentences) {
         var missing = this.getMissing();
         var kept = [];
         var newLoaded = [];
@@ -107,25 +107,25 @@ var DocumentView = React.createClass({
             sentences: mergedSentences
         })
     },
-    pullMissingSentences: function() {
+    pullMissingSentences() {
         var missing = this.getMissing();
         if(_.isEmpty(missing)) return;
         this.setState({waiting: true});
         EVENTS.signal('pullSentences', missing);
     },
-    componentWillMount: function() {
+    componentWillMount() {
         this.pullMissingSentences();
     },
-    loadBefore: function() {
+    loadBefore() {
         this.setState(
             {minId: _.max([0, this.state.minId - this.props.step])},
             this.pullMissingSentences);
     },
-    loadAfter: function() {
+    loadAfter() {
         this.setState({maxId: this.state.maxId + this.props.step},
             this.pullMissingSentences);
     },
-    render: function() {
+    render() {
         var loaded = this.state.loaded;
         var wanted = this.getWanted();
 
@@ -143,7 +143,7 @@ var DocumentView = React.createClass({
 });
 
 var SearchResults = React.createClass({
-    render: function() {
+    render() {
         var items = _.map(this.props.results, function(item, result_idx) {
             return <ResultView key={result_idx} tokens={item} />
             //return <SentenceView key={result_idx} tokens={item} />;

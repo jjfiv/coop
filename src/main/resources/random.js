@@ -1,18 +1,18 @@
 var RandomSentences = React.createClass({
-    getInitialState: function() {
+    getInitialState() {
         return {
             requestCount: this.props.requestCount || 5,
             response: {},
             selected: null
         };
     },
-    refreshData: function() {
+    refreshData() {
         this.refs.ajax.sendNewRequest({
             count: this.state.requestCount
         });
         this.selected = null;
     },
-    handleSignal: function(what, props) {
+    handleSignal(what, props) {
         if(what === 'clicked_token') {
             if (!this.state.selected || this.state.selected.tokenId !== props.tokenId) {
                 this.setState({selected: props});
@@ -21,14 +21,14 @@ var RandomSentences = React.createClass({
             }
         }
     },
-    onResults: function(data) {
+    onResults(data) {
         this.setState({response: data});
     },
-    componentDidMount: function() {
+    componentDidMount() {
         EVENT_BUS.register('clicked_token', this);
         this.refreshData();
     },
-    render: function() {
+    render() {
         var components = [
             <AjaxRequest ref={"ajax"} url={"/api/randomSentences"} onNewResponse={this.onResults}  />
         ];

@@ -1,19 +1,19 @@
 var LabelRandomSentence = React.createClass({
-    getInitialState: function() {
+    getInitialState() {
         return {
             started: false,
             actionStarted: false,
             sentence: null
         }
     },
-    beginLabeling: function() {
+    beginLabeling() {
         this.setState({started: true});
         this.refs.randomSentence.sendNewRequest({count: 1});
     },
-    onSentence: function(sdata) {
+    onSentence(sdata) {
         this.setState({sentence: sdata.sentences[0]});
     },
-    labelSentenceNegative: function() {
+    labelSentenceNegative() {
         var events = _(this.state.sentence).map(function(token) {
             return {positive: false, time: (new Date()).getTime(), tokenId: token.tokenId };
         }).value();
@@ -29,16 +29,16 @@ var LabelRandomSentence = React.createClass({
             throw new Error("AG!");
         })
     },
-    finishPostingData: function() {
+    finishPostingData() {
         this.props.refresh();
         this.setState({sentence: null, actionStarted: false});
         this.refs.randomSentence.sendNewRequest({count: 1});
     },
-    skipSentence: function() {
+    skipSentence() {
         this.setState({sentence: null, actionStarted: false});
         this.refs.randomSentence.sendNewRequest({count: 1});
     },
-    render: function() {
+    render() {
         var items = [];
 
         items.push(<AjaxRequest quiet={true} ref={"randomSentence"} url={"/api/randomSentences"} onNewResponse={this.onSentence} />);
@@ -66,7 +66,7 @@ var LabelingWidget = React.createClass({
         tokens: React.PropTypes.array.isRequired,
         name: React.PropTypes.string.isRequired
     },
-    getInitialState: function() {
+    getInitialState() {
         return {
             startDragToken: null,
             hoverToken: null,
@@ -74,10 +74,10 @@ var LabelingWidget = React.createClass({
             positiveLabels: [],
         }
     },
-    mouseDown: function() {
+    mouseDown() {
         return startDragToken != null;
     },
-    handleMouse: function(tok, what, evt) {
+    handleMouse(tok, what, evt) {
         if(what === 'down') {
             this.setState({
                 startDragToken: tok.tokenId,
@@ -103,7 +103,7 @@ var LabelingWidget = React.createClass({
             console.log(what + " " + tok.tokenId);
         }
     },
-    selectedTokens: function() {
+    selectedTokens() {
         if(!this.state.startDragToken) {
             return [];
         }
@@ -113,21 +113,21 @@ var LabelingWidget = React.createClass({
         var pts = _.sortBy([start, end]); // they might select backwards
         return _.range(pts[0], pts[1]+1);
     },
-    labelPositive: function() {
+    labelPositive() {
         this.setState({positiveLabels: _.union(this.state.positiveLabels, this.selectedTokens())});
         this.deselect();
     },
-    deselect: function() {
+    deselect() {
         this.setState({
             startDragToken: null,
             hoverToken: null,
             endDragToken: null
         });
     },
-    clearPositive: function() {
+    clearPositive() {
         this.setState({positiveLabels: []});
     },
-    submitLabels: function() {
+    submitLabels() {
         var negative = _.difference(this.getAllIds(), this.state.positiveLabels);
         var time = (new Date()).getTime();
         console.log({
@@ -145,13 +145,13 @@ var LabelingWidget = React.createClass({
         });
         this.setState({sending: true});
     },
-    updateSuccess: function() {
+    updateSuccess() {
         this.setState({sending: false});
     },
-    getAllIds: function() {
+    getAllIds() {
         return _(this.props.tokens).map(_.property("tokenId")).value();
     },
-    render: function() {
+    render() {
         var tokens = this.props.tokens;
 
         var tokenSet = this.selectedTokens();
@@ -191,26 +191,26 @@ var LabelingWidget = React.createClass({
 });
 
 var LabelingToken = React.createClass({
-    getDefaultProps: function() {
+    getDefaultProps() {
         return {
             highlightNER: false,
             active: false,
             positive: false,
             hover: false,
             nativeSelectable: true,
-            handleClick: function() { },
-            handleMouse: function() { }
+            handleClick() { },
+            handleMouse() { }
         }
     },
-    getToken: function() {
+    getToken() {
         return this.props.token;
     },
-    computeTermsString: function() {
+    computeTermsString() {
         return _(this.getToken().terms).map(function(v, k) {
             return k+"="+v;
         }).reject(_.isEmpty).join('; ')
     },
-    computeTitle: function() {
+    computeTitle() {
         var pieces = [];
         pieces.push(this.computeTermsString());
         var tags = this.tags();
@@ -219,25 +219,25 @@ var LabelingToken = React.createClass({
         }
         return strjoin(pieces);
     },
-    tags: function() {
+    tags() {
         var token = this.getToken();
         if(token.tags && !_.isEmpty(token.tags)) {
             return token.tags;
         }
         return [];
     },
-    hasTags: function() {
+    hasTags() {
         return !_.isEmpty(this.tags());
     },
-    getTerm: function() {
+    getTerm() {
         // grab CoNNL-specific "true_terms"
         var terms = this.getToken().terms;
         return terms.true_terms || terms.tokens;
     },
-    handleClick: function() {
+    handleClick() {
         this.props.handleClick(this.getToken());
     },
-    render: function() {
+    render() {
         var token = this.getToken();
         var classes = [];
         var ner = token.terms.true_ner;

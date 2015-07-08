@@ -49,13 +49,13 @@ function strjoin(strs) {
  * Usage: <Button visible={true,false} disabled={true,false} onClick={whatFn} label={text label} />
  */
 var Button = React.createClass({
-    getDefaultProps: function() {
+    getDefaultProps() {
         return {
             visible: true,
             disabled: false
         };
     },
-    render: function() {
+    render() {
         var classes = [];
         classes.push(this.props.visible ? "normal" : "hidden");
         return <input
@@ -76,17 +76,17 @@ var InternalLink = React.createClass({
         page: React.PropTypes.string.isRequired,
         args: React.PropTypes.object
     },
-    getInitialState: function() {
+    getInitialState() {
         return {
             args: _.merge({}, {p: this.props.page}, this.props.args)
         }
     },
-    handleClick: function(evt) {
+    handleClick(evt) {
         evt.preventDefault();
         evt.stopPropagation();
         EVENTS.signal('changeContent', this.state.args);
     },
-    render: function() {
+    render() {
         return <a
             className={strjoin(this.props.styles)}
             href={makeURLFromParams(this.state.args)}

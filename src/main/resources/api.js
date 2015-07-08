@@ -1,7 +1,7 @@
 // Classifiers
 var SingletonAPI = null;
 var API = React.createClass({
-    componentDidMount: function() {
+    componentDidMount() {
         console.assert(SingletonAPI == null);
         SingletonAPI = this;
         EVENTS.register('updateClassifier', this.sendUpdate);
@@ -13,16 +13,16 @@ var API = React.createClass({
         // test that signals work:
         EVENTS.signal('listClassifiers');
     },
-    sendUpdate: function(request) {
+    sendUpdate(request) {
         this.refs.update.sendNewRequest(request);
     },
-    onUpdate: function(data) {
+    onUpdate(data) {
         EVENTS.signal('classifier', data);
     },
-    sendList: function(request) {
+    sendList(request) {
         this.refs.list.sendNewRequest(request || {});
     },
-    onList: function(data) {
+    onList(data) {
         EVENTS.signal('classifiers', data.classifiers);
     },
     sendListTags() {
@@ -31,24 +31,24 @@ var API = React.createClass({
     onListTags(data) {
         EVENTS.signal('listTagsResponse', data.tags);
     },
-    sendSearchSentences: function(request) {
+    sendSearchSentences(request) {
         if(_.isEmpty(request.query.trim())) {
             // skip silly queries:
             return;
         }
         this.refs.search.sendNewRequest(request);
     },
-    onSearchSentences: function(response) {
+    onSearchSentences(response) {
         EVENTS.signal('searchSentencesResponse', response);
     },
-    sendPullSentences: function(request) {
+    sendPullSentences(request) {
         console.assert(_.isArray(request));
         this.refs.pullSentences.sendNewRequest({sentences: request});
     },
-    onPullSentences: function(response) {
+    onPullSentences(response) {
         EVENTS.signal('pullSentencesResponse', response.sentences);
     },
-    render: function() {
+    render() {
         var quiet = true;
         return <div>
             <AjaxRequest

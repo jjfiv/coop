@@ -1,11 +1,11 @@
 var SearchBox = React.createClass({
-    getInitialState: function() {
+    getInitialState() {
         return { query: "" };
     },
-    componentDidMount: function() {
+    componentDidMount() {
         EVENTS.register('changeQuery', this.changeQuery);
     },
-    handleKey: function(evt) {
+    handleKey(evt) {
         // submit:
         if(evt.which == 13) {
             var query = React.findDOMNode(this.refs.search).value.trim();
@@ -15,13 +15,13 @@ var SearchBox = React.createClass({
             EVENTS.signal("changeContent", { p: "search", query: query });
         }
     },
-    changeQuery: function(query) {
+    changeQuery(query) {
         this.setState({query: query});
     },
-    handleChange: function(evt) {
+    handleChange(evt) {
         this.changeQuery(evt.target.value);
     },
-    render: function () {
+    render () {
         return <input
             ref={"search"}
             className={"rightnav"}
@@ -37,7 +37,7 @@ var SearchBox = React.createClass({
 });
 
 var NavBar = React.createClass({
-    render: function() {
+    render() {
         console.log(this.props.links);
         var linkElems = _(this.props.links).map(function(link) {
             var href = link.url;

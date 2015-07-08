@@ -1,5 +1,5 @@
 var HomePage = React.createClass({
-    render: function() {
+    render() {
         return <div>
             <strong>LabelMaker</strong> is a tool that helps you explore and label interesting pieces of data in text collections.
             </div>;
@@ -7,16 +7,16 @@ var HomePage = React.createClass({
 });
 
 var KeyValueEditable = React.createClass({
-    getInitialState: function() {
+    getInitialState() {
         return {
             editing: this.props.editByDefault,
             showEditButton: false
         };
     },
-    startEditing: function() {
+    startEditing() {
         this.setState({editing: true});
     },
-    handleKey: function(evt) {
+    handleKey(evt) {
         if(evt.which == 13) {
             this.setState({editing: false});
 
@@ -29,13 +29,13 @@ var KeyValueEditable = React.createClass({
             this.props.onEditValue(this.props.propName, newValue);
         }
     },
-    onMouseOver: function() {
+    onMouseOver() {
         if(!this.state.editing) { this.setState({showEditButton: true}); }
     },
-    onMouseOut: function() {
+    onMouseOut() {
         if(!this.state.editing) { this.setState({showEditButton: false}); }
     },
-    render: function() {
+    render() {
         var valueElement = (!this.state.editing) ?
             <span>{(this.props.value || "NONE") +" "}<Button visible={this.state.showEditButton} onClick={this.startEditing} label={"Edit"} /></span> :
             <input ref={"newValue"} onKeyPress={this.handleKey} type={"text"} defaultValue={this.props.value || ""} />;
@@ -47,13 +47,13 @@ var KeyValueEditable = React.createClass({
 });
 
 var ClassifierInfo = React.createClass({
-    onEditValue: function(key, value) {
+    onEditValue(key, value) {
         var request = {};
         request.classifier = this.props.data.id;
         request[key] = value;
         EVENTS.signal('updateClassifier', request);
     },
-    render: function() {
+    render() {
         var data = this.props.data;
         var items = [];
         items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"name"} key={0} label={"Name"} value={data.name} />);
@@ -67,17 +67,17 @@ var ClassifierInfo = React.createClass({
 });
 
 var LabelsPage = React.createClass({
-    getInitialState: function() {
+    getInitialState() {
         return { classifiers: null }
     },
-    componentDidMount: function() {
+    componentDidMount() {
         EVENTS.register('classifiers', this.onGetClassifiers);
         EVENTS.register('classifier', this.onUpdateClassifiers);
     },
-    onGetClassifiers: function(data) {
+    onGetClassifiers(data) {
         this.setState({classifiers: data});
     },
-    onUpdateClassifiers: function(data) {
+    onUpdateClassifiers(data) {
         this.setState({
             classifiers: _(this.state.classifiers).map(function(old_info) {
                 if(old_info.id == data.id) { return data; }
@@ -85,7 +85,7 @@ var LabelsPage = React.createClass({
             })
         });
     },
-    render: function() {
+    render() {
         var items = _(this.state.classifiers || []).map(function(val) {
             return <ClassifierInfo key={val.id} data={val} />
         }, this).value();
@@ -102,23 +102,23 @@ var LabelsPage = React.createClass({
 });
 
 var SearchResultsPage = React.createClass({
-    getInitialState: function() {
+    getInitialState() {
         if(this.props.param.query) {
             EVENTS.async_signal('searchSentences', this.props.param);
         }
         return {waiting: false, response: null};
     },
-    componentDidMount: function() {
+    componentDidMount() {
         EVENTS.register("searchSentences", this.onStartSearch);
         EVENTS.register('searchSentencesResponse', this.onSentences);
     },
-    onStartSearch: function() {
+    onStartSearch() {
         this.setState({waiting: true});
     },
-    onSentences: function(response) {
+    onSentences(response) {
         this.setState({waiting: false, response: response});
     },
-    render: function() {
+    render() {
         if(this.state.response) {
             var response = this.state.response;
             return <div>
@@ -134,17 +134,17 @@ var SearchResultsPage = React.createClass({
 });
 
 var Content = React.createClass({
-    getInitialState: function() {
+    getInitialState() {
         return this.props.defaultContent;
     },
-    componentDidMount: function() {
+    componentDidMount() {
         History.Adapter.bind(window, 'statechange', function() {
             EVENTS.signal('changeContent', getURLParams());
         });
         EVENTS.register('changeContent', this.onChangeContent);
         EVENTS.signal('changeContent', this.props.defaultContent);
     },
-    onChangeContent: function(content) {
+    onChangeContent(content) {
         pushURLParams(content);
         if(!_.isUndefined(content.query)) {
             EVENTS.signal('changeQuery', content.query);
@@ -152,10 +152,10 @@ var Content = React.createClass({
         this.setState(content);
         EVENTS.signal('changePage', this.getPage());
     },
-    getPage: function() {
+    getPage() {
         return this.state.p || "home";
     },
-    render: function() {
+    render() {
         var page = this.getPage();
 
         var pages = {
