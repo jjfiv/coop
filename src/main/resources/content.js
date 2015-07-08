@@ -107,7 +107,7 @@ var RankByClassifierPage = React.createClass({
         this.setState({response: data});
     },
     onChangeClassifier(id) {
-        this.setState({classifierId: id, response: null})
+        this.setState({classifierId: id, response: null});
 
         EVENTS.signal('listClassifiers');
         EVENTS.signal('rankByClassifier', {
@@ -118,7 +118,7 @@ var RankByClassifierPage = React.createClass({
         });
     },
     componentWillReceiveProps(newProps) {
-        if(newProps.param.id) {
+        if(newProps.param.p == 'labelResults' && newProps.param.id) {
             var newId = parseInt(newProps.param.id);
             if(this.state.classifierId != newId) {
                 this.onChangeClassifier(newId);
@@ -149,7 +149,12 @@ var RankByClassifierPage = React.createClass({
         items.push(_(resp.results).map(function(x) {
             return x.token.sentenceId;
         }).unique().map(function(sid) {
-            return <div key={"s:"+sid}>{sid}</div>;
+            return <div key={"sl:"+sid}>
+                <InternalLink
+                    page="view" args={{id:sid}}
+                    label={"S#"+sid} />
+                <DocumentView key={"s:"+sid} id={sid} before={0} after={0} step={2} highlight={highlightAll} />;
+            </div>;
             //return <DocumentView key={"s:"+sid} id={sid} before={0} after={0} step={2} highlight={highlightAll} />;
         }).value());
 

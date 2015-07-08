@@ -6,11 +6,12 @@ var SentenceView = React.createClass({
         highlight: React.PropTypes.arrayOf(React.PropTypes.number)
     },
     render() {
+        var highlight_ids = this.props.highlight;
         var terms = _.map(this.props.tokens, function(term, term_idx) {
             var highlight = false;
-            if(this.props.highlight) {
+            if(highlight_ids) {
                 var id = term.id;
-                if(_.contains(this.props.highlight, id)) {
+                if(_.contains(highlight_ids, id)) {
                     highlight = true;
                 }
             }
@@ -19,7 +20,7 @@ var SentenceView = React.createClass({
                 token={term}
                 highlight={highlight}
                 />
-        });
+        }, this);
         var styles = ["sentenceView"];
         if(this.props.special) {
             styles.push("special");
@@ -148,7 +149,7 @@ var DocumentView = React.createClass({
 
         return <div>
             <Button disabled={this.state.waiting} label={"Load More Before"} onClick={this.loadBefore}/>
-            <div>{items}</div>;
+            <div>{items}</div>
             <Button disabled={this.state.waiting} label={"Load More After"} onClick={this.loadAfter}/>
         </div>;
     }

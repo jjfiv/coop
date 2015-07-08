@@ -18,7 +18,7 @@ public abstract class IndexServerFn implements ServerFn {
     this.index = index;
   }
 
-  public List<List<Parameters>> pullSentenceJSON(List<Integer> ids) throws IOException {
+  public synchronized List<List<Parameters>> pullSentenceJSON(List<Integer> ids) throws IOException {
     List<List<Parameters>> sentences = new ArrayList<>();
 
     for (List<CoopToken> sentence : index.pullSentences(ids)) {
