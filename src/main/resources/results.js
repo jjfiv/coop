@@ -26,12 +26,6 @@ var ResultView = React.createClass({
     onPulledSentence (tokens) {
         var sentenceId = tokens[0].sentenceId;
     },
-    loadPrevious() {
-
-    },
-    loadNext() {
-
-    },
     render () {
         var items = [];
 
@@ -138,7 +132,7 @@ var DocumentView = React.createClass({
             <Button disabled={this.state.waiting} label={"Load More Before"} onClick={this.loadBefore}/>
             <div>{items}</div>;
             <Button disabled={this.state.waiting} label={"Load More After"} onClick={this.loadAfter}/>
-            </div>
+        </div>;
     }
 });
 

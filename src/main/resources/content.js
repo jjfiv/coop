@@ -66,41 +66,6 @@ var ClassifierInfo = React.createClass({
     }
 });
 
-var LabelsPage = React.createClass({
-    getInitialState() {
-        return { classifiers: null }
-    },
-    componentDidMount() {
-        EVENTS.register('classifiers', this.onGetClassifiers);
-        EVENTS.register('classifier', this.onUpdateClassifiers);
-    },
-    onGetClassifiers(data) {
-        this.setState({classifiers: data});
-    },
-    onUpdateClassifiers(data) {
-        this.setState({
-            classifiers: _(this.state.classifiers).map(function(old_info) {
-                if(old_info.id == data.id) { return data; }
-                return old_info;
-            })
-        });
-    },
-    render() {
-        var items = _(this.state.classifiers || []).map(function(val) {
-            return <ClassifierInfo key={val.id} data={val} />
-        }, this).value();
-
-        if(_.size(items) == 0) {
-            items.push(<div key="notfound">No classifiers returned from server!</div>)
-        }
-
-        return <div>
-            <div className={"classifiers"}>{items}</div>
-        </div>
-
-    }
-});
-
 var SearchResultsPage = React.createClass({
     getInitialState() {
         if(this.props.param.query) {
