@@ -75,22 +75,16 @@ public class TermBasedIndexWriter implements Closeable {
         output.childPath("tokenCorpus")
     );
     featureIndex = new DocumentSetWriter<>(
-        GalagoIO.getIOMapWriter(
-            CharsetCoders.utf8, new DeltaIntListCoder(),
-            output.childPath("featureIndex")
-        )
+        CharsetCoders.utf8,
+        GalagoIO.getRawIOMapWriter(output.childPath("featureIndex"))
     );
     tokensByTerms = new DocumentSetWriter<>(
-        GalagoIO.getIOMapWriter(
-            NamespacedLabel.coder, new DeltaIntListCoder(),
-            output.childPath("tokensByTerms")
-        )
+        NamespacedLabel.coder,
+        GalagoIO.getRawIOMapWriter(output.childPath("tokensByTerms"))
     );
     tokensByTags = new DocumentSetWriter<>(
-        GalagoIO.getIOMapWriter(
-            CharsetCoders.utf8, new DeltaIntListCoder(),
-            output.childPath("tokensByTags")
-        )
+        CharsetCoders.utf8,
+        GalagoIO.getRawIOMapWriter(output.childPath("tokensByTags"))
     );
     sentencesByTerms = new StreamingPostingBuilder<>(
         NamespacedLabel.coder, VarUInt.instance,

@@ -1,14 +1,13 @@
 package edu.umass.cs.jfoley.coop.index.component;
 
 import ciir.jfoley.chai.io.Directory;
-import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.index.general.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
-import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
+import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
 import java.io.IOException;
@@ -22,10 +21,8 @@ public class DocumentLabelIndexWriter extends IndexItemWriter {
   public DocumentLabelIndexWriter(Directory outputDir, IndexConfiguration cfg) throws IOException {
     super(outputDir, cfg);
     this.writer = new DocumentSetWriter<>(
-        GalagoIO.getIOMapWriter(
         NamespacedLabel.coder,
-        new DeltaIntListCoder(),
-        outputDir.childPath("doclabels")
+        GalagoIO.getRawIOMapWriter(outputDir.childPath("doclabels")
     ));
   }
 

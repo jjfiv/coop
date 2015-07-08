@@ -2,7 +2,6 @@ package edu.umass.cs.jfoley.coop.index.covariate;
 
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.coders.Coder;
-import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
@@ -31,9 +30,8 @@ public class MapCovariateSpaceWriter<A, B> extends IndexItemWriter {
     Coder<A> xCoder = xSchema.getCoder().lengthSafe();
     Coder<B> yCoder = ySchema.getCoder().lengthSafe();
     this.writer = new DocumentSetWriter<>(
-        GalagoIO.getIOMapWriter(
-            new CovariableCoder<>(xCoder, yCoder),
-            new DeltaIntListCoder(),
+        new CovariableCoder<>(xCoder, yCoder),
+        GalagoIO.getRawIOMapWriter(
             outputDir.childPath("covar." + xSchema.getName() + "." + ySchema.getName()), // TODO, do variables need short-names?
             Parameters.parseArray(
                 "covarXSchema", xSchema.toJSON(),
