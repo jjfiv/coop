@@ -159,6 +159,11 @@ a:hover.nav {
   margin-left: auto;
 }
 
+hr {
+    width: 80%;
+    color: #ddd;
+}
+
 .button {
   display: inline-block;
   margin: 2pt;
@@ -202,4 +207,13 @@ div.classifierInfo {
 
 .info {
     color: #666;
+}
+
+.block {
+    display:block;
+}
+
+textarea {
+    width: 30em;
+    height: 10em;
 }

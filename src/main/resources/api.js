@@ -9,6 +9,7 @@ var API = React.createClass({
         EVENTS.register('searchSentences', this.sendSearchSentences);
         EVENTS.register('pullSentences', this.sendPullSentences);
         EVENTS.register('listTagsRequest', this.sendListTags);
+        EVENTS.register('createNewClassifier', this.sendCreateNewClassifier);
 
         // test that signals work:
         EVENTS.signal('listClassifiers');
@@ -24,6 +25,19 @@ var API = React.createClass({
     },
     onList(data) {
         EVENTS.signal('classifiers', data.classifiers);
+    },
+    sendCreateNewClassifier(data) {
+        if(data && data.name) {
+            this.refs['createNewClassifier'].sendNewRequest(data);
+        } else {
+            throw new Error(data);
+        }
+    },
+    onCreateNewClassifier(data) {
+        // push as a data update
+        EVENTS.signal('classifier', data);
+        // and as a complete
+        EVENTS.signal('createNewClassifierResponse', data);
     },
     sendListTags() {
         this.refs.listTags.sendNewRequest({});
@@ -57,6 +71,12 @@ var API = React.createClass({
                 pure={false}
                 onNewResponse={this.onListTags}
                 url={"/api/listTags"} />
+            <AjaxRequest
+                ref={"createNewClassifier"}
+                quiet={quiet}
+                pure={false}
+                onNewResponse={this.onCreateNewClassifier}
+                url={"/api/createNewClassifier"} />
             <AjaxRequest
                 ref={"list"}
                 quiet={quiet}

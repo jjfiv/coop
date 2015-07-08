@@ -291,6 +291,17 @@ var LabelsPage = React.createClass({
         this.setState({classifiers: data});
     },
     onUpdateClassifiers(data) {
+
+        var existing = _(this.state.classifiers).map(_.property("id")).value();
+        // it's new
+        if(!_.contains(existing, data.id)) {
+            var ncs = _.clone(this.state.classifiers);
+            ncs.push(data);
+            this.setState({ classifiers: ncs });
+            return;
+        }
+
+        // update an existing
         this.setState({
             classifiers: _(this.state.classifiers).map(function(old_info) {
                 if(old_info.id == data.id) { return data; }
@@ -306,6 +317,8 @@ var LabelsPage = React.createClass({
         if(_.size(items) == 0) {
             items.push(<div key="notfound">No classifiers returned from server!</div>)
         }
+        items.push(<hr key={"divider"} />);
+        items.push(<CreateNewClassifier key={"createNew"} />);
 
         return <div>
             <div className={"classifiers"}>{items}</div>
@@ -314,3 +327,53 @@ var LabelsPage = React.createClass({
     }
 });
 
+var CreateNewClassifier = React.createClass({
+    getInitialState() {
+        return {
+            name: "",
+            description: "",
+            submitting: false
+        }
+    },
+    componentDidMount() {
+        EVENTS.register('createNewClassifierResponse', this.resetState)
+    },
+    resetState() {
+        this.setState(this.getInitialState());
+    },
+    onChangeName(evt) {
+        this.setState({name: evt.target.value.substring(0,256)});
+    },
+    onChangeDescription(evt) {
+        this.setState({description: evt.target.value.substring(0,4096)});
+    },
+    onCreateNew() {
+        this.setState({submitting: true});
+        EVENTS.signal('createNewClassifier', {
+            name: this.state.name,
+            description: this.state.description
+        });
+    },
+    render() {
+        var items = [];
+
+        items.push(<input type={"text"}
+                          className={"block"}
+                          disabled={this.state.submitting}
+                          placeholder={"Label Name"}
+                          onChange={this.onChangeName}
+                          value={this.state.name} />);
+        items.push(<textarea
+            className={"block"}
+            disabled={this.state.submitting}
+            placeholder={"Longer Description"}
+            onChange={this.onChangeDescription}
+            value={this.state.description} />);
+
+        var canSubmit = !_.isEmpty(this.state.name);
+
+        items.push(<Button className={"block"} label={"Create New"} disabled={this.state.submitting || !canSubmit} onClick={this.onCreateNew} />);
+
+        return <div>{items}</div>
+    }
+});

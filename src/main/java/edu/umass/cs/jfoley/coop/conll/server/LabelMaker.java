@@ -35,6 +35,7 @@ public class LabelMaker implements WebHandler, Closeable {
     apiMethods.put("classifyTokens", new ClassifyTokensFn(index));
     apiMethods.put("rankByClassifier", new RankByClassifierFn(index));
     apiMethods.put("listClassifiers", new ListClassifiersFn(index));
+    apiMethods.put("createNewClassifier", new CreateNewClassifierFn(index));
     apiMethods.put("pullTokens", new PullTokensFn(index));
     apiMethods.put("pullSentences", new PullSentencesFn(index));
     apiMethods.put("listTags", new ListTagsFn(index));
