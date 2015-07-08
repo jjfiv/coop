@@ -119,17 +119,9 @@ public class TermBasedIndexWriter implements Closeable {
       tokenIds.add(tokenId);
       tokenCorpus.put(tokenId, token);
 
-      for (String feature : token.getIndicators()) {
-        featureIndex.process(feature, tokenId);
-      }
-      for (Map.Entry<String, String> kv : token.getTerms().entrySet()) {
-        NamespacedLabel termTypeAndTerm = new NamespacedLabel(kv.getKey(), kv.getValue());
-        tokensByTerms.process(termTypeAndTerm, tokenId);
-        ttf.adjustOrPutValue(termTypeAndTerm, 1, 1);
-      }
-      for (String tag : token.getTags()) {
-        tokensByTags.process(tag, tokenId);
-      }
+      processFeatures(token, tokenId);
+      processTerms(ttf, token, tokenId);
+      processTags(token, tokenId);
 
       tokenToSentence.put(tokenId, sentenceId);
     }
@@ -142,6 +134,26 @@ public class TermBasedIndexWriter implements Closeable {
 
     sentenceToTokens.put(sentenceId, tokenIds);
     sentenceCorpus.put(sentenceId, tokens);
+  }
+
+  private void processTags(CoopToken token, int tokenId) throws IOException {
+    for (String tag : token.getTags()) {
+      tokensByTags.process(tag, tokenId);
+    }
+  }
+
+  private void processFeatures(CoopToken token, int tokenId) throws IOException {
+    for (String feature : token.getIndicators()) {
+      featureIndex.process(feature, tokenId);
+    }
+  }
+
+  private void processTerms(TObjectIntHashMap<NamespacedLabel> ttf, CoopToken token, int tokenId) throws IOException {
+    for (Map.Entry<String, String> kv : token.getTerms().entrySet()) {
+      NamespacedLabel termTypeAndTerm = new NamespacedLabel(kv.getKey(), kv.getValue());
+      tokensByTerms.process(termTypeAndTerm, tokenId);
+      ttf.adjustOrPutValue(termTypeAndTerm, 1, 1);
+    }
   }
 
   public void addDocument(CoopDoc doc) throws IOException {
