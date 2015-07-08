@@ -78,6 +78,14 @@ var SearchResultsPage = React.createClass({
     }
 });
 
+var TokenResultsPage = React.createClass({
+    render() {
+        return <div>
+            <pre>{JSON.stringify(this.props.param)}</pre>
+        </div>;
+    }
+});
+
 var Content = React.createClass({
     getInitialState() {
         return this.props.defaultContent;
@@ -107,7 +115,8 @@ var Content = React.createClass({
             home: <HomePage />,
             labels: <LabelsPage param={this.state}/>,
             search: <SearchResultsPage param={this.state}/>,
-            tags: <TagsAvailable param={this.state} />
+            tags: <TagsAvailable param={this.state} />,
+            tokens: <TokenResultsPage param={this.state} />
         };
 
         if (page == "view" && this.state.id) {

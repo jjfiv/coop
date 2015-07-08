@@ -278,7 +278,6 @@ var LabelingToken = React.createClass({
     }
 });
 
-
 var ClassifierInfo = React.createClass({
     onEditValue(key, value) {
         var request = {};
@@ -291,6 +290,7 @@ var ClassifierInfo = React.createClass({
         var items = [];
         items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"name"} key={0} label={"Name"} value={data.name} />);
         items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"description"} key={1} label={"Description"} value={data.description} />);
+        items.push(<InternalLink key={"rankByClassifier"} label={"Find Top Suggestions for this Label"} page={"tokens"} args={{classifierId:data.id}} />);
 
         items.push(<LabelRandomSentence key={"rs"} name={data.name} id={data.id} />);
 
@@ -300,7 +300,6 @@ var ClassifierInfo = React.createClass({
         return <div className={"classifierInfo"}>{items}</div>;
     }
 });
-
 
 var LabelsPage = React.createClass({
     getInitialState() {
