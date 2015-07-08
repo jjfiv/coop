@@ -26,4 +26,11 @@ public abstract class Classifier {
 
   /** return the actual features used: */
   public abstract TIntFloatHashMap getSparseFeatures();
+
+  /**
+   *
+   * @param k the number of features to collect
+   * @return the k strongest features
+   */
+  public abstract TIntFloatHashMap getStrongestFeatures(int k);
 }

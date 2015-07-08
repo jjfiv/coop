@@ -21,7 +21,7 @@ var LabelRandomSentence = React.createClass({
         this.setState({actionStarted: true});
         var that = this;
         postJSON("/api/updateClassifier", {
-            classifier: this.props.classifier,
+            classifier: this.props.id,
             labels: events
         }, function (donedata) {
             that.finishPostingData();
@@ -30,7 +30,6 @@ var LabelRandomSentence = React.createClass({
         })
     },
     finishPostingData() {
-        this.props.refresh();
         this.setState({sentence: null, actionStarted: false});
         this.refs.randomSentence.sendNewRequest({count: 1});
     },
@@ -50,9 +49,9 @@ var LabelRandomSentence = React.createClass({
             items.push(<div>Labeling a random sentence: </div>);
             if(this.state.sentence) {
                 //items.push(<Sentence tokens={this.state.sentence} />);
-                items.push(<LabelingWidget tokens={this.state.sentence} name={this.props.classifier} />);
+                items.push(<LabelingWidget tokens={this.state.sentence} id={this.props.id} name={this.props.name} />);
                 items.push(<Button disabled={this.state.actionStarted} onClick={this.skipSentence} label={"Skip!"} />);
-                items.push(<Button disabled={this.state.actionStarted} onClick={this.labelSentenceNegative} label={"No matching "+this.props.classifier+" here."} />)
+                items.push(<Button disabled={this.state.actionStarted} onClick={this.labelSentenceNegative} label={"No matching "+this.props.name+" here."} />)
             }
         }
 
@@ -140,7 +139,7 @@ var LabelingWidget = React.createClass({
         });
 
         this.refs.ajaxUpdate.sendNewRequest({
-            classifier: this.props.name,
+            classifier: this.props.id,
             labels: labelEvents
         });
         this.setState({sending: true});
@@ -278,6 +277,30 @@ var LabelingToken = React.createClass({
         </span>;
     }
 });
+
+
+var ClassifierInfo = React.createClass({
+    onEditValue(key, value) {
+        var request = {};
+        request.classifier = this.props.data.id;
+        request[key] = value;
+        EVENTS.signal('updateClassifier', request);
+    },
+    render() {
+        var data = this.props.data;
+        var items = [];
+        items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"name"} key={0} label={"Name"} value={data.name} />);
+        items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"description"} key={1} label={"Description"} value={data.description} />);
+
+        items.push(<LabelRandomSentence key={"rs"} name={data.name} id={data.id} />);
+
+        var total = data.positives + data.negatives;
+
+        items.push(<span key="pos">{"Positives: "+data.positives+" Negatives: "+data.negatives+" Total: "+total}</span>);
+        return <div className={"classifierInfo"}>{items}</div>;
+    }
+});
+
 
 var LabelsPage = React.createClass({
     getInitialState() {

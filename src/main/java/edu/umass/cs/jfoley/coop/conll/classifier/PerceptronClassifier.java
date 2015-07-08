@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.conll.classifier;
 
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.lang.DoubleFns;
 import gnu.trove.map.hash.TIntFloatHashMap;
 
@@ -95,6 +96,40 @@ public class PerceptronClassifier extends Classifier {
       }
     }
     return output;
+  }
+
+  /**
+   * The absolute value weighting here makes the assumption that the weights learned have been on normalized features -- that their values can be compared directly.
+   */
+  public static class WeightedFeature implements Comparable<WeightedFeature> {
+    public final int fid;
+    public final double fval;
+
+    public WeightedFeature(int fid, double fval) {
+      this.fid = fid;
+      this.fval = fval;
+    }
+
+    @Override
+    public int compareTo(WeightedFeature o) {
+      return Double.compare(Math.abs(fval), Math.abs(o.fval));
+    }
+  }
+
+  /** @inheritDoc */
+  @Override
+  public TIntFloatHashMap getStrongestFeatures(int k) {
+    TopKHeap<WeightedFeature> heap = new TopKHeap<>(k);
+    for (int i = 0; i < w.length; i++) {
+      if (!DoubleFns.equals(w[i], 0.0, 0.01)) {
+        heap.offer(new WeightedFeature(i, w[i]));
+      }
+    }
+    TIntFloatHashMap features = new TIntFloatHashMap();
+    for (WeightedFeature wf : heap.getUnsortedList()) {
+      features.put(wf.fid, w[wf.fid]);
+    }
+    return features;
   }
 
 }

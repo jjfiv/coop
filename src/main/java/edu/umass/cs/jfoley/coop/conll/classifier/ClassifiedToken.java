@@ -6,7 +6,7 @@ import org.lemurproject.galago.utility.lists.Scored;
 /**
  * @author jfoley.
  */
-public class ClassifiedToken extends Scored {
+public class ClassifiedToken extends Scored implements Comparable<ClassifiedToken> {
   public int classifierId; // name of the classifier
   public boolean positive; // threshold-applied score
   public CoopToken token; // token-instance.
@@ -18,7 +18,7 @@ public class ClassifiedToken extends Scored {
     this.positive = positive;
     this.score = score;
     this.token = token;
-    this.tokenId = token.id();
+    this.tokenId = (token == null) ? -1 : token.id();
   }
 
   public int getTokenId() {
@@ -28,5 +28,10 @@ public class ClassifiedToken extends Scored {
   @Override
   public ClassifiedToken clone(double score) {
     return new ClassifiedToken(classifierId, positive, score, token);
+  }
+
+  @Override
+  public int compareTo(ClassifiedToken o) {
+    return Double.compare(this.score, o.score);
   }
 }

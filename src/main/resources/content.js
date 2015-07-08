@@ -46,26 +46,6 @@ var KeyValueEditable = React.createClass({
     }
 });
 
-var ClassifierInfo = React.createClass({
-    onEditValue(key, value) {
-        var request = {};
-        request.classifier = this.props.data.id;
-        request[key] = value;
-        EVENTS.signal('updateClassifier', request);
-    },
-    render() {
-        var data = this.props.data;
-        var items = [];
-        items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"name"} key={0} label={"Name"} value={data.name} />);
-        items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"description"} key={1} label={"Description"} value={data.description} />);
-
-        var total = data.positives + data.negatives;
-
-        items.push(<span key="pos">{"Positives: "+data.positives+" Negatives: "+data.negatives+" Total: "+total}</span>);
-        return <div className={"classifierInfo"}>{items}</div>;
-    }
-});
-
 var SearchResultsPage = React.createClass({
     getInitialState() {
         if(this.props.param.query) {
