@@ -40,18 +40,23 @@ var LabelRandomSentence = React.createClass({
     render() {
         var items = [];
 
-        items.push(<AjaxRequest quiet={true} ref={"randomSentence"} url={"/api/randomSentences"} onNewResponse={this.onSentence} />);
+        items.push(<AjaxRequest
+            key={"ajax"}
+            quiet={true}
+            ref={"randomSentence"}
+            url={"/api/randomSentences"}
+            onNewResponse={this.onSentence} />);
 
         if(!this.state.started) {
-            items.push(<div>Want to improve the accuracy? <input type={"button"} onClick={this.beginLabeling} value={"Label a random sentence"} />
+            items.push(<div key={"q"}>Want to improve the accuracy? <input type={"button"} onClick={this.beginLabeling} value={"Label a random sentence"} />
             </div>);
         } else {
-            items.push(<div>Labeling a random sentence: </div>);
+            items.push(<div key={"prompt"}>Labeling a random sentence: </div>);
             if(this.state.sentence) {
                 //items.push(<Sentence tokens={this.state.sentence} />);
-                items.push(<LabelingWidget tokens={this.state.sentence} id={this.props.id} name={this.props.name} />);
-                items.push(<Button disabled={this.state.actionStarted} onClick={this.skipSentence} label={"Skip!"} />);
-                items.push(<Button disabled={this.state.actionStarted} onClick={this.labelSentenceNegative} label={"No matching "+this.props.name+" here."} />)
+                items.push(<LabelingWidget key={"lw"} tokens={this.state.sentence} id={this.props.id} name={this.props.name} />);
+                items.push(<Button key={"skip"} disabled={this.state.actionStarted} onClick={this.skipSentence} label={"Skip!"} />);
+                items.push(<Button key={"no-to-all"} disabled={this.state.actionStarted} onClick={this.labelSentenceNegative} label={"No matching "+this.props.name+" here."} />)
             }
         }
 

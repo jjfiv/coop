@@ -74,7 +74,7 @@ var TagsAvailable = React.createClass({
         } else {
             var items = [];
 
-            items.push(<HelpButton text={"Tags are like labels, but they are generally pre-defined for a given collection. You can use them to help build your own labels."}/>);
+            items.push(<HelpButton key={"r-help"} text={"Tags are like labels, but they are generally pre-defined for a given collection. You can use them to help build your own labels."}/>);
 
             var lf = this.state.filter;
 
@@ -87,17 +87,17 @@ var TagsAvailable = React.createClass({
                 if(matching) {
                     matchCount += 1;
                 }
-                return <div key={tag} className={style}><TagView
+                return <div key={"tag-"+tag} className={style}><TagView
                     tag={tag} /></div>;
             }, this).value();
 
             var filterItems = [];
             filterItems.push(<input key={"input"} type="text" onChange={this.handleChange} value={this.state.filter} placeholder={"Filter Tags"} title={"Filter Tags"} />);
             if(matchCount != total) {
-                filterItems.push(<span className={"info"}>{" Displaying "+matchCount+" out of "+total+" tags."}</span>)
+                filterItems.push(<span key={"info"} className={"info"}>{" Displaying "+matchCount+" out of "+total+" tags."}</span>)
             }
-            items.push(<div>{filterItems}</div>);
-            items.push(<div className={"content"}>{tags}</div>);
+            items.push(<div key={"filter"}>{filterItems}</div>);
+            items.push(<div key={"tags"} className={"content"}>{tags}</div>);
 
 
             return <div className={"content"}>{items}</div>;
