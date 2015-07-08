@@ -6,12 +6,14 @@ var API = React.createClass({
         SingletonAPI = this;
         EVENTS.register('updateClassifier', this.sendUpdate);
         EVENTS.register('listClassifiers', this.sendList);
+        EVENTS.register('rankByClassifier', this.sendRankByClassifier);
+
         EVENTS.register('searchSentences', this.sendSearchSentences);
         EVENTS.register('pullSentences', this.sendPullSentences);
         EVENTS.register('listTagsRequest', this.sendListTags);
         EVENTS.register('createNewClassifier', this.sendCreateNewClassifier);
 
-        // test that signals work:
+        // Doesn't make sense for one person to request this since everyone wants it.
         EVENTS.signal('listClassifiers');
     },
     sendUpdate(request) {
@@ -62,6 +64,15 @@ var API = React.createClass({
     onPullSentences(response) {
         EVENTS.signal('pullSentencesResponse', response.sentences);
     },
+    sendRankByClassifier(request) {
+        console.log('sendRankByClassifier: '+request);
+        console.log(request);
+        this.refs['rankByClassifier'].sendNewRequest(request);
+    },
+    onRankByClassifier(response) {
+        console.log(response);
+        EVENTS.signal('rankByClassifierResponse', response);
+    },
     render() {
         var quiet = true;
         return <div>
@@ -71,6 +82,12 @@ var API = React.createClass({
                 pure={false}
                 onNewResponse={this.onListTags}
                 url={"/api/listTags"} />
+            <AjaxRequest
+                ref={"rankByClassifier"}
+                quiet={quiet}
+                pure={false}
+                onNewResponse={this.onRankByClassifier}
+                url={"/api/rankByClassifier"} />
             <AjaxRequest
                 ref={"createNewClassifier"}
                 quiet={quiet}

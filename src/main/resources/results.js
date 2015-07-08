@@ -1,8 +1,24 @@
 var SentenceView = React.createClass({
+    propTypes: {
+        tokens: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+        special: React.PropTypes.bool,
+        // any special tokens to highlight (as in search results)
+        highlight: React.PropTypes.arrayOf(React.PropTypes.number)
+    },
     render() {
         var terms = _.map(this.props.tokens, function(term, term_idx) {
+            var highlight = false;
+            if(this.props.highlight) {
+                var id = term.id;
+                if(_.contains(this.props.highlight, id)) {
+                    highlight = true;
+                }
+            }
             return <LabelingToken
-                key={term_idx} token={term} />
+                key={term_idx}
+                token={term}
+                highlight={highlight}
+                />
         });
         var styles = ["sentenceView"];
         if(this.props.special) {
@@ -51,7 +67,9 @@ var DocumentView = React.createClass({
         // how many to load before
         before: React.PropTypes.number,
         // how many to load after
-        after: React.PropTypes.number
+        after: React.PropTypes.number,
+        // any special tokens to highlight (as in search results)
+        highlight: React.PropTypes.arrayOf(React.PropTypes.number)
     },
     getDefaultProps() {
         return {

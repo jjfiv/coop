@@ -55,6 +55,7 @@ public class CoopToken implements Comparable<CoopToken> {
   }
 
   public Parameters toJSON() {
+    assert(terms instanceof Map);
     Parameters p = Parameters.create();
     p.put("documentId", document);
     p.put("sentenceId", sentence);

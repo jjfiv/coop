@@ -3,9 +3,11 @@ package edu.umass.cs.jfoley.coop.coders;
 import ciir.jfoley.chai.io.StreamFns;
 import ciir.jfoley.chai.lang.ThreadsafeLazyPtr;
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import edu.umass.cs.ciir.waltz.coders.Coder;
+import edu.umass.cs.ciir.waltz.coders.CoderException;
 import edu.umass.cs.ciir.waltz.coders.data.BufferList;
 import edu.umass.cs.ciir.waltz.coders.data.DataChunk;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
@@ -51,8 +53,12 @@ public class KryoCoder<T> extends Coder<T> {
   @Nonnull
   @Override
   public T readImpl(InputStream inputStream) throws IOException {
-    int kryoSize = VarUInt.instance.read(inputStream);
-    Input input = new Input(StreamFns.readBytes(inputStream, kryoSize));
-    return kryo.get().readObject(input, encodingClass);
+    try {
+      int kryoSize = VarUInt.instance.read(inputStream);
+      Input input = new Input(StreamFns.readBytes(inputStream, kryoSize));
+      return kryo.get().readObject(input, encodingClass);
+    } catch (KryoException kryoError) {
+      throw new CoderException(kryoError, KryoCoder.class);
+    }
   }
 }

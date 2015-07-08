@@ -48,6 +48,11 @@
   background-color: #afa;
 }
 
+.highlight.token {
+    background-color: #eee;
+}
+
+
 .has-tags {
     font-style: italic;
 }

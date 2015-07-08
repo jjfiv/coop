@@ -24,15 +24,15 @@ var AjaxError = React.createClass({
     renderError: function() {
         var err = this.props.err;
         if(err.responseText) {
-            return <textarea value={err.responseText}/>;
+            return <textarea key={"renderErr"} readOnly={true} value={err.responseText}/>;
         }
-        return <textarea value={JSON.stringify(this.props.err)}/>;
+        return <textarea key={"renderErr"} readOnly={true} value={JSON.stringify(this.props.err)}/>;
     },
     render: function() {
         var items = [];
         items.push(this.renderError());
         if(this.props.retry) {
-            items.push(<Button onClick={this.props.retry} label={"Try Again"} />);
+            items.push(<Button key={"retry-button"} onClick={this.props.retry} label={"Try Again"} />);
         }
         return <div>{items}</div>;
     }
@@ -62,7 +62,7 @@ var AjaxRequest = React.createClass({
     },
     onError: function (err) {
         this.setState({error: err, response: null, waiting: false});
-        this.props.onNewResponse(null);
+        //this.props.onNewResponse(null);
     },
     sendNewRequest: function(request) {
         if (this.props.pure && _.isEqual(request, this.state.request)) {

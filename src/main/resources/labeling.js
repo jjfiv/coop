@@ -190,11 +190,18 @@ var LabelingWidget = React.createClass({
 });
 
 var LabelingToken = React.createClass({
+    propTypes: {
+        token: React.PropTypes.object.isRequired,
+        highlight: React.PropTypes.bool,
+        active: React.PropTypes.bool,
+        positive: React.PropTypes.bool,
+    },
     getDefaultProps() {
         return {
             highlightNER: false,
             active: false,
             positive: false,
+            highlight: false,
             hover: false,
             nativeSelectable: true,
             handleClick() { },
@@ -259,6 +266,9 @@ var LabelingToken = React.createClass({
         if(this.hasTags()) {
             classes.push("has-tags");
         }
+        if(this.props.highlight) {
+            classes.push("highlight");
+        }
 
         var handleMouse = this.props.handleMouse;
         var mouseHandler = function(what) {
@@ -266,7 +276,7 @@ var LabelingToken = React.createClass({
                 return handleMouse(token, what, evt);
             }
         };
-        return <span className={"noselect"} onClick={this.handleClick}
+        return <span onClick={this.handleClick}
                      onMouseOver={mouseHandler("over")}
                      onMouseOut={mouseHandler("out")}
                      onMouseDown={mouseHandler("down")}
@@ -290,7 +300,7 @@ var ClassifierInfo = React.createClass({
         var items = [];
         items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"name"} key={0} label={"Name"} value={data.name} />);
         items.push(<KeyValueEditable onEditValue={this.onEditValue} propName={"description"} key={1} label={"Description"} value={data.description} />);
-        items.push(<InternalLink key={"rankByClassifier"} label={"Find Top Suggestions for this Label"} page={"tokens"} args={{classifierId:data.id}} />);
+        items.push(<InternalLink key={"rankByClassifier"} label={"Find Top Suggestions for this Label"} page={"labelResults"} args={{id:data.id}} />);
 
         items.push(<LabelRandomSentence key={"rs"} name={data.name} id={data.id} />);
 
@@ -380,6 +390,7 @@ var CreateNewClassifier = React.createClass({
         var items = [];
 
         items.push(<input type={"text"}
+                          key={"name"}
                           className={"block"}
                           disabled={this.state.submitting}
                           placeholder={"Label Name"}
@@ -387,6 +398,7 @@ var CreateNewClassifier = React.createClass({
                           value={this.state.name} />);
         items.push(<textarea
             className={"block"}
+            key={"desc"}
             disabled={this.state.submitting}
             placeholder={"Longer Description"}
             onChange={this.onChangeDescription}
@@ -394,7 +406,11 @@ var CreateNewClassifier = React.createClass({
 
         var canSubmit = !_.isEmpty(this.state.name);
 
-        items.push(<Button className={"block"} label={"Create New"} disabled={this.state.submitting || !canSubmit} onClick={this.onCreateNew} />);
+        items.push(<Button className={"block"}
+                           key={"submit"}
+                           label={"Create New"}
+                           disabled={this.state.submitting || !canSubmit}
+                           onClick={this.onCreateNew} />);
 
         return <div>{items}</div>
     }

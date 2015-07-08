@@ -38,10 +38,10 @@ var TagView = React.createClass({
 var MicrodataTagView = React.createClass({
     render() {
         var data = this.props.data;
-        var cat = <a href={"http://schema.org/"+data.category}>{data.category}</a>;
-        var attr = <a href={"http://schema.org/"+data.attribute}>{data.attribute}</a>;
+        var cat = <a key={"cat"} href={"http://schema.org/"+data.category}>{data.category}</a>;
+        var attr = <a key={"attr"} href={"http://schema.org/"+data.attribute}>{data.attribute}</a>;
         if(data.attribute) {
-            return <span>{[cat, <span>{" / "}</span>, attr]}</span>;
+            return <span>{[cat, <span key={"slash"}>{" / "}</span>, attr]}</span>;
         } else {
             return <span>{cat}</span>;
         }

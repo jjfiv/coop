@@ -45,6 +45,14 @@ function strjoin(strs) {
     });
 }
 
+function roundTo1DecimalPlace(val) {
+    return (Math.round(val * 10.0)) / 10.0;
+}
+
+function percentString(val) {
+    return roundTo1DecimalPlace(val*100)+"%";
+}
+
 /**
  * Usage: <Button visible={true,false} disabled={true,false} onClick={whatFn} label={text label} />
  */
@@ -107,9 +115,9 @@ var HelpButton = React.createClass({
     render() {
         var text = this.props.text;
         var items = [];
-        items.push(<Button title={text} onClick={this.handleClick} label={"?"} />);
+        items.push(<Button key={"?"} title={text} onClick={this.handleClick} label={"?"} />);
         if(this.state.active) {
-            items.push(<span>{" "+text}</span>);
+            items.push(<span key={"text"}>{" "+text}</span>);
         }
         return <div title={text}>{items}</div>;
     }

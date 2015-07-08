@@ -78,11 +78,89 @@ var SearchResultsPage = React.createClass({
     }
 });
 
-var TokenResultsPage = React.createClass({
+var RankByClassifierPage = React.createClass({
+    getInitialState() {
+        return {
+            classifierId: null,
+            classifier: null,
+            count: 100,
+            timeLimit: 500,
+            features: 100,
+            response: null
+        };
+    },
+    componentDidMount() {
+        EVENTS.register('classifier', this.onUpdateClassifier);
+        EVENTS.register('classifiers', this.onGetClassifiers);
+        EVENTS.register('rankByClassifierResponse', this.onRankedTokens);
+    },
+    onUpdateClassifier(data) {
+        if(data.id != this.state.classifierId) {
+            return;
+        }
+        this.setState({classifier: data});
+    },
+    onGetClassifiers(data) {
+        _.forEach(data, this.onUpdateClassifier);
+    },
+    onRankedTokens(data) {
+        this.setState({response: data});
+    },
+    onChangeClassifier(id) {
+        this.setState({classifierId: id, response: null})
+
+        EVENTS.signal('listClassifiers');
+        EVENTS.signal('rankByClassifier', {
+            count: this.state.count,
+            timeLimit: this.state.timeLimit,
+            features: this.state.features,
+            classifier: id
+        });
+    },
+    componentWillReceiveProps(newProps) {
+        if(newProps.param.id) {
+            var newId = parseInt(newProps.param.id);
+            if(this.state.classifierId != newId) {
+                this.onChangeClassifier(newId);
+            }
+        }
+    },
     render() {
-        return <div>
-            <pre>{JSON.stringify(this.props.param)}</pre>
-        </div>;
+        var items = [];
+
+
+        var resp = this.state.response;
+        if(!resp) {
+            return <div>Waiting for label scoring...</div>;
+        }
+
+        var maxVisited = resp.totalTokens;
+        if(resp.timeLimitExceeded) {
+            maxVisited = resp.lastScored;
+            var fraction = resp.lastScored/resp.totalTokens;
+            var remaining = roundTo1DecimalPlace( ((1.0 - fraction) * resp.time) / fraction );
+            items.push(<div key={0}>{"Scored "+percentString(fraction)+" of the collection in "+resp.time+"ms."}</div>);
+            items.push(<div key={1}>{"It will probably take another "+remaining+"ms. to complete scoring."}</div>);
+        }
+        items.push(<div key={2}>{"Around "+percentString(resp.numScored / maxVisited)+" of the tokens so far have plausibly fit your label."}</div>);
+
+        var highlightAll = _.map(resp.results, function(x) { return x.token.tokenId; });
+
+        items.push(_(resp.results).map(function(x) {
+            return x.token.sentenceId;
+        }).unique().map(function(sid) {
+            return <div key={"s:"+sid}>{sid}</div>;
+            //return <DocumentView key={"s:"+sid} id={sid} before={0} after={0} step={2} highlight={highlightAll} />;
+        }).value());
+
+        /*items.push(_.map(resp.results, function(scoredToken) {
+            var tok = scoredToken.token;
+            var sid = tok.sentenceId;
+            return <DocumentView key={sid} id={sid} before={0} after={0} step={2} highlight={highlightAll} />;
+        }));*/
+
+
+        return <div>{items}</div>;
     }
 });
 
@@ -116,7 +194,7 @@ var Content = React.createClass({
             labels: <LabelsPage param={this.state}/>,
             search: <SearchResultsPage param={this.state}/>,
             tags: <TagsAvailable param={this.state} />,
-            tokens: <TokenResultsPage param={this.state} />
+            labelResults: <RankByClassifierPage param={this.state} />
         };
 
         if (page == "view" && this.state.id) {

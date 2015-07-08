@@ -48,9 +48,15 @@ public class RankByClassifierFn extends IndexServerFn {
     for (int fid : classifier.getStrongestFeatures(featureLimit).keys()) {
       features.add(fid);
     }
+    if(features.size() == 0) {
+      throw new IllegalArgumentException("No featurs for given classifier!");
+    }
     Map<Integer, Mover> featurePostings = new ArrayListMap<>();
     for (Pair<Integer, String> kv : index.features.forwardReader.getInBulk(features)) {
       featurePostings.put(kv.getKey(), index.featureIndex.get(kv.getValue()));
+    }
+    if(featurePostings.size() == 0) {
+      throw new RuntimeException("No features for given classifier!");
     }
 
     List<Mover> actualFeatures = new ArrayList<>(featurePostings.values());
