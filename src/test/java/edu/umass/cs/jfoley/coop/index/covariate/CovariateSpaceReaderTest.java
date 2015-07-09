@@ -1,8 +1,8 @@
 package edu.umass.cs.jfoley.coop.index.covariate;
 
 import ciir.jfoley.chai.io.TemporaryDirectory;
-import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
-import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
+import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
+import edu.umass.cs.ciir.waltz.postings.docset.DocumentSetReader;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
 import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
@@ -51,14 +50,14 @@ public class CovariateSpaceReaderTest {
       // finish writing docs
       try (CovariateSpaceReader<Integer,String> reader = new CovariateSpaceReader<>(
           xSchema, ySchema,
-          GalagoIO.openIOMap(
-              new CovariableCoder<>(xSchema.getCoder().lengthSafe(), ySchema.getCoder().lengthSafe()),
-              new DeltaIntListCoder(),
-              tmpdir.childPath("covar.x.y")))) {
+              new DocumentSetReader<>(
+              new CovariableCoder<Integer, String>(xSchema.getCoder().lengthSafe(), ySchema.getCoder().lengthSafe()),
+              tmpdir, "covar.x.y"))) {
 
         for (CoopDoc coopDoc : docs.values()) {
-          List<Integer> res = reader.get(coopDoc.getIdentifier() % 10, String.format("%02d", coopDoc.getIdentifier() % 20));
-          assertTrue(res.contains(coopDoc.getIdentifier()));
+          Mover mov = reader.get(coopDoc.getIdentifier() % 10, String.format("%02d", coopDoc.getIdentifier() % 20));
+          mov.moveToAbsolute(coopDoc.getIdentifier());
+          assertTrue(mov.matches(coopDoc.getIdentifier()));
         }
 
       }

@@ -14,7 +14,6 @@ import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarInt;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
-import edu.umass.cs.ciir.waltz.dociter.movement.IdSetMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.feature.Feature;
@@ -22,8 +21,8 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.index.AbstractIndex;
 import edu.umass.cs.ciir.waltz.index.mem.CountsOfPositionsMover;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
-import edu.umass.cs.ciir.waltz.io.postings.format.BlockedPostingsCoder;
 import edu.umass.cs.ciir.waltz.io.postings.SpanListCoder;
+import edu.umass.cs.ciir.waltz.io.postings.format.BlockedPostingsCoder;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
@@ -74,7 +73,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
     for (String field : schema.keySet()) {
       this.fieldSchema.put(field, DocVarSchema.create(field, schema.getMap(field)));
     }
-    this.docLabels = new DocumentLabelIndexReader(indexDir.childPath("doclabels"));
+    this.docLabels = new DocumentLabelIndexReader(indexDir);
     this.corpus = KryoCoopDocCorpusWriter.getReader(indexDir);
 
     this.tokenizer = CoopTokenizer.create(meta);
@@ -205,9 +204,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
     if(docVarSchema instanceof CategoricalVarSchema) {
       String val = (String) value;
       try {
-        List<Integer> ids = docLabels.getMatchingDocs(name, val);
-        if(ids == null) return null;
-        return new IdSetMover(ids);
+        return docLabels.getMatchingDocs(name, val);
       } catch (IOException e) {
         throw new IndexErrorException(e);
       }
