@@ -4,6 +4,7 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import ciir.jfoley.chai.random.Sample;
+import edu.umass.cs.ciir.waltz.DocumentSetWriter;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;

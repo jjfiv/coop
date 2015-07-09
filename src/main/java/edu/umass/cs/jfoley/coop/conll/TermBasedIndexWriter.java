@@ -14,7 +14,7 @@ import edu.umass.cs.ciir.waltz.io.postings.streaming.StreamingPostingBuilder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.CoopToken;
-import edu.umass.cs.jfoley.coop.index.general.DocumentSetWriter;
+import edu.umass.cs.ciir.waltz.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 import gnu.trove.map.hash.TObjectIntHashMap;
 

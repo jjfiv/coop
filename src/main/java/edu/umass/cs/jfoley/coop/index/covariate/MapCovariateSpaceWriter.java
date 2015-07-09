@@ -5,7 +5,7 @@ import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
-import edu.umass.cs.jfoley.coop.index.general.DocumentSetWriter;
+import edu.umass.cs.ciir.waltz.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
