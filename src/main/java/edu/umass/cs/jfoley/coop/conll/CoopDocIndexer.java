@@ -17,7 +17,7 @@ import java.util.List;
 public class CoopDocIndexer {
   public static void main(String[] args) throws IOException {
 
-    Directory output = new Directory("clue_pre1.index");
+    Directory output = new Directory("clue_pre2.index");
     List<File> inputZips = new ArrayList<>();
     List<File> candidates = Directory.Read(".").children();
     for (File candidate : candidates) {
@@ -27,6 +27,7 @@ public class CoopDocIndexer {
     }
     KryoCoder<CoopDoc> coder = new KryoCoder<>(CoopDoc.class);
 
+    long startTime = System.currentTimeMillis();
     try (TermBasedIndexWriter builder = new TermBasedIndexWriter(output)) {
       for (File inputZip : inputZips) {
         try (ZipArchive zip = ZipArchive.open(inputZip)) {
@@ -40,7 +41,8 @@ public class CoopDocIndexer {
         }
       }
     }
-
+    long endTime = System.currentTimeMillis();
+    System.out.println("Total time: "+(endTime - startTime)+"ms.");
 
   }
 }

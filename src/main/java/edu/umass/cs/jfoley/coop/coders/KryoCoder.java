@@ -1,7 +1,6 @@
 package edu.umass.cs.jfoley.coop.coders;
 
 import ciir.jfoley.chai.io.StreamFns;
-import ciir.jfoley.chai.lang.ThreadsafeLazyPtr;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
@@ -22,7 +21,11 @@ import java.io.InputStream;
  * @author jfoley
  */
 public class KryoCoder<T> extends Coder<T> {
-  public static ThreadsafeLazyPtr<Kryo> kryo = new ThreadsafeLazyPtr<>(Kryo::new);
+  // Ditch the lock.
+  public static ThreadLocal<Kryo> kryo = new ThreadLocal<Kryo>() {
+    @Override public Kryo initialValue() { return new Kryo(); }
+  };
+  //public static ThreadsafeLazyPtr<Kryo> kryo = new ThreadsafeLazyPtr<>(Kryo::new);
 
   public final Class<T> encodingClass;
 

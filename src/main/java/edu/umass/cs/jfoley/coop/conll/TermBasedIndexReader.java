@@ -8,7 +8,6 @@ import ciir.jfoley.chai.collections.util.QuickSort;
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.Coder;
-import edu.umass.cs.ciir.waltz.postings.docset.DeltaIntListMoverCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
@@ -18,6 +17,7 @@ import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.format.BlockedPostingsCoder;
+import edu.umass.cs.ciir.waltz.postings.docset.DocumentSetReader;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.conll.classifier.ClassifierSystem;
 import edu.umass.cs.jfoley.coop.conll.classifier.FeatureVector;
@@ -78,17 +78,14 @@ public class TermBasedIndexReader implements Closeable {
         VarUInt.instance, new KryoCoder<>(CoopDoc.class),
         input.childPath("documentCorpus")
     );
-    featureIndex = GalagoIO.openIOMap(
-        CharsetCoders.utf8, new DeltaIntListMoverCoder(),
-        input.childPath("featureIndex")
+    featureIndex = new DocumentSetReader<>(
+        CharsetCoders.utf8, input, "featureIndex"
     );
-    tokensByTags = GalagoIO.openIOMap(
-        CharsetCoders.utf8, new DeltaIntListMoverCoder(),
-        input.childPath("tokensByTags")
+    tokensByTags = new DocumentSetReader<>(
+        CharsetCoders.utf8, input, "tokensByTags"
     );
-    tokensByTerms = GalagoIO.openIOMap(
-        NamespacedLabel.coder, new DeltaIntListMoverCoder(),
-        input.childPath("tokensByTerms")
+    tokensByTerms = new DocumentSetReader<>(
+        NamespacedLabel.coder, input, "tokensByTerms"
     );
     documentsByTerms = GalagoIO.openIOMap(
         NamespacedLabel.coder,
@@ -105,11 +102,10 @@ public class TermBasedIndexReader implements Closeable {
     if(!input.child("features.fwd").exists()) {
       System.err.println("Creating features file: N="+featureIndex.keyCount());
       List<String> featuresAboveThreshold = new ArrayList<>();
-      for (List<String> keyBatch : IterableFns.batches(featureIndex.keys(), 1000)) {
-        for (Pair<String, Mover> kv : featureIndex.getInBulk(keyBatch)) {
-          if (kv.getValue().totalKeys() > 5) {
-            featuresAboveThreshold.add(kv.getKey());
-          }
+
+      for (Pair<String, Mover> kv : featureIndex.items()) {
+        if (kv.getValue().totalKeys() > 5) {
+          featuresAboveThreshold.add(kv.getKey());
         }
       }
       QuickSort.sort(featuresAboveThreshold);
