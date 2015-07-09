@@ -14,7 +14,7 @@ import edu.umass.cs.ciir.waltz.io.postings.streaming.StreamingPostingBuilder;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.CoopToken;
-import edu.umass.cs.ciir.waltz.DocumentSetWriter;
+import edu.umass.cs.ciir.waltz.postings.docset.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
@@ -76,15 +76,15 @@ public class TermBasedIndexWriter implements Closeable {
     );
     featureIndex = new DocumentSetWriter<>(
         CharsetCoders.utf8,
-        GalagoIO.getRawIOMapWriter(output.childPath("featureIndex"))
+        output, "featureIndex"
     );
     tokensByTerms = new DocumentSetWriter<>(
         NamespacedLabel.coder,
-        GalagoIO.getRawIOMapWriter(output.childPath("tokensByTerms"))
+        output, "tokensByTerms"
     );
     tokensByTags = new DocumentSetWriter<>(
         CharsetCoders.utf8,
-        GalagoIO.getRawIOMapWriter(output.childPath("tokensByTags"))
+        output, "tokensByTags"
     );
     sentencesByTerms = new StreamingPostingBuilder<>(
         NamespacedLabel.coder, VarUInt.instance,

@@ -1,10 +1,9 @@
 package edu.umass.cs.jfoley.coop.index.component;
 
 import ciir.jfoley.chai.io.Directory;
-import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
+import edu.umass.cs.ciir.waltz.postings.docset.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
-import edu.umass.cs.ciir.waltz.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 import edu.umass.cs.jfoley.coop.schema.CategoricalVarSchema;
@@ -22,8 +21,8 @@ public class DocumentLabelIndexWriter extends IndexItemWriter {
     super(outputDir, cfg);
     this.writer = new DocumentSetWriter<>(
         NamespacedLabel.coder,
-        GalagoIO.getRawIOMapWriter(outputDir.childPath("doclabels")
-    ));
+        outputDir, "doclabels"
+    );
   }
 
   public void add(String namespace, String label, int docId) {

@@ -1,11 +1,11 @@
 package edu.umass.cs.jfoley.coop.index.covariate;
 
 import ciir.jfoley.chai.io.Directory;
+import ciir.jfoley.chai.io.IO;
 import edu.umass.cs.ciir.waltz.coders.Coder;
-import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
+import edu.umass.cs.ciir.waltz.postings.docset.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.DocVar;
-import edu.umass.cs.ciir.waltz.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.schema.DocVarSchema;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
@@ -29,16 +29,20 @@ public class MapCovariateSpaceWriter<A, B> extends IndexItemWriter {
     this.ySchema = ySchema;
     Coder<A> xCoder = xSchema.getCoder().lengthSafe();
     Coder<B> yCoder = ySchema.getCoder().lengthSafe();
+    String baseName = "covar." + xSchema.getName() + "." + ySchema.getName();
     this.writer = new DocumentSetWriter<>(
         new CovariableCoder<>(xCoder, yCoder),
-        GalagoIO.getRawIOMapWriter(
-            outputDir.childPath("covar." + xSchema.getName() + "." + ySchema.getName()), // TODO, do variables need short-names?
-            Parameters.parseArray(
-                "covarXSchema", xSchema.toJSON(),
-                "covarYSchema", ySchema.toJSON()
-            )
-        ).getSorting()
+        outputDir, baseName
     );
+
+    // save schema in neighboring ``.json``
+    IO.spit(
+        // TODO, do variables need short-names?
+        Parameters.parseArray(
+            "covarXSchema", xSchema.toJSON(),
+            "covarYSchema", ySchema.toJSON()
+        ).toPrettyString(),
+        outputDir.child(baseName + ".json"));
   }
 
   @Override
