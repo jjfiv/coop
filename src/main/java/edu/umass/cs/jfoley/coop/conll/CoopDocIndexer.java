@@ -17,7 +17,7 @@ import java.util.List;
 public class CoopDocIndexer {
   public static void main(String[] args) throws IOException {
 
-    Directory output = new Directory("clue_pre2.index");
+    Directory output = new Directory("clue_pre4.index");
     List<File> inputZips = new ArrayList<>();
     List<File> candidates = Directory.Read(".").children();
     for (File candidate : candidates) {
@@ -37,12 +37,16 @@ public class CoopDocIndexer {
             CoopDoc doc = coder.read(entry.getInputStream());
             System.err.println(i+"/"+listEntries.size()+" "+doc.getName());
             builder.addDocument(doc);
+            if(i >= 140) break;
           }
         }
       }
+      long endParsingTime = System.currentTimeMillis();
+      System.out.println("Total parsing time: "+(endParsingTime - startTime)+"ms.");
     }
     long endTime = System.currentTimeMillis();
     System.out.println("Total time: "+(endTime - startTime)+"ms.");
+    // 27.6s i>=50
 
   }
 }

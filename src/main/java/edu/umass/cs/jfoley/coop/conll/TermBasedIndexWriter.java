@@ -4,10 +4,7 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.Coder;
-import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
-import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
-import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
+import edu.umass.cs.ciir.waltz.coders.kinds.*;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.streaming.StreamingPostingBuilder;
@@ -62,16 +59,16 @@ public class TermBasedIndexWriter implements Closeable {
         output.childPath("tokenToSentence")
     );
     documentCorpus = GalagoIO.getIOMapWriter(
-        VarUInt.instance, new KryoCoder<>(CoopDoc.class),
+        VarUInt.instance, new LZFCoder<>(new KryoCoder<>(CoopDoc.class)),
         output.childPath("documentCorpus")
     );
     Coder<CoopToken> tokenCoder = new KryoCoder<>(CoopToken.class);
     sentenceCorpus = GalagoIO.getIOMapWriter(
-        VarUInt.instance, new ListCoder<>(tokenCoder),
+        VarUInt.instance, new LZFCoder<>(new ListCoder<>(tokenCoder)),
         output.childPath("sentenceCorpus")
     );
     tokenCorpus = GalagoIO.getIOMapWriter(
-        VarUInt.instance, tokenCoder,
+        VarUInt.instance, new LZFCoder<>(tokenCoder),
         output.childPath("tokenCorpus")
     );
     featureIndex = new DocumentSetWriter<>(
