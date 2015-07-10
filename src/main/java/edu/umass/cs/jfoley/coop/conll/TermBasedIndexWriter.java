@@ -3,15 +3,18 @@ package edu.umass.cs.jfoley.coop.conll;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.IdMaps;
-import edu.umass.cs.ciir.waltz.coders.Coder;
-import edu.umass.cs.ciir.waltz.coders.kinds.*;
+import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
+import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
+import edu.umass.cs.ciir.waltz.coders.kinds.LZFCoder;
+import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMapWriter;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.streaming.StreamingPostingBuilder;
+import edu.umass.cs.ciir.waltz.postings.docset.DocumentSetWriter;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.CoopToken;
-import edu.umass.cs.ciir.waltz.postings.docset.DocumentSetWriter;
+import edu.umass.cs.jfoley.coop.document.CoopTokenList;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
@@ -33,7 +36,7 @@ public class TermBasedIndexWriter implements Closeable {
   final IOMapWriter<Integer, List<Integer>> sentenceToTokens;
   final IOMapWriter<Integer, Integer> tokenToSentence;
   final IOMapWriter<Integer, CoopDoc> documentCorpus;
-  final IOMapWriter<Integer, List<CoopToken>> sentenceCorpus;
+  final IOMapWriter<Integer, CoopTokenList> sentenceCorpus;
   final IOMapWriter<Integer, CoopToken> tokenCorpus;
   final IdMaps.Writer<String> documentNames;
   /**
@@ -62,13 +65,12 @@ public class TermBasedIndexWriter implements Closeable {
         VarUInt.instance, new LZFCoder<>(new KryoCoder<>(CoopDoc.class)),
         output.childPath("documentCorpus")
     );
-    Coder<CoopToken> tokenCoder = new KryoCoder<>(CoopToken.class);
     sentenceCorpus = GalagoIO.getIOMapWriter(
-        VarUInt.instance, new LZFCoder<>(new ListCoder<>(tokenCoder)),
+        VarUInt.instance, new LZFCoder<>(new KryoCoder<>(CoopTokenList.class)),
         output.childPath("sentenceCorpus")
     );
     tokenCorpus = GalagoIO.getIOMapWriter(
-        VarUInt.instance, new LZFCoder<>(tokenCoder),
+        VarUInt.instance, new LZFCoder<>(new KryoCoder<>(CoopToken.class)),
         output.childPath("tokenCorpus")
     );
     featureIndex = new DocumentSetWriter<>(
@@ -124,7 +126,7 @@ public class TermBasedIndexWriter implements Closeable {
     });
 
     sentenceToTokens.put(sentenceId, tokenIds);
-    sentenceCorpus.put(sentenceId, tokens);
+    sentenceCorpus.put(sentenceId, new CoopTokenList(tokens));
   }
 
   private void processTags(CoopToken token, int tokenId) throws IOException {

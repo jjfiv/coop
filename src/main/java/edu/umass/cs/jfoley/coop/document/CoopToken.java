@@ -1,6 +1,8 @@
 package edu.umass.cs.jfoley.coop.document;
 
 import com.esotericsoftware.kryo.DefaultSerializer;
+import com.esotericsoftware.kryo.serializers.CollectionSerializer;
+import com.esotericsoftware.kryo.serializers.MapSerializer;
 import com.esotericsoftware.kryo.serializers.TaggedFieldSerializer;
 import org.lemurproject.galago.utility.Parameters;
 
@@ -19,10 +21,14 @@ public class CoopToken implements Comparable<CoopToken> {
   @TaggedFieldSerializer.Tag(3)
   int document;
   @TaggedFieldSerializer.Tag(4)
+  @MapSerializer.BindMap(keyClass=String.class,valueClass=String.class, keysCanBeNull = false, valuesCanBeNull = false)
   Map<String,String> terms;
   @TaggedFieldSerializer.Tag(5)
+  @CollectionSerializer.BindCollection(elementClass=String.class, elementsCanBeNull = false)
   Set<String> indicators;
+
   @TaggedFieldSerializer.Tag(6)
+  @CollectionSerializer.BindCollection(elementClass=String.class, elementsCanBeNull = false)
   Set<String> enclosingTags;
 
   public CoopToken() {

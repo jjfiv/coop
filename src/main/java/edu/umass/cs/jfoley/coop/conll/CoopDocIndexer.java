@@ -3,6 +3,7 @@ package edu.umass.cs.jfoley.coop.conll;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.archive.ZipArchive;
 import ciir.jfoley.chai.io.archive.ZipArchiveEntry;
+import ciir.jfoley.chai.time.Debouncer;
 import edu.umass.cs.jfoley.coop.coders.KryoCoder;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 
@@ -16,8 +17,7 @@ import java.util.List;
  */
 public class CoopDocIndexer {
   public static void main(String[] args) throws IOException {
-
-    Directory output = new Directory("clue_pre4.index");
+    Directory output = new Directory("clue_pre5.index");
     List<File> inputZips = new ArrayList<>();
     List<File> candidates = Directory.Read(".").children();
     for (File candidate : candidates) {
@@ -27,6 +27,8 @@ public class CoopDocIndexer {
     }
     KryoCoder<CoopDoc> coder = new KryoCoder<>(CoopDoc.class);
 
+    Debouncer msg = new Debouncer(1000);
+
     long startTime = System.currentTimeMillis();
     try (TermBasedIndexWriter builder = new TermBasedIndexWriter(output)) {
       for (File inputZip : inputZips) {
@@ -35,9 +37,12 @@ public class CoopDocIndexer {
           for (int i = 0; i < listEntries.size(); i++) {
             ZipArchiveEntry entry = listEntries.get(i);
             CoopDoc doc = coder.read(entry.getInputStream());
-            System.err.println(i+"/"+listEntries.size()+" "+doc.getName());
+            if(msg.ready()) {
+              System.err.println(i + "/" + listEntries.size() + " " + doc.getName());
+              System.err.println("# "+msg.estimate(i, listEntries.size()));
+            }
             builder.addDocument(doc);
-            if(i >= 140) break;
+            if(i >= 500) break;
           }
         }
       }

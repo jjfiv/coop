@@ -7,10 +7,9 @@ import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.QuickSort;
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.IdMaps;
-import edu.umass.cs.ciir.waltz.coders.Coder;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
-import edu.umass.cs.ciir.waltz.coders.kinds.ListCoder;
+import edu.umass.cs.ciir.waltz.coders.kinds.LZFCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
@@ -24,6 +23,7 @@ import edu.umass.cs.jfoley.coop.conll.classifier.FeatureVector;
 import edu.umass.cs.jfoley.coop.conll.classifier.SparseBooleanFeatures;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.document.CoopToken;
+import edu.umass.cs.jfoley.coop.document.CoopTokenList;
 import edu.umass.cs.jfoley.coop.index.general.NamespacedLabel;
 
 import java.io.Closeable;
@@ -39,7 +39,7 @@ public class TermBasedIndexReader implements Closeable {
   public final Directory input;
   public final IOMap<Integer, List<Integer>> sentenceToTokens;
   public final IOMap<Integer, Integer> tokenToSentence;
-  public final IOMap<Integer, List<CoopToken>> sentenceCorpus;
+  public final IOMap<Integer, CoopTokenList> sentenceCorpus;
   public final IOMap<Integer, CoopToken> tokenCorpus;
   public final IOMap<Integer, CoopDoc> documentCorpus;
   /**
@@ -65,17 +65,16 @@ public class TermBasedIndexReader implements Closeable {
         VarUInt.instance, VarUInt.instance,
         input.childPath("tokenToSentence")
     );
-    Coder<CoopToken> tokenCoder = new KryoCoder<>(CoopToken.class);
     sentenceCorpus = GalagoIO.openIOMap(
-        VarUInt.instance, new ListCoder<>(tokenCoder),
+        VarUInt.instance, new LZFCoder<>(new KryoCoder<>(CoopTokenList.class)),
         input.childPath("sentenceCorpus")
     );
     tokenCorpus = GalagoIO.openIOMap(
-        VarUInt.instance, tokenCoder,
+        VarUInt.instance, new LZFCoder<>(new KryoCoder<>(CoopToken.class)),
         input.childPath("tokenCorpus")
     );
     documentCorpus  = GalagoIO.openIOMap(
-        VarUInt.instance, new KryoCoder<>(CoopDoc.class),
+        VarUInt.instance, new LZFCoder<>(new KryoCoder<>(CoopDoc.class)),
         input.childPath("documentCorpus")
     );
     featureIndex = new DocumentSetReader<>(
@@ -201,8 +200,8 @@ public class TermBasedIndexReader implements Closeable {
 
   public List<List<CoopToken>> pullSentences(List<Integer> ids) throws IOException {
     ArrayList<List<CoopToken>> data = new ArrayList<>();
-    for (Pair<Integer, List<CoopToken>> kv : sentenceCorpus.getInBulk(ids)) {
-      data.add(kv.getValue());
+    for (Pair<Integer, CoopTokenList> kv : sentenceCorpus.getInBulk(ids)) {
+      data.add(kv.getValue().tokens);
     }
     return data;
   }

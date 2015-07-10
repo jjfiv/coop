@@ -24,7 +24,11 @@ import java.io.OutputStream;
 public class KryoCoder<T> extends Coder<T> {
   // Ditch the lock.
   public static ThreadLocal<Kryo> kryo = new ThreadLocal<Kryo>() {
-    @Override public Kryo initialValue() { return new Kryo(); }
+    @Override public Kryo initialValue() {
+      Kryo kryo = new Kryo();
+      //kryo.setReferences(false);
+      return kryo;
+    }
   };
 
   public final Class<T> encodingClass;
