@@ -1,3 +1,9 @@
+class APISystem {
+
+}
+
+
+
 // Classifiers
 var SingletonAPI = null;
 var API = React.createClass({
