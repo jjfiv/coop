@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
+ * Having this class as a wrapper makes it serialize faster.
  * @author jfoley
  */
 public class CoopTokenList {
