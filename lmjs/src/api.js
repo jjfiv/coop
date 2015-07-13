@@ -1,7 +1,79 @@
-class APISystem {
-
+function now() {
+    return (new Date()).getTime();
 }
 
+class APIRequest {
+    constructor(id, path, request, onDone, onErr) {
+        this.id = id;
+        this.path = path;
+        this.request = request;
+        this.sent = now();
+        this.received = 0;
+        this.onDone = onDone;
+        this.onErr = onErr;
+        this.error = null;
+        this.response = null;
+    }
+    waiting() {
+        return this.received <= 0;
+    }
+    success() {
+        return waiting() || this.error == null;
+    }
+    data() {
+        return this.response;
+    }
+    error() {
+        return this.error;
+    }
+    handleDone(response) {
+        this.response = response;
+        this.received = now();
+        if(this.onDone) {
+            this.onDone(this.response);
+        }
+    }
+    handleError(error) {
+        this.error = error;
+        this.received = now();
+        if(this.onErr) {
+            this.onErr(this);
+        }
+    }
+}
+
+var _API = null;
+class APISystem {
+    constructor() {
+        console.assert(_API == null);
+        _API = this;
+        this.requests = [];
+        this.nextId = 0;
+    }
+    post(path, input, onDone, onErr) {
+        if(!onErr) {
+            onErr = standardErrorHandler;
+        }
+        let opts = {
+            url: path,
+            type: "POST",
+            data: JSON.stringify(input),
+            processData: false,
+            contentType: "application/json",
+            dataType: "json"
+        };
+
+        let req = new APIRequest(this.nextId++, path, input, onDone, onErr);
+        this.requests.push(req);
+        $.ajax(opts)
+            .done(resp => req.handleDone(resp))
+            .error(err => req.handleError(err));
+    }
+    listTags(callbackFn) {
+        this.post("/api/listTags", {}, callbackFn);
+    }
+}
+_API = new APISystem();
 
 
 // Classifiers

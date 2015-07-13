@@ -56,14 +56,10 @@ var TagsAvailable = React.createClass({
         }
     },
     componentDidMount() {
-        EVENTS.register('listTagsResponse', this.onListTags);
-        EVENTS.signal('listTagsRequest');
+        _API.listTags(this.onListTags);
     },
-    componentWillUnmount() {
-        EVENTS.unregister('listTagsResponse', this.onListTags);
-    },
-    onListTags(tags) {
-        this.setState({tags: tags});
+    onListTags(response) {
+        this.setState({tags: response.tags});
     },
     handleChange(evt) {
         this.setState({filter: evt.target.value.toLowerCase()});
