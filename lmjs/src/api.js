@@ -45,8 +45,6 @@ class APIRequest {
 var _API = null;
 class APISystem {
     constructor() {
-        console.assert(_API == null);
-        _API = this;
         this.requests = [];
         this.nextId = 0;
     }
@@ -78,79 +76,80 @@ _API = new APISystem();
 
 // Classifiers
 var SingletonAPI = null;
-var API = React.createClass({
+
+class API extends React.Component {
     componentDidMount() {
         console.assert(SingletonAPI == null);
         SingletonAPI = this;
-        EVENTS.register('updateClassifier', this.sendUpdate);
-        EVENTS.register('listClassifiers', this.sendList);
-        EVENTS.register('rankByClassifier', this.sendRankByClassifier);
+        EVENTS.register('updateClassifier', this.sendUpdate.bind(this));
+        EVENTS.register('listClassifiers', this.sendList.bind(this));
+        EVENTS.register('rankByClassifier', this.sendRankByClassifier.bind(this));
 
-        EVENTS.register('searchSentences', this.sendSearchSentences);
-        EVENTS.register('pullSentences', this.sendPullSentences);
-        EVENTS.register('listTagsRequest', this.sendListTags);
-        EVENTS.register('createNewClassifier', this.sendCreateNewClassifier);
+        EVENTS.register('searchSentences', this.sendSearchSentences.bind(this));
+        EVENTS.register('pullSentences', this.sendPullSentences.bind(this));
+        EVENTS.register('listTagsRequest', this.sendListTags.bind(this));
+        EVENTS.register('createNewClassifier', this.sendCreateNewClassifier.bind(this));
 
         // Doesn't make sense for one person to request this since everyone wants it.
         EVENTS.signal('listClassifiers');
-    },
+    }
     sendUpdate(request) {
         this.refs.update.sendNewRequest(request);
-    },
+    }
     onUpdate(data) {
         EVENTS.signal('classifier', data);
-    },
+    }
     sendList(request) {
         this.refs.list.sendNewRequest(request || {});
-    },
+    }
     onList(data) {
         EVENTS.signal('classifiers', data.classifiers);
-    },
+    }
     sendCreateNewClassifier(data) {
         if(data && data.name) {
             this.refs['createNewClassifier'].sendNewRequest(data);
         } else {
             throw new Error(data);
         }
-    },
+    }
     onCreateNewClassifier(data) {
         // push as a data update
         EVENTS.signal('classifier', data);
         // and as a complete
         EVENTS.signal('createNewClassifierResponse', data);
-    },
+    }
     sendListTags() {
         this.refs.listTags.sendNewRequest({});
-    },
+    }
     onListTags(data) {
         EVENTS.signal('listTagsResponse', data.tags);
-    },
+    }
     sendSearchSentences(request) {
         if(_.isEmpty(request.query.trim())) {
             // skip silly queries:
             return;
         }
         this.refs.search.sendNewRequest(request);
-    },
+    }
     onSearchSentences(response) {
         EVENTS.signal('searchSentencesResponse', response);
-    },
+    }
     sendPullSentences(request) {
         console.assert(_.isArray(request));
         this.refs.pullSentences.sendNewRequest({sentences: request});
-    },
+    }
     onPullSentences(response) {
         EVENTS.signal('pullSentencesResponse', response.sentences);
-    },
+    }
     sendRankByClassifier(request) {
         console.log('sendRankByClassifier: '+request);
         console.log(request);
         this.refs['rankByClassifier'].sendNewRequest(request);
-    },
+    }
     onRankByClassifier(response) {
         console.log(response);
         EVENTS.signal('rankByClassifierResponse', response);
-    },
+    }
     render() {
         var quiet = true;
         return <div>
@@ -198,4 +197,4 @@ var API = React.createClass({
                 url={"/api/pullSentences"} />
             </div>;
     }
-});
+}

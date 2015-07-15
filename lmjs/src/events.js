@@ -14,6 +14,7 @@ function createEventBus() {
         mapped_events[event_string] = _.without(mapped_events[event_string], listenerFn);
     };
     event_bus.signal= function(event_string, props) {
+        console.log(event_string, props);
         _.forEach(_.get(mapped_events, event_string, []), function(listenerFn) {
             listenerFn(props, event_string);
         });
