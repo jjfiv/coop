@@ -21,11 +21,11 @@ function parseMicrodataTag(tagStr) {
     return obj;
 }
 
-var TagView = React.createClass({
+class TagView extends React.Component {
     render() {
         var tag = this.props.tag;
         if(!tag) {
-           return <span className={"error"}>Error</span>;
+            return <span className={"error"}>Error</span>;
         }
         var mtag = parseMicrodataTag(tag);
         if(mtag) {
@@ -33,9 +33,9 @@ var TagView = React.createClass({
         }
         return <span>{tag}</span>;
     }
-});
+}
 
-var MicrodataTagView = React.createClass({
+class MicrodataTagView extends React.Component {
     render() {
         var data = this.props.data;
         var cat = <a key={"cat"} href={"http://schema.org/"+data.category}>{data.category}</a>;
@@ -46,24 +46,25 @@ var MicrodataTagView = React.createClass({
             return <span>{cat}</span>;
         }
     }
-});
+}
 
-var TagsAvailable = React.createClass({
-    getInitialState() {
-        return {
+class TagsAvailable extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
             tags: null,
-            filter: '',
+            filter: ''
         }
-    },
+    }
     componentDidMount() {
-        _API.listTags(this.onListTags);
-    },
+        _API.listTags(this.onListTags.bind(this));
+    }
     onListTags(response) {
         this.setState({tags: response.tags});
-    },
+    }
     handleChange(evt) {
         this.setState({filter: evt.target.value.toLowerCase()});
-    },
+    }
     render() {
         if(this.state.tags == null) {
             return <span>Loading...</span>;
@@ -99,5 +100,5 @@ var TagsAvailable = React.createClass({
             return <div className={"content"}>{items}</div>;
         }
     }
-});
+}
 

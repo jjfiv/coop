@@ -7,6 +7,3 @@ lm.js: $(SRC)
 watch:
 	babel src --watch --out-file lm.js -s
 
-serve:
-	python2 -m SimpleHTTPServer
-
