@@ -21,6 +21,8 @@ import java.util.Objects;
  */
 public class CoopDocIndexer {
   public static void main(String[] args) throws IOException {
+    System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "10");
+
     Directory output = new Directory("clue_pre1.index");
     List<File> inputZips = new ArrayList<>();
     List<File> candidates = Directory.Read(".").children();
@@ -56,6 +58,8 @@ public class CoopDocIndexer {
     long endTime = System.currentTimeMillis();
     System.out.println("Total time: "+(endTime - startTime)+"ms.");
     // 27.6s i>=50
+    // 17.2s i>=50 with threaded Sorter
+    // parse: 189,280ms, total: 239,167ms i>=500
 
     try (TermBasedIndexReader reader = new TermBasedIndexReader(output)) {
       PostingMover<Integer> mover = reader.sentencesByTerms.get(new NamespacedLabel("lemmas", "the"));
