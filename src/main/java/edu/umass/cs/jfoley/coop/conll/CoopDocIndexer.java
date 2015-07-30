@@ -17,6 +17,8 @@ import java.util.List;
  */
 public class CoopDocIndexer {
   public static void main(String[] args) throws IOException {
+    System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "10");
+
     Directory output = new Directory("clue_pre5.index");
     List<File> inputZips = new ArrayList<>();
     List<File> candidates = Directory.Read(".").children();
@@ -42,7 +44,7 @@ public class CoopDocIndexer {
               System.err.println("# "+msg.estimate(i, listEntries.size()));
             }
             builder.addDocument(doc);
-            if(i >= 50) break;
+            if(i >= 500) break;
           }
         }
       }
@@ -52,6 +54,8 @@ public class CoopDocIndexer {
     long endTime = System.currentTimeMillis();
     System.out.println("Total time: "+(endTime - startTime)+"ms.");
     // 27.6s i>=50
+    // 17.2s i>=50 with threaded Sorter
+    // parse: 189,280ms, total: 239,167ms i>=500
 
   }
 }
