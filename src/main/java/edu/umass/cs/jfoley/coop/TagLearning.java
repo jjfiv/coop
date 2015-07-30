@@ -135,7 +135,7 @@ public class TagLearning {
                 classNums.put(name, 0);
               }
 
-              Set<Integer> fset = new HashSet();
+              Set<Integer> fset = new HashSet<>();
               for (String fname : coopToken.getIndicators()) {
                 int id = Collections.binarySearch(ids, fname.toLowerCase());
                 if(id < 0) continue;

@@ -48,7 +48,7 @@ public class CoopDocIndexer {
               System.err.println("# "+msg.estimate(i, listEntries.size()));
             }
             builder.addDocument(doc);
-            if(i >= 10) break;
+            if(i >= 200) break;
           }
         }
       }
