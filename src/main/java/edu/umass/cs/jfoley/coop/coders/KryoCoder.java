@@ -54,7 +54,7 @@ public class KryoCoder<T> extends Coder<T> {
     kryo.get().writeObjectOrNull(output, obj, encodingClass);
 
     ByteArrayOutputStream total = new ByteArrayOutputStream();
-    VarUInt.instance.write(total, output.position());
+    VarUInt.instance.writePrim(total, output.position());
     total.write(output.getBuffer(), 0, output.position());
     return new ByteArray(total.toByteArray());
   }
@@ -66,7 +66,7 @@ public class KryoCoder<T> extends Coder<T> {
       kryo.get().writeObjectOrNull(output, elem, encodingClass);
 
       // short-cut for efficiency
-      VarUInt.instance.write(out, output.position());
+      VarUInt.instance.writePrim(out, output.position());
       out.write(output.getBuffer(), 0, output.position());
     } catch (IOException | KryoException e) {
       throw new CoderException(e, this.getClass());
