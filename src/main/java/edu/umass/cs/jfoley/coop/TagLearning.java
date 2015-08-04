@@ -34,7 +34,7 @@ public class TagLearning {
   public static void main(String[] args) throws IOException {
     TagLearning dataCollector = new TagLearning();
 
-    Directory output = new Directory("offline-learning");
+    Directory output = new Directory("offline-learning-2");
     List<File> inputZips = new ArrayList<>();
     List<File> candidates = Directory.Read(".").children();
     for (File candidate : candidates) {
@@ -135,7 +135,7 @@ public class TagLearning {
                 classNums.put(name, 0);
               }
 
-              Set<Integer> fset = new HashSet();
+              Set<Integer> fset = new HashSet<>();
               for (String fname : coopToken.getIndicators()) {
                 int id = Collections.binarySearch(ids, fname.toLowerCase());
                 if(id < 0) continue;
@@ -183,11 +183,11 @@ public class TagLearning {
         prop = StrUtil.takeAfter(usefulTag, ":");
       }
 
-      output.add(Pair.of("obj", obj));
+      output.add(Pair.of("label", usefulTag));
       if(prop != null) {
         output.add(Pair.of("prop", prop));
       } else {
-        output.add(Pair.of("label", usefulTag));
+        output.add(Pair.of("obj", obj));
       }
     }
 
