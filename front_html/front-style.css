@@ -87,3 +87,10 @@ textarea {
     height: 10em;
     display:block;
 }
+
+.sentence:hover {
+    background-color: #eee;
+}
+.token:hover {
+    background-color: #ddd;
+}

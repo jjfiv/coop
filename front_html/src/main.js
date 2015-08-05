@@ -162,13 +162,7 @@ class QueryInterface extends React.Component {
     changeQuery(text) {
         this.setState({query: text});
     }
-    setStateVar(name, value) {
-        let delta = {};
-        delta[name] = value;
-        this.setState(delta)
-    }
     render() {
-
         return <div>
             <div>Phrase Search Interface</div>
             <label>Query
@@ -179,11 +173,11 @@ class QueryInterface extends React.Component {
                     onChange={(evt) => this.changeQuery(evt.target.value)}
                     /></label>
 
-            <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setStateVar("termKind", x)} />
+            <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setState({termKind: x})} />
             <div>
-                <IntegerInput onChange={(x) => this.setStateVar("leftWidth", x)}
+                <IntegerInput onChange={(x) => this.setState({leftWidth: x})}
                               min={0} max={20} start={this.state.leftWidth} label="Terms on Left:" />
-                <IntegerInput onChange={(x) => this.setStateVar("rightWidth", x)}
+                <IntegerInput onChange={(x) => this.setState({rightWidth: x})}
                               min={0} max={20} start={this.state.rightWidth} label="Terms on Right:" />
             </div>
             <label>Rank by PMI: <input type="checkbox" checked={this.state.rankByPMI}  onChange={() => this.togglePMIRank()} /></label>
@@ -210,11 +204,6 @@ class DocSearchInterface extends React.Component {
             response: null
         }
     }
-    setStateVar(name, value) {
-        let delta = {};
-        delta[name] = value;
-        this.setState(delta)
-    }
     searching() {
         return this.state.request != null;
     }
@@ -234,7 +223,7 @@ class DocSearchInterface extends React.Component {
         });
         postJSON("/api/matchDocuments",
             request,
-            (data) => {this.setStateVar('response', data)});
+            (data) => {this.setState({response: data})});
     }
     render() {
         let results = "";
@@ -244,9 +233,9 @@ class DocSearchInterface extends React.Component {
 
         return <div>
             <div>Document Search</div>
-            <textarea value={this.state.query} onChange={(x) => this.setStateVar('query', x.target.value) } />
-            <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setStateVar("termKind", x)} />
-            <SelectWidget opts={OperationKinds} selected={this.state.operation} onChange={(x) => this.setStateVar("operation", x)} />
+            <textarea value={this.state.query} onChange={(x) => this.setState({query: x.target.value}) } />
+            <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setState({termKind: x})} />
+            <SelectWidget opts={OperationKinds} selected={this.state.operation} onChange={(x) => this.setState({operation: x})} />
 
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>
             <DocumentResults response={this.state.response} />
@@ -299,14 +288,25 @@ class DocViewInterface extends React.Component {
                 case "-RRB-": return ")";
                 default: return x;
             }
-        }).map((token) => {
-            return token+" ";
+        }).map((token, idx) => {
+            if(_.startsWith(token, "______")) {
+                return <hr key={idx} id={"t"+idx} />
+            }
+            return <span className={"token"} key={idx} id={"t"+idx}>{token+" "}</span>;
         }).value();
 
+        var sentences = _.map(doc.tags.sentence, (extent) => {
+            var begin = extent[0];
+            var end = extent[1];
+            return <span className={"sentence"}>{
+                _.slice(tokens, begin, end)
+            }</span>;
+        });
 
         return <div>
             <label>Document #{doc.identifier}: {doc.name}</label>
-            <div>{strjoin(tokens)}</div>
+            <div>{sentences}</div>
         </div>
     }
 }
+

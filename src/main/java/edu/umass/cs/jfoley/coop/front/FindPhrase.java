@@ -2,11 +2,13 @@ package edu.umass.cs.jfoley.coop.front;
 
 import ciir.jfoley.chai.Timing;
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
@@ -42,13 +44,20 @@ public class FindPhrase extends CoopIndexServerFn {
     output.put("queryFrequency", hits.right.size());
     output.put("queryTime", hits.left);
 
+    TIntObjectHashMap<Parameters> hitInfos = new TIntObjectHashMap<>();
     // build slices from the results, based on arguments to this file:
-    List<String> slices = new ArrayList<>();
-    for (DocumentResult<Integer> hit : ListFns.slice(hits.right, offset, offset+count)) {
-      slices.add(hit.document+"#"+hit.value);
+    for (DocumentResult<Integer> hit : ListFns.slice(hits.right, offset, offset + count)) {
+      Parameters doc = Parameters.create();
+      doc.put("id", hit.document);
+      doc.put("loc", hit.value);
+      hitInfos.put(hit.document, doc);
     }
 
-    output.put("results", slices);
+    for (Pair<Integer, String> kv : index.lookupNames(new IntList(hitInfos.keys()))) {
+      hitInfos.get(kv.left).put("name", kv.right);
+    }
+
+    output.put("results", new ArrayList<>(hitInfos.valueCollection()));
     return output;
   }
 }

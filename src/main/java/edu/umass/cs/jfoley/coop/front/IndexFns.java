@@ -19,8 +19,10 @@ public class IndexFns {
     methods.put("indexMeta", (p) -> coopIndex.getMetadata());
     methods.put("findKWIC", new FindKWIC(coopIndex));
     methods.put("findPhrase", new FindPhrase(coopIndex));
+
     // find a document set by AND or OR:
     methods.put("matchDocuments", new MatchDocuments(coopIndex));
+
     methods.put("rankTermsPMI", new RankTermsPMI(coopIndex));
     methods.put("pullDocument", new PullDocumentFn(coopIndex));
     methods.put("tokenize", new Tokenize(coopIndex));
