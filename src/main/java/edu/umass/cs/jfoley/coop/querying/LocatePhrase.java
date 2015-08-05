@@ -51,7 +51,7 @@ public class LocatePhrase {
     List<DocumentResult<Integer>> hits = new ArrayList<>();
 
     QueryEvalEngine.EvaluateOneToMany(
-        new AllOfMover(phraseMovers),
+        new AllOfMover<>(phraseMovers),
         new PhraseNode(features),
         hits::add);
 
