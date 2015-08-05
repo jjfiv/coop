@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.front;
 
+import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.errors.NotHandledNow;
 import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
@@ -13,8 +14,7 @@ import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author jfoley
@@ -63,7 +63,15 @@ public class MatchDocuments extends CoopIndexServerFn {
     IntList hits = new IntList();
     operationMover.execute(hits::add);
 
-    output.put("hits", hits);
+    List<Parameters> results = new ArrayList<>();
+    for (Pair<Integer, String> kv : index.lookupNames(hits)) {
+      Parameters doc = Parameters.create();
+      doc.put("id", kv.left);
+      doc.put("name", kv.right);
+      results.add(doc);
+    }
+
+    output.put("results", results);
     return output;
   }
 }

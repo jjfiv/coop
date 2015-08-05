@@ -22,6 +22,7 @@ public class IndexFns {
     // find a document set by AND or OR:
     methods.put("matchDocuments", new MatchDocuments(coopIndex));
     methods.put("rankTermsPMI", new RankTermsPMI(coopIndex));
+    methods.put("pullDocument", new PullDocumentFn(coopIndex));
     methods.put("tokenize", new Tokenize(coopIndex));
   }
 
@@ -39,4 +40,22 @@ public class IndexFns {
     }
   }
 
+  private static class PullDocumentFn extends CoopIndexServerFn {
+    public PullDocumentFn(IndexReader coopIndex) {
+      super(coopIndex);
+    }
+
+    @Override
+    public Parameters handleRequest(Parameters input) throws IOException, SQLException {
+      CoopDoc doc;
+      if(input.containsKey("id")) {
+        doc = index.getDocument(input.getInt("id"));
+      } else {
+        doc = index.getDocument(input.getString("name"));
+      }
+      if(doc == null) return Parameters.create();
+      doc.setRawText(null);
+      return doc.toJSON();
+    }
+  }
 }

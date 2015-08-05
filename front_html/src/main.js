@@ -4,13 +4,49 @@ function strjoin(strs) {
     });
 }
 
+function getURLParams() {
+    var match,
+        pl = /\+/g, // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function(s) {
+            return decodeURIComponent(s.replace(pl, " "));
+        },
+        query = window.location.search.substring(1);
+
+    var urlParams = {};
+    while ((match = search.exec(query))) {
+        var key = decode(match[1]);
+        var value = decode(match[2]);
+        if (value === "null") {
+            value = null;
+        } else if (value === "true") {
+            value = true;
+        } else if (value === "false") {
+            value = false;
+        }
+        // it's possible there are multiple values for things such as labels
+        if (_.isUndefined(urlParams[key])) {
+            urlParams[key] = value;
+        } else {
+            // urlParams[key] += "&" + key + "=" + value;
+            urlParams[key] += "," + value;
+        }
+    }
+    return urlParams;
+}
+
 class Main {
+    static render(what) {
+        React.render(what,document.getElementById("queryInterface"));
+    }
     static index() {
-        console.log("Hello World!");
-        React.render(<QueryInterface />, document.getElementById("queryInterface"));
+        Main.render(<QueryInterface />);
     }
     static docs() {
-        React.render(<DocSearchInterface />, document.getElementById("queryInterface"));
+        Main.render(<DocSearchInterface />);
+    }
+    static doc() {
+        Main.render(<DocViewInterface urlParams={getURLParams()} />);
     }
 }
 
@@ -77,7 +113,7 @@ class IntegerInput extends React.Component {
 class SelectWidget extends React.Component {
     render() {
         let ropts = _.map(this.props.opts, (val, key) => {
-            return <option id={key} value={key}>{val}</option>
+            return <option key={key} value={key}>{val}</option>
         });
         return <select onChange={(evt) => this.props.onChange(evt.target.value)}
                        value={this.props.selected}
@@ -90,6 +126,20 @@ const TermKindOpts = {
     "tokens": "Tokens"
 };
 
+function standardErrorHandler(err) {
+    console.error(err);
+}
+function postJSON(path, input, onDone, onErr) {
+    $.ajax({
+        url: path,
+        type: "POST",
+        data: JSON.stringify(input),
+        processData: false,
+        contentType: "application/json",
+        dataType: "json"
+    }).done(onDone).error(onErr || standardErrorHandler);
+}
+
 class QueryInterface extends React.Component {
     constructor(props) {
         super(props);
@@ -99,7 +149,8 @@ class QueryInterface extends React.Component {
             leftWidth: 1,
             rightWidth: 1,
             termKind: "lemmas",
-            query: ""
+            query: "",
+            request: null
         }
     }
     onFind(evt) {
@@ -152,8 +203,11 @@ class DocSearchInterface extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            "termKind": "lemmas",
-            "operation": "OR"
+            termKind: "lemmas",
+            query: "the president",
+            operation: "OR",
+            request: null,
+            response: null
         }
     }
     setStateVar(name, value) {
@@ -161,18 +215,98 @@ class DocSearchInterface extends React.Component {
         delta[name] = value;
         this.setState(delta)
     }
+    searching() {
+        return this.state.request != null;
+    }
     onFind(evt) {
-        console.log(evt);
+        // one request at a time...
+        if(this.searching()) return;
+
+        let request = {};
+        request.termKind = this.state.termKind;
+        request.query = this.state.query;
+        request.operation = this.state.operation;
+
+        // clear results:
+        this.setState({
+            request: request,
+            response: null
+        });
+        postJSON("/api/matchDocuments",
+            request,
+            (data) => {this.setStateVar('response', data)});
     }
     render() {
+        let results = "";
+        if(this.state.response) {
+            results = <pre key="json">{JSON.stringify(this.state.response)}</pre>;
+        }
+
         return <div>
             <div>Document Search</div>
-            <textarea />
+            <textarea value={this.state.query} onChange={(x) => this.setStateVar('query', x.target.value) } />
             <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setStateVar("termKind", x)} />
             <SelectWidget opts={OperationKinds} selected={this.state.operation} onChange={(x) => this.setStateVar("operation", x)} />
 
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>
-            <pre>{JSON.stringify(this.state)}</pre>
+            <DocumentResults response={this.state.response} />
             </div>
+    }
+}
+
+class DocumentResults extends React.Component {
+    render() {
+        let resp = this.props.response;
+        if(resp == null) {
+            return <span />;
+        }
+
+        let results = _(resp.results).map(function(obj) {
+            return <li key={obj.id}><a href={"/doc.html?id="+obj.id}>{"#"+obj.id+" "+obj.name}</a></li>
+        }).value();
+
+        return <div>
+            <label>Query Terms: <i>{strjoin(resp.queryTerms)}</i></label>
+            <ul>{results}</ul>
+            </div>;
+    }
+}
+
+class DocViewInterface extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            docId: parseInt(props.urlParams.id) || 0,
+            response: null
+        }
+    }
+    componentDidMount() {
+        postJSON("/api/pullDocument",
+            {id: this.state.docId},
+            (data) => this.setState({response: data}));
+    }
+    render() {
+        let doc = this.state.response;
+        if (doc == null) {
+            return <div>Loading...</div>;
+        }
+
+        let tokens = _(doc.terms.tokens).map((x) => {
+            switch(x) {
+                case "-LSB-": return "[";
+                case "-RSB-": return "]";
+                case "-LRB-": return "(";
+                case "-RRB-": return ")";
+                default: return x;
+            }
+        }).map((token) => {
+            return token+" ";
+        }).value();
+
+
+        return <div>
+            <label>Document #{doc.identifier}: {doc.name}</label>
+            <div>{strjoin(tokens)}</div>
+        </div>
     }
 }
