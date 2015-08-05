@@ -30,6 +30,20 @@ var SentenceView = React.createClass({
     }
 });
 
+class SentenceResult extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            tokens: props.tokens
+        }
+    }
+    render() {
+        return <div>{
+            this.state.tokens.map((tok,idx) => <pre id={idx}>{JSON.stringify(tok)}</pre>)
+        }</div>;
+    }
+}
+
 /** This starts off with the sentence that is the current hit, but it may request more sentences on either side: */
 var ResultView = React.createClass({
     getInitialState () {
@@ -155,14 +169,12 @@ var DocumentView = React.createClass({
     }
 });
 
-var SearchResults = React.createClass({
+class SearchResults extends React.Component {
     render() {
-        var items = _.map(this.props.results, function(item, result_idx) {
-            return <ResultView key={result_idx} tokens={item} />
-            //return <SentenceView key={result_idx} tokens={item} />;
-            //return <pre key={result_idx}>{JSON.stringify(item)}</pre>;
-        });
+        console.log(this.props.results);
+        var items = _.map(this.props.results,
+            (item, result_idx) => <SentenceResult key={result_idx} tokens={item} />);
         return <div>{items}</div>;
     }
-});
+}
 

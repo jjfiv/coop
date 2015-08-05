@@ -52,7 +52,7 @@ public class LabelMaker implements WebHandler, Closeable {
 
   public static void main(String[] args) throws IOException, WebServerException {
     //String index = "./CoNLL03.eng.train.run.stoken.index";
-    String index = "./clue_pre5.index";
+    String index = "./clue_pre1.index";
 
     LabelMaker lm = new LabelMaker(Directory.Read(index));
     lm.start(1234);
@@ -77,8 +77,19 @@ public class LabelMaker implements WebHandler, Closeable {
   @Override
   public void handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
     String method = request.getMethod();
+    // allow other domains to use this from JS
+
     boolean GET = method.equals("GET");
     boolean POST = method.equals("POST");
+    boolean OPTIONS = method.equals("OPTIONS");
+    if(OPTIONS) {
+      response.addHeader("Access-Control-Allow-Origin", "*");
+      response.addHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+      response.addHeader("Access-Control-Allow-Headers", "*");
+      response.setStatus(200);
+      return;
+    }
+
 
     String path = request.getPathInfo();
 
@@ -98,6 +109,7 @@ public class LabelMaker implements WebHandler, Closeable {
     }
 
     if(path.startsWith("/api/")) {
+      response.addHeader("Access-Control-Allow-Origin", "*");
       handleAPI(request, response, method, path);
       return;
     }
@@ -111,12 +123,14 @@ public class LabelMaker implements WebHandler, Closeable {
       contentType = "text/html";
     } else if(path.endsWith(".js")) {
       contentType = "application/javascript";
+    } else if(path.endsWith(".js.map")) {
+      contentType = "text/plain";
     } else if(path.endsWith(".css")) {
       contentType = "text/css";
     }
 
     if(contentType != null) {
-      Directory dir = Directory.FirstExisting("coop/src/main/resources", "src/main/resources");
+      Directory dir = Directory.FirstExisting("coop/lmjs", "lmjs");
       InputStream is;
       if(dir == null) {
         is = IO.resourceStream(path);
@@ -163,8 +177,6 @@ public class LabelMaker implements WebHandler, Closeable {
     try {
       response.setStatus(200);
       response.setContentType("application/json");
-      // allow other domains to use this from JS
-      response.addHeader("Access-Control-Allow-Origin", "*");
 
       PrintWriter out = response.getWriter();
       long start = System.currentTimeMillis();

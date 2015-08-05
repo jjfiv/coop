@@ -1,21 +1,22 @@
-var HomePage = React.createClass({
+class HomePage extends React.Component {
     render() {
         return <div>
             <strong>LabelMaker</strong> is a tool that helps you explore and label interesting pieces of data in text collections.
             </div>;
     }
-});
+}
 
-var KeyValueEditable = React.createClass({
-    getInitialState() {
-        return {
-            editing: this.props.editByDefault,
+class KeyValueEditable extends React.Component{
+    constructor(props) {
+        super(props);
+        this.state = {
+            editing: props.editByDefault,
             showEditButton: false
         };
-    },
+    }
     startEditing() {
         this.setState({editing: true});
-    },
+    }
     handleKey(evt) {
         if(evt.which == 13) {
             this.setState({editing: false});
@@ -28,41 +29,43 @@ var KeyValueEditable = React.createClass({
 
             this.props.onEditValue(this.props.propName, newValue);
         }
-    },
+    }
     onMouseOver() {
         if(!this.state.editing) { this.setState({showEditButton: true}); }
-    },
+    }
     onMouseOut() {
         if(!this.state.editing) { this.setState({showEditButton: false}); }
-    },
+    }
     render() {
         var valueElement = (!this.state.editing) ?
             <span>{(this.props.value || "NONE") +" "}<Button visible={this.state.showEditButton} onClick={this.startEditing} label={"Edit"} /></span> :
-            <input ref={"newValue"} onKeyPress={this.handleKey} type={"text"} defaultValue={this.props.value || ""} />;
+            <input ref={"newValue"} onKeyPress={this.handleKey.bind(this)} type={"text"} defaultValue={this.props.value || ""} />;
 
-            return <label onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut} className={"edit"}>
+            return <label onMouseOver={this.onMouseOver.bind(this)} onMouseOut={this.onMouseOut.bind(this)} className={"edit"}>
                 <span>{this.props.label + ": "}</span>
                 {valueElement}</label>;
     }
-});
+}
 
-var SearchResultsPage = React.createClass({
-    getInitialState() {
-        if(this.props.param.query) {
-            EVENTS.async_signal('searchSentences', this.props.param);
+class SearchResultsPage extends React.Component {
+    constructor(props) {
+        super(props);
+        if(props.param.query) {
+            EVENTS.async_signal('searchSentences', props.param);
         }
-        return {waiting: false, response: null};
-    },
+        this.state = {waiting: false, response: null};
+    }
     componentDidMount() {
-        EVENTS.register("searchSentences", this.onStartSearch);
-        EVENTS.register('searchSentencesResponse', this.onSentences);
-    },
+        EVENTS.register("searchSentences", this.onStartSearch.bind(this));
+        EVENTS.register('searchSentencesResponse', this.onSentences.bind(this));
+    }
     onStartSearch() {
         this.setState({waiting: true});
-    },
+    }
     onSentences(response) {
+        console.log(response);
         this.setState({waiting: false, response: response});
-    },
+    }
     render() {
         if(this.state.response) {
             var response = this.state.response;
@@ -76,11 +79,12 @@ var SearchResultsPage = React.createClass({
             </div>;
         }
     }
-});
+}
 
-var RankByClassifierPage = React.createClass({
-    getInitialState() {
-        return {
+class RankByClassifierPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
             classifierId: null,
             classifier: null,
             count: 100,
@@ -88,24 +92,24 @@ var RankByClassifierPage = React.createClass({
             features: 100,
             response: null
         };
-    },
+    }
     componentDidMount() {
-        EVENTS.register('classifier', this.onUpdateClassifier);
-        EVENTS.register('classifiers', this.onGetClassifiers);
-        EVENTS.register('rankByClassifierResponse', this.onRankedTokens);
-    },
+        EVENTS.register('classifier', this.onUpdateClassifier.bind(this));
+        EVENTS.register('classifiers', this.onGetClassifiers.bind(this));
+        EVENTS.register('rankByClassifierResponse', this.onRankedTokens.bind(this));
+    }
     onUpdateClassifier(data) {
         if(data.id != this.state.classifierId) {
             return;
         }
         this.setState({classifier: data});
-    },
+    }
     onGetClassifiers(data) {
-        _.forEach(data, this.onUpdateClassifier);
-    },
+        _.forEach(data, cl => this.onUpdateClassifier(cl));
+    }
     onRankedTokens(data) {
         this.setState({response: data});
-    },
+    }
     onChangeClassifier(id) {
         this.setState({classifierId: id, response: null});
 
@@ -116,7 +120,7 @@ var RankByClassifierPage = React.createClass({
             features: this.state.features,
             classifier: id
         });
-    },
+    }
     componentWillReceiveProps(newProps) {
         if(newProps.param.p == 'labelResults' && newProps.param.id) {
             var newId = parseInt(newProps.param.id);
@@ -124,7 +128,7 @@ var RankByClassifierPage = React.createClass({
                 this.onChangeClassifier(newId);
             }
         }
-    },
+    }
     render() {
         var items = [];
 
@@ -167,19 +171,20 @@ var RankByClassifierPage = React.createClass({
 
         return <div>{items}</div>;
     }
-});
+}
 
-var Content = React.createClass({
-    getInitialState() {
-        return this.props.defaultContent;
-    },
+class Content extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = props.defaultContent;
+    }
     componentDidMount() {
         History.Adapter.bind(window, 'statechange', function() {
             EVENTS.signal('changeContent', getURLParams());
         });
-        EVENTS.register('changeContent', this.onChangeContent);
+        EVENTS.register('changeContent', this.onChangeContent.bind(this));
         EVENTS.signal('changeContent', this.props.defaultContent);
-    },
+    }
     onChangeContent(content) {
         pushURLParams(content);
         if(!_.isUndefined(content.query)) {
@@ -187,10 +192,10 @@ var Content = React.createClass({
         }
         this.setState(content);
         EVENTS.signal('changePage', this.getPage());
-    },
+    }
     getPage() {
         return this.state.p || "home";
-    },
+    }
     render() {
         var page = this.getPage();
 
@@ -218,7 +223,7 @@ var Content = React.createClass({
         }
         return <div>{items}</div>;
     }
-});
+}
 
 $(function() {
     React.render(<Content defaultContent={getURLParams()} />, document.getElementById("content"));
