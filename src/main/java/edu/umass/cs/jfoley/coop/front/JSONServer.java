@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jfoley
@@ -33,6 +34,7 @@ public class JSONServer implements WebHandler {
     this.coopIndex = new IndexReader(coopDir);
     this.htmlDir = htmlDir;
 
+    apiMethods = new ConcurrentHashMap<>();
     apiMethods.put("debug", (p) -> p);
   }
 

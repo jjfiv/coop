@@ -204,7 +204,6 @@ public class LabelMaker implements WebHandler, Closeable {
       }
       response.sendError(501, e.getMessage());
     }
-    return;
   }
 
   public static Parameters parseBody(HttpServletRequest req) throws ServerErr {
