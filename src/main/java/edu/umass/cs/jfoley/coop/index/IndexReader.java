@@ -97,16 +97,6 @@ public class IndexReader extends AbstractIndex implements Closeable {
             ));
       }
     }
-    /*for (String termSet : tokenizer.getTermSets()) {
-      positionSets.put(
-          termSet,
-          GalagoIO.openIOMap(
-              CharsetCoders.utf8,
-              new SimplePostingListFormat.PostingCoder<>(new PositionsListCoder()),
-              indexDir.childPath(termSet+".positions")
-          )
-      );
-    }*/
     this.names = GalagoIO.openIdMapsReader(indexDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8);
     this.tags = GalagoIO.openIOMap(
         CharsetCoders.utf8,
@@ -167,6 +157,11 @@ public class IndexReader extends AbstractIndex implements Closeable {
   @Override
   public PostingMover<Integer> getCountsMover(String term) {
     PostingMover<PositionsList> mover = getPositionsMover(term);
+    if(mover == null) return null;
+    return new CountsOfPositionsMover(mover);
+  }
+  public PostingMover<Integer> getCountsMover(String termKind, String queryTerm) {
+    PostingMover<PositionsList> mover = getPositionsMover(termKind, queryTerm);
     if(mover == null) return null;
     return new CountsOfPositionsMover(mover);
   }
@@ -305,4 +300,5 @@ public class IndexReader extends AbstractIndex implements Closeable {
   public Parameters getMetadata() {
     return meta;
   }
+
 }

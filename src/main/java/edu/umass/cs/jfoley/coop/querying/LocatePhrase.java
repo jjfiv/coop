@@ -44,6 +44,10 @@ public class LocatePhrase {
     List<QueryEvalNode<PositionsList>> features = new ArrayList<>();
     for (String phraseTerm : phraseTerms) {
       PostingMover<PositionsList> positionsMover = index.getPositionsMover(phraseTerm);
+      if(positionsMover == null) {
+        System.err.println("Couldn't find: "+phraseTerm);
+        continue;
+      }
       phraseMovers.add(positionsMover);
       features.add(new FeatureQueryNode<>(positionsMover));
     }
