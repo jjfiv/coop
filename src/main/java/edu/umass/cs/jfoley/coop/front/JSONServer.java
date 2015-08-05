@@ -36,6 +36,7 @@ public class JSONServer implements WebHandler {
 
     apiMethods = new ConcurrentHashMap<>();
     apiMethods.put("debug", (p) -> p);
+    IndexFns.setup(coopIndex, apiMethods);
   }
 
   public static void main(String[] args) throws IOException, WebServerException {

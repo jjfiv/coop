@@ -301,4 +301,8 @@ public class IndexReader extends AbstractIndex implements Closeable {
       throw new IndexErrorException(e);
     }
   }
+
+  public Parameters getMetadata() {
+    return meta;
+  }
 }
