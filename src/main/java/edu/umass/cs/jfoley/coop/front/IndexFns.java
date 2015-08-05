@@ -13,6 +13,7 @@ public class IndexFns {
 
     methods.put("indexMeta", (p) -> coopIndex.getMetadata());
     methods.put("findKWIC", new FindKWIC(coopIndex));
+    methods.put("rankTermsPMI", new RankTermsPMI(coopIndex));
   }
 
 }

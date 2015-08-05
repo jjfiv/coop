@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop;
+package edu.umass.cs.jfoley.coop.front;
 
 import ciir.jfoley.chai.Timing;
 import ciir.jfoley.chai.collections.Pair;
@@ -6,49 +6,31 @@ import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.util.Comparing;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.errors.FatalError;
-import ciir.jfoley.chai.io.Directory;
-import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
+import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import gnu.trove.map.hash.TObjectIntHashMap;
-import org.lemurproject.galago.core.parse.TagTokenizer;
-import org.lemurproject.galago.core.tokenize.Tokenizer;
 import org.lemurproject.galago.utility.Parameters;
-import org.lemurproject.galago.utility.tools.AppFunction;
 
 import java.io.IOException;
-import java.io.PrintStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author jfoley
  */
-public class RankTerms extends AppFunction {
-  @Override
-  public String getName() {
-    return "rank-terms";
+public class RankTermsPMI extends CoopIndexServerFn {
+  protected RankTermsPMI(IndexReader index) {
+    super(index);
   }
 
   @Override
-  public String getHelpString() {
-    return makeHelpStr(
-        "index", "path to VocabReader index.",
-        "leftWidth", "width of left candidates, [default=5]",
-        "rightWidth", "width of right candidates, [default=5]",
-        "hitLimit", "number of candidate query-hits to process, [default=None]",
-        "limit", "number of terms to print out, [default=20]",
-        // todo stop results
-        // todo sample values instead of doing them all
-        "query", "a term or phrase query; we'll tokenize for you; e.g. --query=\"hello world\" or --query=hello"
-    );
-  }
-
-  @Override
-  public void run(Parameters p, PrintStream output) throws Exception {
-    IndexReader index = new IndexReader(new Directory(p.getString("index")));
+  public Parameters handleRequest(Parameters p) throws IOException, SQLException {
+    Parameters output = Parameters.create();
     int leftWidth = p.get("leftWidth", 5);
     assert(leftWidth >= 0);
     int rightWidth = p.get("rightWidth", 5);
@@ -58,14 +40,19 @@ public class RankTerms extends AppFunction {
     int hitLimit = p.get("hitLimit", Integer.MAX_VALUE);
     assert(hitLimit > 0);
 
-    Tokenizer tokenizer = new TagTokenizer();
-    List<String> query = tokenizer.tokenize(p.getString("query")).terms;
-    System.err.println("I parsed your query as the following terms: "+ StrUtil.join(query, " "));
+    String termKind = p.get("termKind", "lemmas");
+
+    CoopTokenizer tokenizer = index.getTokenizer();
+    List<String> query = tokenizer.createDocument("tmp", p.getString("query")).getTerms(termKind);
+
+    output.put("queryTerms", query);
 
 
     Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, query));
     int queryFrequency = hits.right.size();
-    System.err.println("Run query in "+hits.left+" ms. "+hits.right.size()+" hits found!");
+
+    output.put("queryFrequency", hits.right.size());
+    output.put("queryTime", hits.left);
 
     // build slices from the results, based on arguments to this file:
     List<TermSlice> slices = new ArrayList<>();
@@ -78,17 +65,12 @@ public class RankTerms extends AppFunction {
 
     // Now score the nearby terms!
     final TObjectIntHashMap<String> termProxCounts = new TObjectIntHashMap<>();
-    long candidateFindingTime = Timing.milliseconds(() -> {
-      index.getCorpus().forTermInSlice(slices, (term) ->  {
-        termProxCounts.adjustOrPutValue(term, 1, 1);
-      });
-      /*for (TermSlice slice : slices) {
-        for (String term : index.pullTokens(slice)) {
-          termProxCounts.adjustOrPutValue(term, 1, 1);
-        }
-      }*/
-    });
-    System.err.println("Found "+termProxCounts.size() + " candidates in "+candidateFindingTime+" ms.");
+
+    long candidateFindingTime = Timing.milliseconds(() ->
+        index.getCorpus().forTermInSlice(slices, (term) ->
+            termProxCounts.adjustOrPutValue(term, 1, 1)));
+
+    output.put("candidateFindingTime", candidateFindingTime);
 
     // Okay, now actually score these candidates!
     double collectionLength = index.getCollectionLength();
@@ -112,11 +94,20 @@ public class RankTerms extends AppFunction {
         return true;
       });
     });
-    System.err.println("Scored " + termProxCounts.size() + " candidates in " + scoringTime + " ms.");
+    output.put("scoringTime", scoringTime);
+    output.put("scoreCount", termProxCounts.size());
 
+    List<Parameters> terms = new ArrayList<>();
     for (PMITerm pmiTerm : topTerms.getSorted()) {
-      System.out.printf("%-20s %1.4f\n", StrUtil.replaceUnicodeQuotes(pmiTerm.term), pmiTerm.pmi());
+      Parameters tp = Parameters.create();
+      tp.put("pmi", pmiTerm.pmi());
+      tp.put("tf", pmiTerm.termFrequency);
+      tp.put("qf", pmiTerm.queryFrequency);
+      tp.put("qpf", pmiTerm.queryProxFrequency);
+      tp.put("term", pmiTerm.term);
+      terms.add(tp);
     }
-
+    output.put("topTerms", terms);
+    return output;
   }
 }
