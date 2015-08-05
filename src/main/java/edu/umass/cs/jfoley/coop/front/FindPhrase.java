@@ -27,11 +27,8 @@ public class FindPhrase extends CoopIndexServerFn {
   @Override
   public Parameters handleRequest(Parameters p) throws IOException, SQLException {
     Parameters output = Parameters.create();
-    int offset = p.get("offset", 0);
     int count = p.get("count", 200);
-    assert(offset >= 0);
     assert(count > 0);
-
     String termKind = p.get("termKind", "lemmas");
 
     CoopTokenizer tokenizer = index.getTokenizer();
@@ -46,7 +43,7 @@ public class FindPhrase extends CoopIndexServerFn {
 
     TIntObjectHashMap<Parameters> hitInfos = new TIntObjectHashMap<>();
     // build slices from the results, based on arguments to this file:
-    for (DocumentResult<Integer> hit : ListFns.slice(hits.right, offset, offset + count)) {
+    for (DocumentResult<Integer> hit : ListFns.slice(hits.right, 0, count)) {
       Parameters doc = Parameters.create();
       doc.put("id", hit.document);
       doc.put("loc", hit.value);

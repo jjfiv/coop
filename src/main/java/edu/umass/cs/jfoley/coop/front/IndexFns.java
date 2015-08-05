@@ -16,16 +16,16 @@ import java.util.Map;
 public class IndexFns {
   public static void setup(IndexReader coopIndex, Map<String, ServerFn> methods) {
 
-    methods.put("indexMeta", (p) -> coopIndex.getMetadata());
-    methods.put("findKWIC", new FindKWIC(coopIndex));
-    methods.put("findPhrase", new FindPhrase(coopIndex));
+    methods.put("IndexMeta", (p) -> coopIndex.getMetadata());
+    methods.put("FindKWIC", new FindKWIC(coopIndex));
+    methods.put("FindPhrase", new FindPhrase(coopIndex));
 
     // find a document set by AND or OR:
-    methods.put("matchDocuments", new MatchDocuments(coopIndex));
+    methods.put("MatchDocuments", new MatchDocuments(coopIndex));
 
-    methods.put("rankTermsPMI", new RankTermsPMI(coopIndex));
-    methods.put("pullDocument", new PullDocumentFn(coopIndex));
-    methods.put("tokenize", new Tokenize(coopIndex));
+    methods.put("RankTermsPMI", new RankTermsPMI(coopIndex));
+    methods.put("PullDocument", new PullDocumentFn(coopIndex));
+    methods.put("Tokenize", new Tokenize(coopIndex));
   }
 
   public static class Tokenize extends CoopIndexServerFn {

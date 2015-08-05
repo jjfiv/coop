@@ -73,31 +73,33 @@ public class RankByClassifierFn extends IndexServerFn {
     orMover.moveToAbsolute(startFrom);
 
     // score in order
-    for( ;!orMover.isDone(); orMover.next()) {
-      int id = orMover.currentKey();
-      numScored++;
-      long current = System.currentTimeMillis();
+    for( ;!orMover.isDone(); orMover.nextBlock()) {
+      for (; !orMover.isDoneWithBlock(); orMover.nextKey()) {
+        int id = orMover.currentKey();
+        numScored++;
+        long current = System.currentTimeMillis();
 
-      active.clear();
-      for (Map.Entry<Integer, Mover> kv : featurePostings.entrySet()) {
-        if(kv.getValue().matches(id)) {
-          active.add(kv.getKey());
+        active.clear();
+        for (Map.Entry<Integer, Mover> kv : featurePostings.entrySet()) {
+          if (kv.getValue().matches(id)) {
+            active.add(kv.getKey());
+          }
         }
-      }
-      SparseBooleanFeatures fv = new SparseBooleanFeatures(active);
-      boolean pred = classifier.predict(fv);
-      if(pred) numPositive++;
-      double score = classifier.rank(fv);
-      ClassifiedToken ctoken = new ClassifiedToken(classifierId, pred, score, null);
-      ctoken.tokenId = id;
-      heap.offer(ctoken);
+        SparseBooleanFeatures fv = new SparseBooleanFeatures(active);
+        boolean pred = classifier.predict(fv);
+        if (pred) numPositive++;
+        double score = classifier.rank(fv);
+        ClassifiedToken ctoken = new ClassifiedToken(classifierId, pred, score, null);
+        ctoken.tokenId = id;
+        heap.offer(ctoken);
 
-      if(current - startTime > timeLimit) {
-        System.out.println("Time limit exceeded.");
-        response.put("timeLimitExceeded", true);
-        response.put("lastScored", orMover.currentKey());
-        // only score for up to 4s.
-        break;
+        if (current - startTime > timeLimit) {
+          System.out.println("Time limit exceeded.");
+          response.put("timeLimitExceeded", true);
+          response.put("lastScored", orMover.currentKey());
+          // only score for up to 4s.
+          break;
+        }
       }
     }
 

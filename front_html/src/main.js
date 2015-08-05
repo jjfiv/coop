@@ -144,23 +144,44 @@ class QueryInterface extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            results: null,
-            rankByPMI: false,
             leftWidth: 1,
             rightWidth: 1,
             termKind: "lemmas",
             query: "",
-            request: null
+            count: 200,
+            error: false,
+            request: null,
+            response: null
         }
     }
     onFind(evt) {
-        console.log(evt);
+        // one request at a time...
+        if(this.searching()) return;
+
+        let request = {};
+        request.termKind = this.state.termKind;
+        request.count = this.state.count;
+        request.query = this.state.query;
+
+        // clear results:
+        this.setState({
+            request: request,
+            response: null
+        });
+        postJSON("/api/FindPhrase",
+            request,
+            (data) => {this.setState({
+                error: false,
+                response: data
+            })},
+            (data) => {this.setState({
+                error: true,
+                response: data
+            })}
+        );
     }
-    togglePMIRank() {
-        this.setState({rankByPMI: !this.state.rankByPMI});
-    }
-    changeQuery(text) {
-        this.setState({query: text});
+    searching() {
+        return this.state.response == null && this.state.request != null;
     }
     render() {
         return <div>
@@ -170,7 +191,7 @@ class QueryInterface extends React.Component {
                     type="text"
                     placeholder="Enter Phrase"
                     value={this.state.query}
-                    onChange={(evt) => this.changeQuery(evt.target.value)}
+                    onChange={(evt) => this.setState({query: evt.target.value})}
                     /></label>
 
             <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setState({termKind: x})} />
@@ -180,12 +201,33 @@ class QueryInterface extends React.Component {
                 <IntegerInput onChange={(x) => this.setState({rightWidth: x})}
                               min={0} max={20} start={this.state.rightWidth} label="Terms on Right:" />
             </div>
-            <label>Rank by PMI: <input type="checkbox" checked={this.state.rankByPMI}  onChange={() => this.togglePMIRank()} /></label>
-
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>
-
             <pre>{JSON.stringify(this.state)}</pre>
+            <PhraseSearchResults error={this.state.error} request={this.state.request} response={this.state.response} />
             </div>;
+    }
+}
+
+class PhraseSearchResults extends React.Component {
+    render() {
+        let req = this.props.request;
+        let resp = this.props.response;
+
+        if(resp == null) {
+            if(req != null) {
+                return <div>Searching...</div>;
+            }
+            return <div></div>;
+        }
+
+        if(this.props.error) {
+            return <div>{resp.responseText}</div>;
+        }
+
+        return <div>
+            <div>Found {resp.queryFrequency} results</div>
+            <pre>{JSON.stringify(resp)}</pre>
+        </div>;
     }
 }
 
@@ -216,14 +258,16 @@ class DocSearchInterface extends React.Component {
         request.query = this.state.query;
         request.operation = this.state.operation;
 
+        console.log(request);
+        postJSON("/api/MatchDocuments",
+            request,
+            (data) => {this.setState({response: data})});
+
         // clear results:
         this.setState({
             request: request,
             response: null
         });
-        postJSON("/api/matchDocuments",
-            request,
-            (data) => {this.setState({response: data})});
     }
     render() {
         let results = "";
@@ -270,7 +314,7 @@ class DocViewInterface extends React.Component {
         }
     }
     componentDidMount() {
-        postJSON("/api/pullDocument",
+        postJSON("/api/PullDocument",
             {id: this.state.docId},
             (data) => this.setState({response: data}));
     }

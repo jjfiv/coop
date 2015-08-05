@@ -1,6 +1,5 @@
 package edu.umass.cs.jfoley.coop.querying.eval.nodes;
 
-import ciir.jfoley.chai.lang.Require;
 import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanIterator;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
@@ -18,7 +17,7 @@ public class PhraseNode implements QueryEvalNode<PositionsList> {
   private final List<QueryEvalNode<PositionsList>> children;
 
   public PhraseNode(List<QueryEvalNode<PositionsList>> children) {
-    Require.that(children.size() > 1);
+    assert(children.size() > 1);
     this.children = children;
   }
 

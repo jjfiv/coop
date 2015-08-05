@@ -60,9 +60,11 @@ public class SearchSentencesFn extends IndexServerFn {
 
     IntList output = new IntList();
     int totalHits = 0;
-    for (; mover.hasNext(); mover.next()) {
-      totalHits++;
-      output.add(mover.currentKey());
+    for (; mover.hasNext(); mover.nextBlock()) {
+      for (; mover.hasNext(); mover.nextKey()) {
+        totalHits++;
+        output.add(mover.currentKey());
+      }
     }
 
     //TODO IntList::slice, AChaiList::slice
