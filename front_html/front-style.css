@@ -33,6 +33,9 @@ body, #top {
   margin:0;
   padding:0;
 }
+pre, code {
+    font-size: 11pt;
+}
 #header {
   margin: 0;
   padding:2pt;
@@ -94,3 +97,22 @@ textarea {
 .token:hover {
     background-color: #ddd;
 }
+
+#content {
+    margin: 4pt;
+}
+.corpusInfo label {
+    display:block;
+}
+
+.varInfo {
+    border: 2px solid #ddf;
+    margin: 2px;
+}
+
+.FilterableList {
+    border: 2px solid #eef;
+    margin: 2px;
+    padding: 2px;
+}
+

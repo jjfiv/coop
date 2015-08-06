@@ -2,7 +2,8 @@ class Navigation extends React.Component {
     render() {
         let pages = {
             "index.html": "Phrase Search",
-            "docSearch.html": "Document Search"
+            "docSearch.html": "Document Search",
+            "schema.html": "About Corpus"
         };
 
         let links = _(pages).map((val, key) => {
@@ -15,23 +16,41 @@ class Navigation extends React.Component {
 Navigation.propTypes = {};
 
 class Main {
-    static navigation() {
+    static indexMeta;
+
+    static init() {
         React.render(<Navigation />,document.getElementById("header"));
+
+        $.getJSON("/api/IndexMeta", {}, (data) => {
+            console.log(data);
+            Main.indexMeta = data;
+        });
+    }
+    static getIndexMeta(callback) {
+        if(Main.indexMeta != null) {
+            callback(Main.indexMeta);
+        } else {
+            _.delay(Main.getIndexMeta, 20, callback);
+        }
     }
     static render(what) {
         React.render(what,document.getElementById("content"));
     }
     static index() {
-        Main.navigation();
+        Main.init();
         Main.render(<PhraseSearchInterface />);
     }
     static docs() {
-        Main.navigation();
+        Main.init();
         Main.render(<DocSearchInterface/>);
     }
     static doc() {
-        Main.navigation();
-        Main.render(<DocViewInterface urlParams={getURLParams()} />);
+        Main.init();
+        Main.render(<DocViewInterface />);
+    }
+    static schema() {
+        Main.init();
+        Main.render(<SchemaInterface />);
     }
 }
 

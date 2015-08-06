@@ -42,8 +42,10 @@ public class IntegerVarSchema extends DocVarSchema<Integer> {
       if(DoubleFns.equals((double) n.intValue(), n.doubleValue(), 0.00001)) {
         return new DocVar<>(this, n.intValue());
       } else throw new RuntimeException("Can't handle double-valued item: "+n);
+    } else if(obj instanceof String) {
+      return new DocVar<>(this, Integer.parseInt((String) obj));
     }
-    throw new RuntimeException("Couldn't handle incoming object: "+obj);
+    throw new RuntimeException("Couldn't handle incoming object: "+obj+" "+obj.getClass());
   }
 
 

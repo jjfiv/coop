@@ -30,6 +30,8 @@ public class LocatePhrase {
     List<DocumentResult<Integer>> hits = new ArrayList<>();
     PostingMover<PositionsList> mover = index.getPositionsMover(term);
 
+    if(mover == null) return hits;
+
     //noinspection Convert2Diamond -- intellij is wrong about javac's inference capabilities :(
     QueryEvalEngine.EvaluateOneToMany(
         mover,

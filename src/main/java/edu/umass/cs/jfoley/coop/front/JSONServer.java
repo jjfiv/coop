@@ -41,7 +41,11 @@ public class JSONServer implements WebHandler {
 
   public static void main(String[] args) throws IOException, WebServerException {
     Parameters argp = Arguments.parse(args);
-    Directory input = Directory.Read(argp.get("input", "bills.index"));
+
+    //String defaultIndex = "bills.index";
+    String defaultIndex = "bible.index";
+
+    Directory input = Directory.Read(argp.get("input", defaultIndex));
     Directory htmlDir = Directory.Read(argp.get("html", "coop/front_html"));
 
     JSONServer server = new JSONServer(input, htmlDir);

@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop;
 
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.LinesIterable;
+import ciir.jfoley.chai.time.Debouncer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
@@ -31,6 +32,15 @@ public class BuildIndexMTE extends AppFunction {
         "input", "A directory with *.conf that might be passed to MTE",
         "output", "Where to save our index."
     );
+  }
+
+  public static void main(String[] args) throws Exception {
+    // build bible
+    AppFunction fn = new BuildIndexMTE();
+    fn.run(Parameters.parseArray(
+        "input", "coop/data/bible/",
+        "output", "bible.index"
+    ), System.out);
   }
 
   @Override
@@ -69,12 +79,16 @@ public class BuildIndexMTE extends AppFunction {
   }
 
   public static void buildIndexFromDataFile(IndexConfiguration cfg, File dataFile, Directory outputDir) throws IOException {
+    Debouncer msg = new Debouncer(1000);
     try(IndexBuilder builder = new IndexBuilder(cfg, outputDir)) {
       try (LinesIterable input = LinesIterable.fromFile(dataFile)) {
         for (String line : input) {
           Parameters data = Parameters.parseString(line);
           CoopDoc doc = MTECoopDoc.createMTE(cfg, data);
           doc.setRawText(data.toString());
+          if(msg.ready()) {
+            System.out.println("#"+input.getLineNumber()+" "+doc.getName());
+          }
           builder.addDocument(doc);
         }
       }
