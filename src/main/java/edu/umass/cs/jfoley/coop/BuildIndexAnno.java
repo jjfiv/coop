@@ -24,6 +24,7 @@ public class BuildIndexAnno {
 
     Debouncer msg = new Debouncer(1000);
 
+    int N = 10000; // 88232;
     try (IndexBuilder builder = new IndexBuilder(cfg, new Directory("bills.index"))) {
       try (LinesIterable lines = LinesIterable.fromFile(input)) {
         for (String line : lines) {
@@ -44,8 +45,8 @@ public class BuildIndexAnno {
           if (msg.ready()) {
             int n = lines.getLineNumber();
             System.out.println("#" + n + " " + name + " " + info.size());
-            System.out.println(msg.estimate(n, 88232));
-            if (n > 3000) break;
+            System.out.println(msg.estimate(n, N));
+            if (n > N) break;
           }
           for (Parameters sentence : info) {
             List<String> spos = sentence.getAsList("pos", String.class);

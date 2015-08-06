@@ -5,7 +5,7 @@ set -eu
 BASEURL='https://cdnjs.cloudflare.com/ajax/libs'
 
 LIBS='jquery/2.0.3/jquery.js lodash.js/3.9.3/lodash.js react/0.13.3/react-with-addons.js history.js/1.8/native.history.min.js'
-OUT_DIR='lmjs/libs'
+OUT_DIR='libs'
 
 for x in ${LIBS}; do
   mkdir -p ${OUT_DIR}

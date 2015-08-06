@@ -105,7 +105,7 @@ class IntegerInput extends React.Component {
                    className={strjoin(cls)}
                    style={{width:"4em"}}
                    value={this.state.text}
-                   onChange={this.handleChange.bind(this)} />
+                   onChange={evt => this.handleChange(evt)} />
         </span>
     }
 }
@@ -202,13 +202,33 @@ class QueryInterface extends React.Component {
                               min={0} max={20} start={this.state.rightWidth} label="Terms on Right:" />
             </div>
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>
-            <pre>{JSON.stringify(this.state)}</pre>
             <PhraseSearchResults error={this.state.error} request={this.state.request} response={this.state.response} />
             </div>;
     }
 }
 
+class QueryDisplay extends React.Component {
+    render() {
+        let text = this.props.text;
+        let kind = this.props.kind;
+        let terms = this.props.terms;
+
+        let term_tags = _.map(terms, (term, idx) => <span key={idx} className="token">{term + " "}</span>);
+
+        return <span>Query "{text}" [{TermKindOpts[kind]}] <span>{term_tags}</span></span>;
+    }
+}
+
+class DocumentLink extends React.Component {
+    render() {
+        let id = this.props.id;
+        let name = this.props.name;
+        return <a href={"/doc.html?id="+id}>{"#"+id+" "+name}</a>
+    }
+}
+
 class PhraseSearchResults extends React.Component {
+
     render() {
         let req = this.props.request;
         let resp = this.props.response;
@@ -224,9 +244,13 @@ class PhraseSearchResults extends React.Component {
             return <div>{resp.responseText}</div>;
         }
 
+        let results = _(resp.results).map((x, idx) => {
+            return <li key={idx}><DocumentLink id={x.id} name={x.name} /> {JSON.stringify(x)}</li>
+        }).value();
+
         return <div>
-            <div>Found {resp.queryFrequency} results</div>
-            <pre>{JSON.stringify(resp)}</pre>
+            <div>Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.</div>
+            <ul>{results}</ul>
         </div>;
     }
 }
