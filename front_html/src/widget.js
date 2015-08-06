@@ -1,3 +1,4 @@
+
 /**
  * Usage: <Button visible={true,false} disabled={true,false} onClick={whatFn} label={text label} />
  */
@@ -80,3 +81,4 @@ SelectWidget.propTypes = {
     selected: React.PropTypes.string.isRequired,
     onChange: React.PropTypes.func.isRequired
 };
+

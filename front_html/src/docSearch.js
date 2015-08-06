@@ -1,41 +1,38 @@
-class DocSearchInterface extends React.Component {
+class DocSearchInterface extends ReactSingleAjax {
     constructor(props) {
         super(props);
+        let urlP = getURLParams();
         this.state = {
-            termKind: "lemmas",
-            query: "the president",
-            operation: "OR",
-            request: null,
-            response: null
-        }
+            termKind: urlP.termKind || "lemmas",
+            query: urlP.query || "",
+            operation: urlP.operation || "OR"
+        };
+        this.init();
     }
-    searching() {
-        return this.state.request != null;
+    componentDidMount() {
+        if(this.state.query) {
+            this.onFind(null);
+        }
     }
     onFind(evt) {
         // one request at a time...
-        if(this.searching()) return;
+        if(this.waiting()) return;
 
         let request = {};
         request.termKind = this.state.termKind;
         request.query = this.state.query;
         request.operation = this.state.operation;
 
-        console.log(request);
-        postJSON("/api/MatchDocuments",
-            request,
-            (data) => {this.setState({response: data})});
-
-        // clear results:
-        this.setState({
-            request: request,
-            response: null
-        });
+        pushURLParams(request);
+        this.send("/api/MatchDocuments", request);
     }
     render() {
         let results = "";
-        if(this.state.response) {
-            results = <pre key="json">{JSON.stringify(this.state.response)}</pre>;
+        if(this.error()) {
+            results = this.errorMessage();
+        }
+        if(this.response()) {
+            results = <pre key="json">{JSON.stringify(this.response())}</pre>;
         }
 
         return <div>
@@ -49,6 +46,7 @@ class DocSearchInterface extends React.Component {
         </div>
     }
 }
+
 
 class DocumentResults extends React.Component {
     render() {

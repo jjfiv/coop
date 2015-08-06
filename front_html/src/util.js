@@ -35,3 +35,14 @@ function getURLParams() {
     return urlParams;
 }
 
+function makeURLFromParams(params) {
+    return "?" + _(params).map(function(val, key) {
+            //console.log(key + ":" + vals);
+            return encodeURIComponent(key) + "=" + encodeURIComponent(val);
+        }).join('&');
+}
+function pushURLParams(params) {
+    History.pushState(null, null, makeURLFromParams(params));
+}
+
+

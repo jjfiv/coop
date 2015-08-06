@@ -1,8 +1,9 @@
 class DocViewInterface extends React.Component {
     constructor(props) {
         super(props);
+        let urlP = getURLParams();
         this.state = {
-            docId: parseInt(props.urlParams.id) || 0,
+            docId: parseInt(urlP.id) || 0,
             response: null
         }
     }

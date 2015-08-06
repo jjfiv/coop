@@ -1,20 +1,25 @@
-class PhraseSearchInterface extends React.Component {
+class PhraseSearchInterface extends ReactSingleAjax {
     constructor(props) {
         super(props);
+
+        let urlP = getURLParams();
         this.state = {
-            leftWidth: 1,
-            rightWidth: 1,
-            termKind: "lemmas",
-            query: "",
-            count: 200,
-            error: false,
-            request: null,
-            response: null
+            leftWidth: parseInt(urlP.leftWidth) || 1,
+            rightWidth: parseInt(urlP.rightWidth) || 1,
+            termKind: urlP.termKind || "lemmas",
+            query: urlP.query || "",
+            count: parseInt(urlP.count) || 200,
+        }
+        this.init();
+    }
+    componentDidMount() {
+        if(this.state.query) {
+            this.onFind(null);
         }
     }
     onFind(evt) {
         // one request at a time...
-        if(this.searching()) return;
+        if(this.waiting()) return;
 
         let request = {};
         request.termKind = this.state.termKind;
@@ -22,26 +27,8 @@ class PhraseSearchInterface extends React.Component {
         request.query = this.state.query;
 
         if(_.isEmpty(request.query)) return;
-
-        // clear results:
-        this.setState({
-            request: request,
-            response: null
-        });
-        postJSON("/api/FindPhrase",
-            request,
-            (data) => {this.setState({
-                error: false,
-                response: data
-            })},
-            (data) => {this.setState({
-                error: true,
-                response: data
-            })}
-        );
-    }
-    searching() {
-        return this.state.response == null && this.state.request != null;
+        pushURLParams(request);
+        this.send("/api/FindPhrase", request);
     }
     handleKey(evt) {
         // submit:

@@ -27,7 +27,7 @@ class Main {
     }
     static docs() {
         Main.navigation();
-        Main.render(<DocSearchInterface />);
+        Main.render(<DocSearchInterface/>);
     }
     static doc() {
         Main.navigation();
@@ -50,7 +50,7 @@ class DocumentLink extends React.Component {
     render() {
         let id = this.props.id;
         let name = this.props.name;
-        return <a href={"/doc.html?id="+id}>{"#"+id+" "+name}</a>
+        return <a href={"/docView.html?id="+id}>{"#"+id+" "+name}</a>
     }
 }
 DocumentLink.propTypes = {
