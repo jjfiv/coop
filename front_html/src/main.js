@@ -163,6 +163,8 @@ class QueryInterface extends React.Component {
         request.count = this.state.count;
         request.query = this.state.query;
 
+        if(_.isEmpty(request.query)) return;
+
         // clear results:
         this.setState({
             request: request,
@@ -183,6 +185,10 @@ class QueryInterface extends React.Component {
     searching() {
         return this.state.response == null && this.state.request != null;
     }
+    handleKey(evt) {
+        // submit:
+        if(evt.which == 13) { onFind(evt); }
+    }
     render() {
         return <div>
             <div>Phrase Search Interface</div>
@@ -192,6 +198,7 @@ class QueryInterface extends React.Component {
                     placeholder="Enter Phrase"
                     value={this.state.query}
                     onChange={(evt) => this.setState({query: evt.target.value})}
+                    onKeyPress={(evt) => { if(evt.which == 13) this.onFind(evt); }}
                     /></label>
 
             <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setState({termKind: x})} />
@@ -319,7 +326,7 @@ class DocumentResults extends React.Component {
         }
 
         let results = _(resp.results).map(function(obj) {
-            return <li key={obj.id}><a href={"/doc.html?id="+obj.id}>{"#"+obj.id+" "+obj.name}</a></li>
+            return <li key={obj.id}><DocumentLink id={obj.id} name={obj.name} /></li>
         }).value();
 
         return <div>
