@@ -35,17 +35,32 @@ class SchemaInterface extends React.Component {
     }
 }
 
+class SubmitQuery extends React.Component {
+    render() {
+        return <span
+            title={JSON.stringify(this.props.query)}
+            className={"query"}>{this.props.label}</span>;
+    }
+}
+
 class CategoricalVar extends React.Component {
     render() {
         let info = this.props.info;
-        let style = {
-            display: "inline-block",
-            padding: "4pt"
-        };
+        let name = this.props.name;
 
+        let itemRenderFn = (item, index) => {
+            let qj = {
+                kind: "varEquals",
+                name: "name",
+                value: item
+            };
+            return <SubmitQuery
+                label={item}
+                query={qj} />;
+        };
         return <div className={"varInfo categorical"}>
-            <label>Name: {this.props.name}</label>
-            <FilterableList items={info.values} maxValues={10} />
+            <label>{this.props.name}</label>
+            <FilterableList renderItem={itemRenderFn} items={info.values} maxValues={10} />
         </div>
     }
 }
@@ -53,9 +68,9 @@ class NumericalVar extends React.Component {
     render() {
         let info = this.props.info;
         return <div className={"varInfo numerical"}>
-            <label>Name: {this.props.name}</label>
-            <label>Frequency: {info.frequency}</label>
-            <label>Range: [{info.minValue},{info.maxValue}]</label>
+            <label>{this.props.name}</label>
+            <p>Frequency: {info.frequency}</p>
+            <p>Range: [{info.minValue},{info.maxValue}]</p>
         </div>
     }
 }

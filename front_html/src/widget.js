@@ -82,11 +82,73 @@ SelectWidget.propTypes = {
     onChange: React.PropTypes.func.isRequired
 };
 
+class PagedListView extends React.Component {
+    render() {
+        let rawItems = this.props.items;
+
+        let count = _.size(rawItems);
+        let pageSize = this.props.pageSize;
+        let totalPages = Math.ceil(count / pageSize) | 0;
+        let page = Math.min(Math.max(0, this.props.page), totalPages-1);
+        let startIndex = page * pageSize;
+        if(startIndex > count) {
+            return <span>Page Error</span>;
+        }
+        let endIndex = Math.min(startIndex + pageSize, count);
+
+        let items = _.map(_.slice(rawItems, startIndex, endIndex), (item, idx) => {
+            return <div key={item}>{this.props.renderItem(item, startIndex+idx)}</div>;
+        });
+        _.range(_.size(items), pageSize).forEach((i) => {
+            items.push(<div key={"blank"+i}>&nbsp;</div>)
+        });
+
+        // TODO max pageButtons
+        let pageButtons = _(_.range(0, totalPages)).map(pnum => {
+            return <Button
+                disabled={pnum === page}
+                key={pnum}
+                label={pnum+1}
+                onClick={evt => this.props.updatePage(pnum)}
+                />;
+        }).value();
+
+        pageButtons.unshift(
+            <Button key={"back"}
+                    disabled={totalPages <= 1 || page == 0}
+                    label={"<"}
+                    onClick={evt => this.props.updatePage(page-1)}
+            />);
+        pageButtons.push(
+            <Button key={"forward"}
+                    disabled={totalPages <= 1 || page+1 == totalPages}
+                    label={">"}
+                    onClick={evt => this.props.updatePage(page+1)}
+                />);
+
+        return <div className="PagedListView">
+            <div className="items">{items}</div>
+            <div className="pages">{pageButtons}</div>
+            </div>;
+    }
+}
+PagedListView.propTypes = {
+    pageSize: React.PropTypes.number,
+    items: React.PropTypes.array.isRequired,
+    renderItem: React.PropTypes.func,
+    updatePage: React.PropTypes.func.isRequired
+};
+PagedListView.defaultProps = {
+    renderItem: ((item, idx) => (idx+1)+". "+item),
+    pageSize: 10
+};
+
 class FilterableList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             filter: '',
+            alpha: false,
             page: 0,
             pageSize: 10 || this.props.maxValues
         }
@@ -96,13 +158,14 @@ class FilterableList extends React.Component {
             return <span />;
         }
         let filter = this.state.filter;
+        let itemFn = this.props.getItemText;
 
         let total = _.size(this.props.items);
         let matchCount = 0;
 
         let matchingItems = _(this.props.items)
             .filter(function(item) {
-                if(_.isEmpty(filter) || _.contains(item.toLowerCase(), filter)) {
+                if(_.isEmpty(filter) || _.contains(itemFn(item).toLowerCase(), filter)) {
                     matchCount++;
                     return true;
                 }
@@ -110,41 +173,15 @@ class FilterableList extends React.Component {
             })
             .value();
 
-        let page = this.state.page;
-        let pageSize = this.state.pageSize;
-        let startIndex = page * pageSize;
-        if(startIndex > matchCount) {
-            startIndex = 0;
-            page = 0;
-            this.setState({page: 0});
+        if(this.state.alpha) {
+            matchingItems = _.sortBy(matchingItems, itemFn);
         }
-        let endIndex = Math.min(startIndex + pageSize, matchCount);
-
-
-        let items = _.map(_.slice(matchingItems, startIndex, endIndex), function(item, idx) {
-            return <div key={item}>{idx+startIndex}. {item}</div>;
-        });
-        _.range(_.size(items), pageSize).forEach((i) => {
-            items.push(<div key={"blank"+i}>&nbsp;</div>)
-        });
-
-        let numPages = Math.ceil(matchCount / pageSize) | 0;
-        let totalPages = Math.ceil(total / pageSize) | 0;
-        let pageButtons = _(_.range(0, totalPages)).map(pnum => {
-            return <Button
-                disabled={pnum === page}
-                visible={pnum < numPages}
-                key={pnum}
-                label={pnum+1}
-                onClick={evt => this.setState({page: pnum})}
-                />;
-        }).value();
-
 
         return <div className={"FilterableList"}>
+            <Button label={"A->Z"} onClick={evt => this.setState({alpha: true, page: 0})} />
             <input type="text"
                    onChange={(evt) => this.setState({
-                   filter: evt.target.value.toLowerCase(), page:0
+                   filter: evt.target.value.toLowerCase(), page: 0
                    })}
                    value={this.state.filter}
                    placeholder={"Filter..."}
@@ -152,11 +189,16 @@ class FilterableList extends React.Component {
                    />
 
             {(matchCount !== total)?<span>{matchCount} of {total}</span>:<span/>}
-
-            <div className={"items"}>{items}</div>
-            <div className={"pages"}>{pageButtons}</div>
-
+            <PagedListView page={this.state.page}
+                           pageSize={this.state.pageSize}
+                           items={matchingItems}
+                           renderItem={this.props.renderItem}
+                           updatePage={(index => this.setState({page: index})
+            )} />
             </div>;
     }
-
 }
+FilterableList.defaultProps = {
+    getItemText: _.identity
+};
+
