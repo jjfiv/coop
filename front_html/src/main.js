@@ -69,7 +69,14 @@ class DocumentLink extends React.Component {
     render() {
         let id = this.props.id;
         let name = this.props.name;
-        return <a href={"/docView.html?id="+id}>{"#"+id+" "+name}</a>
+        let loc = this.props.loc;
+        let url = "/docView.html";
+        url += "?id="+id;
+        if(_.isNumber(loc)) {
+            url += "&term" + loc;
+            url += "#t" + loc;
+        }
+        return <a href={url}>{"#"+id+" "+name}</a>
     }
 }
 DocumentLink.propTypes = {

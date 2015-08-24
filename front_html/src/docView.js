@@ -4,6 +4,7 @@ class DocViewInterface extends React.Component {
         let urlP = getURLParams();
         this.state = {
             docId: parseInt(urlP.id) || 0,
+            termId: parseInt(urlP.term) || -1,
             response: null
         }
     }
@@ -18,7 +19,11 @@ class DocViewInterface extends React.Component {
             return <div>Loading...</div>;
         }
 
-        let tokens = _(doc.terms.tokens).map((x, idx) => [<StanfordNLPToken key={idx} index={idx} term={x} />, " "]).value();
+        let tokens = _(doc.terms.tokens).map((x, idx) => {
+            return [
+                <StanfordNLPToken highlight={idx == this.state.termId} key={idx} index={idx} term={x}/>,
+                " "];
+        }).value();
 
         var sentences = _.map(doc.tags.sentence, (extent) => {
             var begin = extent[0];

@@ -92,7 +92,7 @@ class PhraseSearchResult extends React.Component {
 
         if(!x.terms) {
             return <span>
-            <DocumentLink id={x.id} name={x.name}/>
+            <DocumentLink id={x.id} name={x.name} loc={x.loc} />
                 {JSON.stringify(x)}
         </span>
         } else {

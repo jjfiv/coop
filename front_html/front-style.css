@@ -13,6 +13,9 @@
 .block {
     display:block;
 }
+.highlight {
+    font-weight: bold;
+}
 
 
 td {
