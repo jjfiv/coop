@@ -56,7 +56,7 @@ class Main {
 
 const TermKindOpts = {
     "pos": "Part of Speech",
-    "lemmas": "Lemma or Stem",
+    "lemmas": "Lemma",
     "tokens": "Tokens"
 };
 
