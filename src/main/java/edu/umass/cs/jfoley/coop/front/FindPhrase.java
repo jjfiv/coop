@@ -6,6 +6,7 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
+import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -52,6 +53,23 @@ public class FindPhrase extends CoopIndexServerFn {
 
     for (Pair<Integer, String> kv : index.lookupNames(new IntList(hitInfos.keys()))) {
       hitInfos.get(kv.left).put("name", kv.right);
+    }
+
+    // also pull terms if we want:
+    if(p.get("pullSlices", false)) {
+      int leftWidth = Math.max(0, p.get("leftWidth", 1));
+      int rightWidth = Math.max(0, p.get("rightWidth", 1));
+
+      List<TermSlice> slices = new ArrayList<>(count);
+      for (DocumentResult<Integer> result : ListFns.slice(hits.right, 0, count)) {
+        int pos = result.value;
+        slices.add(new TermSlice(result.document,
+            pos-leftWidth, pos+rightWidth+1));
+      }
+
+      for (Pair<TermSlice, List<String>> pair : index.getCorpus().pullTermSlices(slices)) {
+        hitInfos.get(pair.left.document).put("terms", pair.right);
+      }
     }
 
     output.put("results", new ArrayList<>(hitInfos.valueCollection()));
