@@ -7,9 +7,10 @@ class PhraseSearchInterface extends ReactSingleAjax {
             leftWidth: parseInt(urlP.leftWidth) || 1,
             rightWidth: parseInt(urlP.rightWidth) || 1,
             termKind: urlP.termKind || "lemmas",
+            pullSlices: urlP.pullSlices || false,
             query: urlP.query || "",
             count: parseInt(urlP.count) || 200,
-        }
+        };
         this.init();
     }
     componentDidMount() {
@@ -25,6 +26,11 @@ class PhraseSearchInterface extends ReactSingleAjax {
         request.termKind = this.state.termKind;
         request.count = this.state.count;
         request.query = this.state.query;
+        if(this.state.pullSlices) {
+            request.pullSlices = true;
+            request.leftWidth = this.state.leftWidth;
+            request.rightWidth = this.state.rightWidth;
+        }
 
         if(_.isEmpty(request.query)) return;
         pushURLParams(request);
@@ -48,9 +54,18 @@ class PhraseSearchInterface extends ReactSingleAjax {
 
             <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setState({termKind: x})} />
             <div>
-                <IntegerInput onChange={(x) => this.setState({leftWidth: x})}
+                <label>
+                <input type="checkbox"
+                       checked={this.state.pullSlices}
+                       onChange={() => this.setState({pullSlices: !this.state.pullSlices}) }
+                    />
+                    Show KWIC
+                    </label>&nbsp;
+                <IntegerInput visible={this.state.pullSlices}
+                              onChange={(x) => this.setState({leftWidth: x})}
                               min={0} max={20} start={this.state.leftWidth} label="Terms on Left:" />
-                <IntegerInput onChange={(x) => this.setState({rightWidth: x})}
+                <IntegerInput visible={this.state.pullSlices}
+                              onChange={(x) => this.setState({rightWidth: x})}
                               min={0} max={20} start={this.state.rightWidth} label="Terms on Right:" />
             </div>
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>

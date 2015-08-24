@@ -47,9 +47,13 @@ class IntegerInput extends React.Component {
     render() {
         let cls = [];
         if(!this.state.validInt) {
-            cls.push("negative")
+            cls.push("negative");
         }
-        return <span>
+        var spanCls = "normal";
+        if(!this.props.visible) {
+            spanCls = "hidden";
+        }
+        return <span className={spanCls}>
             {this.props.label}
             <input type={"text"}
                    className={strjoin(cls)}
