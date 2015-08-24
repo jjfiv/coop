@@ -86,6 +86,27 @@ class QueryDisplay extends React.Component {
     }
 }
 
+class PhraseSearchResult extends React.Component {
+    render() {
+        let x = this.props.result;
+
+        if(!x.terms) {
+            return <span>
+            <DocumentLink id={x.id} name={x.name}/>
+                {JSON.stringify(x)}
+        </span>
+        } else {
+            let terms = _.map(x.terms, (term, idx) => {
+                return [<StanfordNLPToken key={idx} index={idx} term={term} />, " "];
+            });
+            return <span>
+            <DocumentLink id={x.id} name={x.name}/>
+                <div>{terms}</div>
+        </span>
+        }
+    }
+}
+
 class PhraseSearchResults extends React.Component {
     render() {
         let req = this.props.request;
@@ -103,7 +124,7 @@ class PhraseSearchResults extends React.Component {
         }
 
         let results = _(resp.results).map((x, idx) => {
-            return <li key={idx}><DocumentLink id={x.id} name={x.name} /> {JSON.stringify(x)}</li>
+            return <li key={idx}><PhraseSearchResult result={x} /></li>
         }).value();
 
         return <div>

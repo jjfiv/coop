@@ -18,20 +18,7 @@ class DocViewInterface extends React.Component {
             return <div>Loading...</div>;
         }
 
-        let tokens = _(doc.terms.tokens).map((x) => {
-            switch(x) {
-                case "-LSB-": return "[";
-                case "-RSB-": return "]";
-                case "-LRB-": return "(";
-                case "-RRB-": return ")";
-                default: return x;
-            }
-        }).map((token, idx) => {
-            if(_.startsWith(token, "______")) {
-                return <hr key={idx} id={"t"+idx} />
-            }
-            return <span className={"token"} key={idx} id={"t"+idx}>{token+" "}</span>;
-        }).value();
+        let tokens = _(doc.terms.tokens).map((x, idx) => [<StanfordNLPToken key={idx} index={idx} term={x} />, " "]).value();
 
         var sentences = _.map(doc.tags.sentence, (extent) => {
             var begin = extent[0];
