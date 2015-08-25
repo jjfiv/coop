@@ -46,8 +46,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
         let pullSlices = this.state.pullSlices;
         let scoreTerms = this.state.scoreTerms;
 
-        return <div>
-            <div>Phrase Search Interface</div>
+        return <UIWindow title="Phrase Search Interface">
             <label>Query
                 <input
                     type="text"
@@ -84,7 +83,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
             </div>
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>
             <PhraseSearchResults error={this.state.error} request={this.state.request} response={this.state.response} />
-        </div>;
+        </UIWindow>;
     }
 }
 
@@ -177,12 +176,40 @@ class PhraseSearchResults extends React.Component {
 
 
         return <div>
-            <div className="phraseResults">
+            <UIWindow title="Term Result Table">
+                <TermSearchResults termResults={resp.termResults} />
+            </UIWindow>
+            <UIWindow title="Phrase Results">
                 <div>Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.</div>
                 <ul>{docResults}</ul>
-            </div>
-            <div className="termResults"><TermSearchResults termResults={resp.termResults} /></div>
+            </UIWindow>
         </div>;
     }
 }
 
+class UIWindow extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            expanded: true
+        };
+    }
+    render() {
+        let contentStyles = [];
+        contentStyles.push("uiWindowContent");
+        if(!this.state.expanded) {
+            contentStyles.push("none")
+        }
+        return <div className="uiWindow">
+            <div className="uiWindowControls">
+                {this.props.title}&nbsp;
+            <input type="checkbox" checked={this.state.expanded}
+                   onChange={() => this.setState({expanded: !this.state.expanded})}
+                />
+            </div>
+            <div className={strjoin(contentStyles)}>
+            {this.props.children}
+            </div>
+        </div>
+    }
+}

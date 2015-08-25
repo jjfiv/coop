@@ -22,6 +22,10 @@ td {
     padding: 2pt;
     border: 0;
 }
+th {
+    font-weight: bold;
+    background-color: #eee;
+}
 
 .negative {
     background-color:#faa;
@@ -128,3 +132,31 @@ textarea {
 p { margin: 0; }
 
 li { margin-bottom: 8pt; }
+
+
+.termResults {
+    float:left;
+    margin: 10pt;
+}
+.phraseResults {
+    float: left;
+    margin: 10pt;
+}
+
+.uiWindow {
+    float: left;
+    margin: 5pt;
+    border: 2pt solid #ddd;
+    padding: 5pt;
+}
+
+.uiWindowControls {
+    padding: 2pt;
+    background-color: #ddd;
+}
+
+.uiWindowContent {
+    border-top: 2pt solid #000;
+    padding-top: 5pt;
+    padding: 2pt;
+}
