@@ -101,7 +101,9 @@ class PagedListView extends React.Component {
         let endIndex = Math.min(startIndex + pageSize, count);
 
         let items = _.map(_.slice(rawItems, startIndex, endIndex), (item, idx) => {
-            return <div key={item}>{this.props.renderItem(item, startIndex+idx)}</div>;
+            return <div key={this.props.keyFn(item)}>{
+                this.props.renderItem(item, startIndex+idx)
+            }</div>;
         });
         _.range(_.size(items), pageSize).forEach((i) => {
             items.push(<div key={"blank"+i}>&nbsp;</div>)
@@ -140,10 +142,12 @@ PagedListView.propTypes = {
     pageSize: React.PropTypes.number,
     items: React.PropTypes.array.isRequired,
     renderItem: React.PropTypes.func,
+    keyFn: React.PropTypes.func,
     updatePage: React.PropTypes.func.isRequired
 };
 PagedListView.defaultProps = {
     renderItem: ((item, idx) => (idx+1)+". "+item),
+    keyFn: (item) => item,
     pageSize: 10
 };
 

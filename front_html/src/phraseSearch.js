@@ -102,21 +102,21 @@ class QueryDisplay extends React.Component {
 class PhraseSearchResult extends React.Component {
     render() {
         let x = this.props.result;
+        let rank = this.props.rank;
 
-        if(!x.terms) {
-            return <span>
-            <DocumentLink id={x.id} name={x.name} loc={x.loc} />
-                {JSON.stringify(x)}
-        </span>
-        } else {
-            let terms = _.map(x.terms, (term, idx) => {
-                return [<StanfordNLPToken key={idx} index={idx} term={term} />, " "];
-            });
-            return <span>
-            <DocumentLink id={x.id} name={x.name}/>
-                <div>{terms}</div>
-        </span>
+        let terms = _.map(x.terms || [], (term, idx) => {
+            return [<StanfordNLPToken key={idx} index={idx} term={term} />, " "];
+        });
+
+        let divClasses = ["indent", "kwic"];
+        if(_.isEmpty(terms)) {
+            divClasses.push("none");
         }
+
+        return <div>
+            <span><strong>{rank}.</strong> <DocumentLink id={x.id} name={x.name}/></span>
+            <div className={"indent kwic"}>{terms}</div>
+        </div>
     }
 }
 
@@ -131,7 +131,7 @@ class TermSearchResults extends React.Component {
             .sortBy((x) => -x.pmi)
             .map((x, idx) => {
                 //return <pre key={idx}>{JSON.stringify(x)}</pre>;
-                return <tr>
+                return <tr key={idx}>
                     <td>{x.term}</td>
                     <td>{round(x.pmi, 2)}</td>
                     <td>{x.tf}</td>
@@ -151,12 +151,30 @@ class TermSearchResults extends React.Component {
 }
 
 class PhraseSearchResults extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            page: 0
+        }
+    }
     render() {
         let results = this.props.results;
-        let docResults = _(results).take(10).map((x, idx) => {
+        let total = _.size(results);
+        let shown = this.state.displayed;
+
+        let docResults = _(results).take(shown).map((x, idx) => {
             return <li key={idx}><PhraseSearchResult result={x} /></li>
         }).value();
-        return <ul>{docResults}</ul>;
+        return <div>
+            <PagedListView
+                page={this.state.page}
+                pageSize={10}
+                items={results}
+                renderItem={(x, idx) => {return <PhraseSearchResult rank={idx+1} result={x} />}}
+                keyFn={result => result.id}
+                updatePage={(pg) => this.setState({page: pg})}
+                />
+        </div>;
     }
 }
 
@@ -185,9 +203,12 @@ class PhraseSearchResultPanels extends React.Component {
                 Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.
             </div>
             <div className="uiPanel">
-                <UIWindow title="Term Result Table">
+                {(resp.termResults ? <UIWindow title="Word Cloud">
+                    <WordCloud items={resp.termResults} weightFn={(term) => {return term.pmi}} termFn={(term) => { return term.term}} />
+                </UIWindow> : '')}
+                {(resp.termResults ? <UIWindow title="Term Result Table">
                     <TermSearchResults termResults={resp.termResults} />
-                </UIWindow>
+                </UIWindow> : '')}
                 <UIWindow title="Phrase Results">
                     <PhraseSearchResults results={resp.results} />
                 </UIWindow>
@@ -220,5 +241,63 @@ class UIWindow extends React.Component {
             {this.props.children}
             </div>
         </div>
+    }
+}
+
+class WordCloud extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            applyLog: true,
+            termFnSort: true
+        }
+    }
+    render() {
+        let weightFn = this.props.weightFn;
+        let termFn = this.props.termFn;
+        let items = _.sortBy(this.props.items,
+            this.state.termFnSort ?
+                termFn :
+                (x) => { return -weightFn(x) });
+
+        if(this.state.applyLog) {
+            let oldWeightFn = weightFn;
+            weightFn = (x) => { return Math.log(oldWeightFn(x)); };
+        }
+
+        let minWeight = _(items).map(weightFn).min();
+        let maxWeight = _(items).map(weightFn).max();
+
+        let minFontSize = 10.0;
+        let maxFontSize = 30.0;
+
+        let terms = _(items).map((x, idx) => {
+            let weight = weightFn(x);
+            let term = termFn(x);
+            let relWeight = (weight - minWeight) / (maxWeight - minWeight);
+            let fontSize = minFontSize + (maxFontSize - minFontSize)*relWeight;
+            return [<span key={idx}
+                         style={{fontSize: fontSize}}>{x.term}</span>, " "];
+        }).value();
+
+        return <div>
+            <label>
+                Use Logarithmic Weights
+                <input type="checkbox"
+                       checked={this.state.applyLog}
+                       onChange={() => this.setState({applyLog: !this.state.applyLog}) }
+                    />
+            </label>
+            <Button
+                disabled={this.state.termFnSort}
+                onClick={() => this.setState({termFnSort: !this.state.termFnSort}) }
+                label={"Term Sort"} />
+            <Button
+                disabled={!this.state.termFnSort}
+                onClick={() => this.setState({termFnSort: !this.state.termFnSort}) }
+                label={"Weight Sort"} />
+            <hr />
+            <div>{terms}</div>
+            </div>
     }
 }

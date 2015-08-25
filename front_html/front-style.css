@@ -16,7 +16,9 @@
 .highlight {
     font-weight: bold;
 }
-
+.indent {
+    padding-left: 8pt;
+}
 
 td {
     padding: 2pt;
@@ -166,5 +168,9 @@ li { margin-bottom: 8pt; }
 }
 
 .PhraseSearchResultPanels {
-    width: 800px;
+    min-width: 1000px;
+}
+
+.kwic {
+    width: 400px;
 }
