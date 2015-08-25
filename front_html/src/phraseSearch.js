@@ -8,6 +8,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
             rightWidth: parseInt(urlP.rightWidth) || 1,
             termKind: urlP.termKind || "lemmas",
             pullSlices: urlP.pullSlices || false,
+            scoreTerms: urlP.scoreTerms || true,
             query: urlP.query || "",
             count: parseInt(urlP.count) || 200,
         };
@@ -31,6 +32,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
             request.leftWidth = this.state.leftWidth;
             request.rightWidth = this.state.rightWidth;
         }
+        request.scoreTerms = this.state.scoreTerms;
 
         if(_.isEmpty(request.query)) return;
         pushURLParams(request);
@@ -41,6 +43,9 @@ class PhraseSearchInterface extends ReactSingleAjax {
         if(evt.which == 13) { onFind(evt); }
     }
     render() {
+        let pullSlices = this.state.pullSlices;
+        let scoreTerms = this.state.scoreTerms;
+
         return <div>
             <div>Phrase Search Interface</div>
             <label>Query
@@ -56,15 +61,24 @@ class PhraseSearchInterface extends ReactSingleAjax {
             <div>
                 <label>
                 <input type="checkbox"
-                       checked={this.state.pullSlices}
+                       checked={pullSlices}
                        onChange={() => this.setState({pullSlices: !this.state.pullSlices}) }
                     />
                     Show KWIC
-                    </label>&nbsp;
-                <IntegerInput visible={this.state.pullSlices}
+                    </label>
+                &nbsp;
+                <label>
+                    <input type="checkbox" checked={scoreTerms}
+                           onChange={() => this.setState({scoreTerms: !this.state.scoreTerms})} />
+                    Score Terms
+                </label>
+                </div>
+                <div>
+                &nbsp;
+                <IntegerInput visible={pullSlices || scoreTerms}
                               onChange={(x) => this.setState({leftWidth: x})}
                               min={0} max={20} start={this.state.leftWidth} label="Terms on Left:" />
-                <IntegerInput visible={this.state.pullSlices}
+                <IntegerInput visible={pullSlices || scoreTerms}
                               onChange={(x) => this.setState({rightWidth: x})}
                               min={0} max={20} start={this.state.rightWidth} label="Terms on Right:" />
             </div>
@@ -107,6 +121,36 @@ class PhraseSearchResult extends React.Component {
     }
 }
 
+class TermSearchResults extends React.Component {
+    render() {
+        let termResults = this.props.termResults;
+        if(!termResults) {
+            return <div>...</div>;
+        }
+
+        let pmiResults = _(termResults)
+            .sortBy((x) => -x.pmi)
+            .map((x, idx) => {
+                //return <pre key={idx}>{JSON.stringify(x)}</pre>;
+                return <tr>
+                    <td>{x.term}</td>
+                    <td>{round(x.pmi, 2)}</td>
+                    <td>{x.tf}</td>
+                    <td>{x.qpf}</td>
+                    </tr>;
+            }).value();
+
+        return <div><table>
+            <tr>
+                <th>Term</th>
+                <th>PMI</th>
+                <th>CF</th>
+                <th>QF</th>
+            </tr>
+            {pmiResults}</table></div>;
+    }
+}
+
 class PhraseSearchResults extends React.Component {
     render() {
         let req = this.props.request;
@@ -123,13 +167,21 @@ class PhraseSearchResults extends React.Component {
             return <div>{resp.responseText}</div>;
         }
 
-        let results = _(resp.results).map((x, idx) => {
+        let docResults = _(resp.results).take(10).map((x, idx) => {
             return <li key={idx}><PhraseSearchResult result={x} /></li>
         }).value();
 
+        let pmiResults = _(resp.termResults).map((x, idx) => {
+            return <pre key={idx}>{JSON.stringify(x)}</pre>;
+        }).value();
+
+
         return <div>
-            <div>Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.</div>
-            <ul>{results}</ul>
+            <div className="phraseResults">
+                <div>Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.</div>
+                <ul>{docResults}</ul>
+            </div>
+            <div className="termResults"><TermSearchResults termResults={resp.termResults} /></div>
         </div>;
     }
 }

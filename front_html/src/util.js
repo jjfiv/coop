@@ -45,4 +45,10 @@ function pushURLParams(params) {
     History.pushState(null, null, makeURLFromParams(params));
 }
 
+function round(x, numDigits) {
+    if(numDigits == 0) return Math.round(x);
 
+    let shift = Math.pow(10, numDigits || 1);
+    let tmp = Math.round(x * shift);
+    return tmp / shift;
+}

@@ -105,7 +105,6 @@ public class FindPhrase extends CoopIndexServerFn {
       output.put("termResults", termResults);
     }
 
-
     output.put("results", new ArrayList<>(hitInfos.valueCollection()));
     return output;
   }
