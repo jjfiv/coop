@@ -174,3 +174,8 @@ li { margin-bottom: 8pt; }
 .kwic {
     width: 400px;
 }
+
+.WordCountTerm {
+    background-color: #eee;
+    border: 1px solid #ddd;
+}

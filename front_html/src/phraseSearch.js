@@ -277,7 +277,8 @@ class WordCloud extends React.Component {
             let relWeight = (weight - minWeight) / (maxWeight - minWeight);
             let fontSize = minFontSize + (maxFontSize - minFontSize)*relWeight;
             return [<span key={idx}
-                         style={{fontSize: fontSize}}>{x.term}</span>, " "];
+                          className={"WordCountTerm"}
+                          style={{fontSize: fontSize}}>{x.term}</span>, " "];
         }).value();
 
         return <div>
@@ -297,7 +298,7 @@ class WordCloud extends React.Component {
                 onClick={() => this.setState({termFnSort: !this.state.termFnSort}) }
                 label={"Weight Sort"} />
             <hr />
-            <div>{terms}</div>
+            <div style={{lineHeight: maxFontSize+"pt"}}>{terms}</div>
             </div>
     }
 }
