@@ -7,7 +7,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
             leftWidth: parseInt(urlP.leftWidth) || 1,
             rightWidth: parseInt(urlP.rightWidth) || 1,
             termKind: urlP.termKind || "lemmas",
-            pullSlices: urlP.pullSlices || false,
+            pullSlices: urlP.pullSlices || true,
             scoreTerms: urlP.scoreTerms || true,
             query: urlP.query || "",
             count: parseInt(urlP.count) || 200,
@@ -82,7 +82,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
                               min={0} max={20} start={this.state.rightWidth} label="Terms on Right:" />
             </div>
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>
-            <PhraseSearchResults error={this.state.error} request={this.state.request} response={this.state.response} />
+            <PhraseSearchResultPanels error={this.state.error} request={this.state.request} response={this.state.response} />
         </UIWindow>;
     }
 }
@@ -152,6 +152,16 @@ class TermSearchResults extends React.Component {
 
 class PhraseSearchResults extends React.Component {
     render() {
+        let results = this.props.results;
+        let docResults = _(results).take(10).map((x, idx) => {
+            return <li key={idx}><PhraseSearchResult result={x} /></li>
+        }).value();
+        return <ul>{docResults}</ul>;
+    }
+}
+
+class PhraseSearchResultPanels extends React.Component {
+    render() {
         let req = this.props.request;
         let resp = this.props.response;
 
@@ -170,19 +180,18 @@ class PhraseSearchResults extends React.Component {
             return <li key={idx}><PhraseSearchResult result={x} /></li>
         }).value();
 
-        let pmiResults = _(resp.termResults).map((x, idx) => {
-            return <pre key={idx}>{JSON.stringify(x)}</pre>;
-        }).value();
-
-
         return <div>
-            <UIWindow title="Term Result Table">
-                <TermSearchResults termResults={resp.termResults} />
-            </UIWindow>
-            <UIWindow title="Phrase Results">
-                <div>Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.</div>
-                <ul>{docResults}</ul>
-            </UIWindow>
+            <div>
+                Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.
+            </div>
+            <div className="uiPanel">
+                <UIWindow title="Term Result Table">
+                    <TermSearchResults termResults={resp.termResults} />
+                </UIWindow>
+                <UIWindow title="Phrase Results">
+                    <PhraseSearchResults results={resp.results} />
+                </UIWindow>
+            </div>
         </div>;
     }
 }

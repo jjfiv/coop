@@ -143,6 +143,10 @@ li { margin-bottom: 8pt; }
     margin: 10pt;
 }
 
+.uiPanel {
+    width: 800px;
+}
+
 .uiWindow {
     float: left;
     margin: 5pt;
@@ -157,6 +161,10 @@ li { margin-bottom: 8pt; }
 
 .uiWindowContent {
     border-top: 2pt solid #000;
-    padding-top: 5pt;
     padding: 2pt;
+    padding-top: 5pt;
+}
+
+.PhraseSearchResultPanels {
+    width: 800px;
 }
