@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop;
 
 import ciir.jfoley.chai.lang.LazyPtr;
+import org.lemurproject.galago.utility.Parameters;
 
 /**
  * @author jfoley
@@ -45,5 +46,15 @@ public class PMITerm implements Comparable<PMITerm> {
   @Override
   public int compareTo(PMITerm o) {
     return Double.compare(pmi(), o.pmi());
+  }
+
+  public Parameters toJSON() {
+    Parameters tp = Parameters.create();
+    tp.put("pmi", pmi());
+    tp.put("tf", termFrequency);
+    tp.put("qf", queryFrequency);
+    tp.put("qpf", queryProxFrequency);
+    tp.put("term", term);
+    return tp;
   }
 }

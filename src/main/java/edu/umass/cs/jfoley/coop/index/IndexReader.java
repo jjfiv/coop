@@ -42,10 +42,7 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author jfoley.
@@ -64,6 +61,8 @@ public class IndexReader extends AbstractIndex implements Closeable {
   final DocumentLabelIndexReader docLabels;
   final Parameters meta;
   final IOMap<Integer, CoopDoc> corpus;
+  private WeakHashMap<String, Integer> termFrequencies;
+
 
   public IndexReader(@Nonnull Directory indexDir) throws IOException {
     this.indexDir = indexDir;
@@ -109,6 +108,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
         new BlockedPostingsCoder<>(VarInt.instance),
         indexDir.childPath("numbers")
     );
+    termFrequencies = new WeakHashMap<>();
   }
 
   @Nonnull
@@ -250,13 +250,17 @@ public class IndexReader extends AbstractIndex implements Closeable {
     }
   }
 
-  public int collectionFrequency(String term) throws IOException {
-    PostingMover<PositionsList> mover = getPositionsMover(term);
-    if(mover == null) return 0;
+  public int collectionFrequency(String term) {
+    Integer cachedFreq = termFrequencies.get(term);
+    if(cachedFreq != null) return cachedFreq;
+
+    PostingMover<Integer> mover = getCountsMover(term);
+    if (mover == null) return 0;
     int count = 0;
-    for(; mover.hasNext(); mover.next()) {
-      count += mover.getCurrentPosting().size();
+    for (; mover.hasNext(); mover.next()) {
+      count += mover.getCurrentPosting();
     }
+    termFrequencies.put(term, count);
     return count;
   }
 

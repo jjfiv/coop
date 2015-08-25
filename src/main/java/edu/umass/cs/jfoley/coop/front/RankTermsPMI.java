@@ -5,7 +5,6 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.util.Comparing;
 import ciir.jfoley.chai.collections.util.ListFns;
-import ciir.jfoley.chai.errors.FatalError;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
@@ -80,16 +79,13 @@ public class RankTermsPMI extends CoopIndexServerFn {
       // Now lookup collection frequencies, this is p_x to termProxCounts p_xy
       termProxCounts.forEachEntry((term, frequency) -> {
         // skip query itself.
-        if(query.contains(term)) return true;
-        try {
+        if(!query.contains(term)) {
           topTerms.add(new PMITerm(
               term,
               index.collectionFrequency(term),
               queryFrequency,
               frequency,
               collectionLength));
-        } catch (IOException e) {
-          throw new FatalError(e);
         }
         return true;
       });
@@ -99,13 +95,7 @@ public class RankTermsPMI extends CoopIndexServerFn {
 
     List<Parameters> terms = new ArrayList<>();
     for (PMITerm pmiTerm : topTerms.getSorted()) {
-      Parameters tp = Parameters.create();
-      tp.put("pmi", pmiTerm.pmi());
-      tp.put("tf", pmiTerm.termFrequency);
-      tp.put("qf", pmiTerm.queryFrequency);
-      tp.put("qpf", pmiTerm.queryProxFrequency);
-      tp.put("term", pmiTerm.term);
-      terms.add(tp);
+      terms.add(pmiTerm.toJSON());
     }
     output.put("topTerms", terms);
     return output;

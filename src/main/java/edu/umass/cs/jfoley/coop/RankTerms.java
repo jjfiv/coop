@@ -5,7 +5,6 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.util.Comparing;
 import ciir.jfoley.chai.collections.util.ListFns;
-import ciir.jfoley.chai.errors.FatalError;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
@@ -18,7 +17,6 @@ import org.lemurproject.galago.core.tokenize.Tokenizer;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.AppFunction;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,16 +97,12 @@ public class RankTerms extends AppFunction {
       termProxCounts.forEachEntry((term, frequency) -> {
         // skip query itself.
         if(query.contains(term)) return true;
-        try {
           topTerms.add(new PMITerm(
               term,
               index.collectionFrequency(term),
               queryFrequency,
               frequency,
               collectionLength));
-        } catch (IOException e) {
-          throw new FatalError(e);
-        }
         return true;
       });
     });

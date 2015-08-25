@@ -49,7 +49,7 @@ public class JSONServer implements WebHandler {
     Directory htmlDir = Directory.Read(argp.get("html", "coop/front_html"));
 
     JSONServer server = new JSONServer(input, htmlDir);
-    WebServer ws = WebServer.start(argp.get("port", 1234), server);
+    WebServer ws = WebServer.start(argp.get("port", 2345), server);
 
 
     System.out.println("Started server: "+ws.getURL()+" port="+ws.getPort());
