@@ -16,23 +16,7 @@ import java.util.List;
 /**
  * @author jfoley
  */
-public class IntCorpusIndexing {
-
-  public static class NearTermSet {
-    int width;
-    int count;
-    TIntIntHashMap frequencies;
-    public NearTermSet(int width) {
-      this.width = width;
-      this.frequencies = new TIntIntHashMap();
-      this.count = 0;
-    }
-    public void put(int term) {
-      frequencies.adjustOrPutValue(term,1,1);
-      count++;
-    }
-    public int count() { return count; }
-  }
+public class IntCorpusAnalysis {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.create();

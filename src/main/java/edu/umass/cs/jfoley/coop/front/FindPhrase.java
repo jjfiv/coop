@@ -46,6 +46,7 @@ public class FindPhrase extends CoopIndexServerFn {
 
     final Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, query));
     int queryFrequency = hits.right.size();
+    System.err.println(hits.left);
     output.put("queryFrequency", queryFrequency);
     output.put("queryTime", hits.left);
 

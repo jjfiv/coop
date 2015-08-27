@@ -94,6 +94,7 @@ public class TextCountIndexer2 {
     Debouncer msg = new Debouncer(1000);
 
     PostingIndex.PostingsConfig<String,CountMetadata, Integer> countsConfig = new PostingIndex.PostingsConfig<String,CountMetadata,Integer>(
+
         CharsetCoders.utf8,
         new CountMetadataCoder(),
         VarUInt.instance,
