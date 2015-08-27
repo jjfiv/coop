@@ -7,9 +7,10 @@ import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.time.Debouncer;
 import edu.umass.cs.ciir.waltz.coders.files.FileChannelSource;
-import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
+import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.ciir.waltz.sys.PositionsIndexFile;
+import edu.umass.cs.ciir.waltz.sys.PostingIndex;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.Arguments;
 
@@ -37,7 +38,10 @@ public class IntCorpusPIndex {
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);
 
-    try (PositionsIndexFile.PIndexWriter<Integer> writer = new PositionsIndexFile.PIndexWriter<>(FixedSize.ints, input)) {
+    String target = "p8";
+    PostingIndex.PostingsConfig<Integer, PositionsIndexFile.PositionsCountMetadata, PositionsList> cfg = AndQueryPerformance.getCfg(target);
+
+    try (PositionsIndexFile.PIndexWriter<Integer> writer = cfg.getWriter(input, target)) {
       for (long docIndex = 0; docIndex < numDocuments; docIndex++) {
         long offset = docOffsets.readLong(docIndex * 8);
         long nextOffset = (docIndex + 1 == numDocuments) ?
