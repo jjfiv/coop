@@ -78,43 +78,41 @@ public class BillsMetadata {
         //if (row == null) break;
         for (int i = 0; i < row.length; i++) {
           String name = header[i];
+          // seems to be import time, or similar
           if(name.equals("time")) continue;
+          // bill titles need special treatment...
+          if(name.equals("Title")) continue;
+          // can make a person db if needed
+          if(name.equals("NameFirst") || name.equals("NameLast")) continue;
 
           BillsVariableDef vdef = varByColumn.get(i);
           String value = row[i];
 
           Object specialValue = null;
-          if(!Objects.equals(value, "NA") && value != null) {
-            if(vdef == null) {
-              specialValue = JSONUtil.parseString(value);
-            } else {
-              if(vdef.nullable) {
-                if(value.equalsIgnoreCase("null") || value.isEmpty()) {
-                  value = null;
-                }
-              }
-              if(value != null) {
-                switch (vdef.type) {
-                  case "Unsigned integer":
-                    specialValue = Integer.parseInt(value);
-                    break;
-                  case "Boolean":
-                    specialValue = value.equalsIgnoreCase("1");
-                    break;
-                  case "Text":
-                  case "Date":
-                    specialValue = value;
-                    break;
-                  case "Floating point":
-                    specialValue = Double.parseDouble(value);
-                    break;
-                  // ignored for now:
-                  case "Array of booleans":
-                    break;
-                  default:
-                    throw new RuntimeException(vdef.toString());
-                }
-              }
+          if(value == null || value.equalsIgnoreCase("null") || value.equalsIgnoreCase("NA") || value.isEmpty()) {
+            specialValue = null;
+          } else if(vdef == null) {
+            specialValue = JSONUtil.parseString(value);
+          } else {
+            switch (vdef.type) {
+              case "Unsigned integer":
+                specialValue = Integer.parseInt(value);
+                break;
+              case "Boolean":
+                specialValue = value.equalsIgnoreCase("1");
+                break;
+              case "Text":
+              case "Date":
+                specialValue = value;
+                break;
+              case "Floating point":
+                specialValue = Double.parseDouble(value);
+                break;
+              // ignored for now:
+              case "Array of booleans":
+                break;
+              default:
+                throw new RuntimeException(vdef.toString());
             }
           }
 
@@ -122,7 +120,7 @@ public class BillsMetadata {
             billInfo.put(name, specialValue);
           }
         }
-        System.out.println(billInfo);
+        System.out.println(billInfo.toPrettyString());
 
 
       }
