@@ -14,9 +14,6 @@ public class Main {
   static {
     functions.add(new BuildIndex());
     functions.add(new BuildIndexMTE());
-
-    functions.add(new FindKWIC());
-    functions.add(new RankTerms());
   }
 
   public static void printHelpAndDie() {

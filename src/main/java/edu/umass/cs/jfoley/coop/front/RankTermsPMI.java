@@ -47,7 +47,7 @@ public class RankTermsPMI extends CoopIndexServerFn {
     output.put("queryTerms", query);
 
 
-    Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, query));
+    Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, termKind, query));
     int queryFrequency = hits.right.size();
 
     output.put("queryFrequency", hits.right.size());

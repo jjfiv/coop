@@ -17,7 +17,6 @@ public class IndexFns {
   public static void setup(IndexReader coopIndex, Map<String, ServerFn> methods) {
 
     methods.put("IndexMeta", (p) -> coopIndex.getMetadata());
-    methods.put("FindKWIC", new FindKWIC(coopIndex));
     methods.put("FindPhrase", new FindPhrase(coopIndex));
 
     // find a document set by AND or OR:

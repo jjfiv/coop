@@ -43,14 +43,14 @@ public class FindPhrase extends CoopIndexServerFn {
     final boolean pullSlices = p.get("pullSlices", false);
     final boolean scoreTerms = p.get("scoreTerms", false);
     final int numTerms = p.get("numTerms", 30);
+    final int minTermFrequency = p.get("minTermFrequency", 4);
 
     CoopTokenizer tokenizer = index.getTokenizer();
     List<String> query = tokenizer.createDocument("tmp", p.getString("query")).getTerms(termKind);
 
     output.put("queryTerms", query);
 
-
-    final Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, query));
+    final Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, termKind, query));
     int queryFrequency = hits.right.size();
     System.err.println(hits.left);
     output.put("queryFrequency", queryFrequency);
@@ -58,7 +58,7 @@ public class FindPhrase extends CoopIndexServerFn {
 
     final TIntObjectHashMap<Parameters> hitInfos = new TIntObjectHashMap<>();
     // build slices from the results, based on arguments to this file:
-    for (DocumentResult<Integer> hit : ListFns.slice(hits.right, 0, count)) {
+    for (DocumentResult<Integer> hit : hits.right) {
       Parameters doc = Parameters.create();
       doc.put("id", hit.document);
       doc.put("loc", hit.value);
@@ -91,6 +91,7 @@ public class FindPhrase extends CoopIndexServerFn {
         }
         if(scoreTerms) {
           for (String term : pair.right) {
+            term = term.toLowerCase();
             if(query.contains(term)) continue;
             termInfos.computeIfAbsent(term, (k) -> new ReservoirSampler<>(numHitsPerTerm)).add(pair.left.document);
             //termProxCounts.adjustOrPutValue(term, 1, 1);
@@ -103,9 +104,11 @@ public class FindPhrase extends CoopIndexServerFn {
     TopKHeap<PMITerm> topTerms = new TopKHeap<>(numTerms);
     if(scoreTerms) {
       for (Map.Entry<String, ReservoirSampler<Integer>> kv : termInfos.entrySet()) {
-        String term = kv.getKey();
         int frequency = kv.getValue().total();
-        topTerms.add(new PMITerm(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
+        if(frequency > minTermFrequency) {
+          String term = kv.getKey();
+          topTerms.add(new PMITerm(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
+        }
       }
       /*
       termProxCounts.forEachEntry((term, frequency) -> {

@@ -126,13 +126,15 @@ class TermSearchResults extends React.Component {
         if(!termResults) {
             return <div>...</div>;
         }
+        let setFilter = this.props.setFilter || ((x) => {});
 
         let pmiResults = _(termResults)
             .sortBy((x) => -x.pmi)
             .map((x, idx) => {
+                let alt = strjoin(x.docs) || JSON.stringify(x);
                 //return <pre key={idx}>{JSON.stringify(x)}</pre>;
-                return <tr key={idx}>
-                    <td>{x.term}</td>
+                return <tr title={alt} key={idx}>
+                    <td onClick={(evt) => setFilter(x.docs)}>{x.term}</td>
                     <td>{round(x.pmi, 2)}</td>
                     <td>{x.tf}</td>
                     <td>{x.qpf}</td>
@@ -159,12 +161,13 @@ class PhraseSearchResults extends React.Component {
     }
     render() {
         let results = this.props.results;
+        if(this.props.filterSet) {
+            let keepFn = (x) => _.contains(this.props.filterSet, x);
+            results = _.filter(results, keepFn);
+        }
         let total = _.size(results);
         let shown = this.state.displayed;
 
-        let docResults = _(results).take(shown).map((x, idx) => {
-            return <li key={idx}><PhraseSearchResult result={x} /></li>
-        }).value();
         return <div>
             <PagedListView
                 page={this.state.page}
@@ -179,6 +182,12 @@ class PhraseSearchResults extends React.Component {
 }
 
 class PhraseSearchResultPanels extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            filterSet: null
+        }
+    }
     render() {
         let req = this.props.request;
         let resp = this.props.response;
@@ -194,23 +203,26 @@ class PhraseSearchResultPanels extends React.Component {
             return <div>{resp.responseText}</div>;
         }
 
-        let docResults = _(resp.results).take(10).map((x, idx) => {
-            return <li key={idx}><PhraseSearchResult result={x} /></li>
-        }).value();
-
+        let setFilter = (ids) => this.setState({filterSet: ids});
         return <div>
             <div>
                 Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.
             </div>
             <div className="uiPanel">
                 {(resp.termResults ? <UIWindow title="Word Cloud">
-                    <WordCloud items={resp.termResults} weightFn={(term) => {return term.pmi}} termFn={(term) => { return term.term}} />
+                    <WordCloud items={resp.termResults}
+                               weightFn={(term) => {return term.pmi}}
+                               termFn={(term) => { return term.term}} />
                 </UIWindow> : '')}
                 {(resp.termResults ? <UIWindow title="Term Result Table">
-                    <TermSearchResults termResults={resp.termResults} />
+                    <TermSearchResults
+                        setFilter={setFilter}
+                        termResults={resp.termResults} />
                 </UIWindow> : '')}
                 <UIWindow title="Phrase Results">
-                    <PhraseSearchResults results={resp.results} />
+                    <PhraseSearchResults
+                        filterSet={this.state.filterSet}
+                        results={resp.results} />
                 </UIWindow>
             </div>
         </div>;
