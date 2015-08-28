@@ -42,14 +42,14 @@ public class JSONServer implements WebHandler {
   public static void main(String[] args) throws IOException, WebServerException {
     Parameters argp = Arguments.parse(args);
 
-    String defaultIndex = "bills.index";
+    String defaultIndex = "bills-complete.index";
     //String defaultIndex = "bible.index";
 
     Directory input = Directory.Read(argp.get("input", defaultIndex));
     Directory htmlDir = Directory.Read(argp.get("html", "coop/front_html"));
 
     JSONServer server = new JSONServer(input, htmlDir);
-    WebServer ws = WebServer.start(argp.get("port", 2345), server);
+    WebServer ws = WebServer.start(argp.get("port", 2347), server);
 
 
     System.out.println("Started server: "+ws.getURL()+" port="+ws.getPort());

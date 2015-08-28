@@ -5,6 +5,7 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.random.ReservoirSampler;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
@@ -12,13 +13,14 @@ import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jfoley
@@ -26,6 +28,10 @@ import java.util.List;
 public class FindPhrase extends CoopIndexServerFn {
   protected FindPhrase(IndexReader index) {
     super(index);
+  }
+
+  public static class TermHitInfo {
+    public ReservoirSampler<TermSlice> slices = new ReservoirSampler<TermSlice>(10);
   }
 
   @Override
@@ -63,7 +69,9 @@ public class FindPhrase extends CoopIndexServerFn {
       hitInfos.get(kv.left).put("name", kv.right);
     }
 
-    TObjectIntHashMap<String> termProxCounts = new TObjectIntHashMap<>();
+    final int numHitsPerTerm = 20;
+    HashMap<String, ReservoirSampler<Integer>> termInfos = new HashMap<>();
+    //TObjectIntHashMap<String> termProxCounts = new TObjectIntHashMap<>();
 
     // also pull terms if we want:
     if(scoreTerms || pullSlices) {
@@ -83,7 +91,9 @@ public class FindPhrase extends CoopIndexServerFn {
         }
         if(scoreTerms) {
           for (String term : pair.right) {
-            termProxCounts.adjustOrPutValue(term, 1, 1);
+            if(query.contains(term)) continue;
+            termInfos.computeIfAbsent(term, (k) -> new ReservoirSampler<>(numHitsPerTerm)).add(pair.left.document);
+            //termProxCounts.adjustOrPutValue(term, 1, 1);
           }
         }
       }
@@ -92,16 +102,23 @@ public class FindPhrase extends CoopIndexServerFn {
     double collectionLength = index.getCollectionLength();
     TopKHeap<PMITerm> topTerms = new TopKHeap<>(numTerms);
     if(scoreTerms) {
+      for (Map.Entry<String, ReservoirSampler<Integer>> kv : termInfos.entrySet()) {
+        String term = kv.getKey();
+        int frequency = kv.getValue().total();
+        topTerms.add(new PMITerm(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
+      }
+      /*
       termProxCounts.forEachEntry((term, frequency) -> {
-        if(!query.contains(term)) {
-          topTerms.add(new PMITerm(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
-        }
+        topTerms.add(new PMITerm(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
         return true;
       });
+      */
 
       List<Parameters> termResults = new ArrayList<>();
       for (PMITerm pmiTerm : topTerms.getUnsortedList()) {
-        termResults.add(pmiTerm.toJSON());
+        Parameters tjson = pmiTerm.toJSON();
+        tjson.put("docs", new ArrayList<>(termInfos.get(pmiTerm.term)));
+        termResults.add(tjson);
       }
       output.put("termResults", termResults);
     }
