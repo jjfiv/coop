@@ -30,19 +30,21 @@ public class BuildIndexAnno {
 
     Debouncer msg = new Debouncer(1000);
 
+    int totalTerms = 0;
     int N = inputs.size();
     try (IndexBuilder builder = new IndexBuilder(cfg, new Directory("bills-complete.index"))) {
-      for (int i = 0; i < inputs.size(); i++) {
-        InputContainer ic = inputs.get(i);
+      for (InputContainer ic : inputs) {
         for (InputStreamable in : ic.getInputs()) {
           try (LinesIterable lines = LinesIterable.of(in.getReader())) {
             for (String line : lines) {
               CoopDoc doc = processAnnoLine(in.getName(), line);
+              totalTerms += doc.getTerms("lemmas").size();
               if (msg.ready()) {
                 int numProcessed = builder.count();
-                System.out.println("# "+doc.getName()+" "+numProcessed+" " +msg.estimate(numProcessed));
+                System.out.println("# " + doc.getName() + " " + numProcessed + " " + msg.estimate(numProcessed));
+                System.out.println("# terms/s " + totalTerms + " " + msg.estimate(totalTerms));
               }
-              if(doc.getName().startsWith("bill")) {
+              if (doc.getName().startsWith("bill")) {
                 doc.setIdentifier(Integer.parseInt(StrUtil.takeAfter(doc.getName(), "bill")));
               }
               builder.addDocument(doc);
