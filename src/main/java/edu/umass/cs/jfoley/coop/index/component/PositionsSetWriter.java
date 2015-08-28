@@ -15,7 +15,7 @@ import edu.umass.cs.jfoley.coop.index.IndexErrorException;
 import edu.umass.cs.jfoley.coop.index.general.IndexItemWriter;
 import edu.umass.cs.jfoley.coop.schema.IndexConfiguration;
 
-import java.io.Closeable;
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +39,8 @@ public class PositionsSetWriter extends IndexItemWriter {
     }
   }
 
-  public void addToPositionsBuilder(int currentId, String tokenSet, List<String> terms) {
+  @Nonnull
+  public StreamingPostingBuilder<String, PositionsList> getPositionsBuilder(String tokenSet) {
     StreamingPostingBuilder<String, PositionsList> builder = this.positionsBuilders.get(tokenSet);
     if(builder == null) {
       try {
@@ -53,9 +54,14 @@ public class PositionsSetWriter extends IndexItemWriter {
       }
       positionsBuilders.put(tokenSet, builder);
     }
+    return builder;
+  }
+
+  public void addToPositionsBuilder(int currentId, String tokenSet, List<String> terms) {
+    StreamingPostingBuilder<String, PositionsList> builder = getPositionsBuilder(tokenSet);
 
     // collection position vectors:
-    Map<String, IntList> data = new HashMap<>();
+    HashMap<String, IntList> data = new HashMap<>(terms.size());
     for (int i = 0, termsSize = terms.size(); i < termsSize; i++) {
       String term = terms.get(i);
       MapFns.extendCollectionInMap(data, term, i, (GenerateFn<IntList>) IntList::new);
@@ -71,7 +77,7 @@ public class PositionsSetWriter extends IndexItemWriter {
 
   @Override
   public void close() throws IOException {
-    for (Closeable builder : positionsBuilders.values()) {
+    for (StreamingPostingBuilder<?,?> builder : positionsBuilders.values()) {
       builder.close();
     }
   }

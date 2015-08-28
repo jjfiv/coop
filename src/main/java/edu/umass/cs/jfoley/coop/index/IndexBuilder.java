@@ -59,8 +59,12 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
   }
 
   public void addDocument(CoopDoc doc) throws IOException {
-    int currentId = documentId++;
-    doc.setIdentifier(currentId);
+    if(doc.getIdentifier() == -1) {
+      int currentId = documentId++;
+      doc.setIdentifier(currentId);
+    } else {
+      documentId++; // documentId functions as a count.
+    }
 
     for (IndexItemWriter writer : writers) {
       writer.process(doc);
@@ -83,4 +87,7 @@ public class IndexBuilder implements Closeable, Builder<IndexReader> {
     }
   }
 
+  public int count() {
+    return documentId;
+  }
 }
