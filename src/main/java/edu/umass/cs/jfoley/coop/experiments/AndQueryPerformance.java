@@ -41,6 +41,7 @@ public class AndQueryPerformance {
         break;
 
       //Time to compute AND.pull: {total=138.21037495599998, min=0.259082729, variance=0.0014720888876883459, max=1.065861554, mean=0.2764207499120004, count=500.0, stddev=0.0383678105667804}
+      case "p128":
       case "upositions":
         blockSize = 128;
         docsCoder = new DeltaIntListCoder(VarUInt.instance, VarUInt.instance);

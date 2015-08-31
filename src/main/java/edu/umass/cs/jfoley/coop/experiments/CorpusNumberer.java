@@ -60,7 +60,10 @@ public class CorpusNumberer {
     }
 
     public void process(Document gdoc) throws IOException {
-      String docName = gdoc.name;
+      process(gdoc.name, gdoc.terms);
+    }
+
+    public void process(String docName, List<String> terms) throws IOException {
       int docId = nextDocId++;
       docNames.put(docId, docName);
 
@@ -68,7 +71,7 @@ public class CorpusNumberer {
       long documentStart = corpusWriter.tell();
       docOffsetWriter.write(FixedSize.longs, documentStart);
 
-      for (String term : gdoc.terms) {
+      for (String term : terms) {
         int tid = getTermId(term);
 
         corpusWriter.write(FixedSize.ints, tid);
@@ -76,6 +79,7 @@ public class CorpusNumberer {
     }
 
     public int getTermId(String term) throws IOException {
+
       int tid = memVocab.get(term);
       // allocate new term:
       if(tid == memVocab.getNoEntryValue()) {
@@ -100,7 +104,7 @@ public class CorpusNumberer {
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
 
-    Directory output = new Directory("robust.ints");
+    Directory output = new Directory(argp.get("output", "robust.ints"));
 
     List<DocumentSplit> documentSplits = DocumentSource.processDirectory(
         new File(argp.get("input", "/mnt/scratch/jfoley/robust04raw")),

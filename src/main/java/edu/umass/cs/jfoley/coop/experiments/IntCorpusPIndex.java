@@ -7,8 +7,8 @@ import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.time.Debouncer;
 import edu.umass.cs.ciir.waltz.coders.files.FileChannelSource;
+import edu.umass.cs.ciir.waltz.io.postings.ArrayPosList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.ciir.waltz.postings.positions.SimplePositionsList;
 import edu.umass.cs.ciir.waltz.sys.PositionsIndexFile;
 import edu.umass.cs.ciir.waltz.sys.PostingIndex;
 import org.lemurproject.galago.utility.Parameters;
@@ -25,7 +25,7 @@ public class IntCorpusPIndex {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory input = Directory.Read(argp.get("input", "robust.ints"));
+    Directory input = Directory.Read(argp.get("input", "bills.ints"));
     FileChannelSource corpus = new FileChannelSource(input.childPath("intCorpus"));
     FileChannelSource docOffsets = new FileChannelSource(input.childPath("docOffset"));
 
@@ -38,7 +38,7 @@ public class IntCorpusPIndex {
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);
 
-    String target = "p8";
+    String target = "p128";
     PostingIndex.PostingsConfig<Integer, PositionsIndexFile.PositionsCountMetadata, PositionsList> cfg = AndQueryPerformance.getCfg(target);
 
     try (PositionsIndexFile.PIndexWriter<Integer> writer = cfg.getWriter(input, target)) {
@@ -61,7 +61,8 @@ public class IntCorpusPIndex {
 
         for (Map.Entry<Integer, IntList> kv : withinDocPositions.entrySet()) {
           int termId = kv.getKey();
-          SimplePositionsList pl = new SimplePositionsList(kv.getValue());
+          IntList arr = kv.getValue();
+          ArrayPosList pl = new ArrayPosList(arr.unsafeArray(), arr.size());
           writer.add(termId, docNumber, pl);
         }
 
