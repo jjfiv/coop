@@ -29,6 +29,7 @@ public class MatchDocuments extends CoopIndexServerFn {
     Parameters output = Parameters.create();
     String operation = input.get("operation", "AND");
     String termKind = input.get("termKind", "lemmas");
+    int limit = input.get("limit", 200);
 
     CoopTokenizer tokenizer = index.getTokenizer();
     List<String> query = tokenizer.createDocument("tmp", input.getString("query")).getTerms(termKind);
@@ -61,7 +62,12 @@ public class MatchDocuments extends CoopIndexServerFn {
     }
 
     IntList hits = new IntList();
-    operationMover.execute(hits::add);
+    for(operationMover.start(); !operationMover.isDone(); operationMover.next()) {
+      if(hits.size() > limit) {
+        break;
+      }
+      hits.add(operationMover.currentKey());
+    }
 
     List<Parameters> results = new ArrayList<>();
     for (Pair<Integer, String> kv : index.lookupNames(hits)) {

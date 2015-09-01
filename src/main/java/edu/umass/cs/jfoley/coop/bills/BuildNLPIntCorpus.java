@@ -99,6 +99,10 @@ public class BuildNLPIntCorpus {
       }
     }
 
+    try (IntCoopIndex index = new IntCoopIndex(output)) {
+      System.out.println(index.getCollectionLength());
+    }
+
   }
 
   private static void processSentences(String id, List<Parameters> info, String field, IntVocabBuilder.IntVocabWriter writer) throws IOException {

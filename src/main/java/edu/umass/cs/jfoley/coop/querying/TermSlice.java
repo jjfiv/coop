@@ -1,5 +1,7 @@
 package edu.umass.cs.jfoley.coop.querying;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author jfoley
  */
@@ -14,10 +16,12 @@ public class TermSlice implements Comparable<TermSlice> {
   }
 
   @Override
-  public int compareTo(TermSlice o) {
+  public int compareTo(@Nonnull TermSlice o) {
     int cmp = Integer.compare(document, o.document);
     if(cmp != 0) return cmp;
     cmp = Integer.compare(start, o.start);
     return cmp;
   }
+
+  public int size() { return end - start; }
 }

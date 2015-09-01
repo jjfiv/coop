@@ -18,6 +18,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -34,15 +36,16 @@ public class IntVocabBuilder {
     }
 
     public int lookupOrCreate(String term) {
-      int code = termMapping.get(term);
-      if(code == termMapping.getNoEntryValue()) {
-        code = termMapping.size();
+      if(termMapping.containsKey(term)) {
+        return termMapping.get(term);
+      } else {
+        int code = termMapping.size();
         termMapping.put(term, code);
         if(writeCallback != null) {
           writeCallback.process(term);
         }
+        return code;
       }
-      return code;
     }
 
     public int size() {
@@ -174,11 +177,17 @@ public class IntVocabBuilder {
       return corpusReader.readInt(start + position * 4);
     }
     public void getSlice(int[] target, int document, int position, int width) throws IOException {
+      Arrays.fill(target, -1);
+
       assert(target.length >= width);
       long start = docOffsetReader.readLong(document*8);
-      corpusReader.read(start + position*4, width*4)
-          .asIntBuffer()
-          .get(target, 0, width);
+      IntBuffer buf = corpusReader.read(start + position*4, width*4)
+          .asIntBuffer();
+
+      int n = Math.min(buf.remaining(), width);
+      for (int i = 0; i < n; i++) {
+        target[i] = buf.get();
+      }
     }
 
     public void setTermTranslationTable(MemoryVocab targetVocabulary) throws IOException {

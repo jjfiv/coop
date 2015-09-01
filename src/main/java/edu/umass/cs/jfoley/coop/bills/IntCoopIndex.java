@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.bills;
 
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
+import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import edu.umass.cs.ciir.waltz.IdMaps;
@@ -126,17 +127,29 @@ public class IntCoopIndex implements CoopIndex {
   @Override
   public PostingMover<PositionsList> getPositionsMover(String termKind, String queryTerm) throws IOException {
     assert(Objects.equals(termKind, "lemmas"));
-    return positions.get(getTermId(queryTerm));
+    int termId = getTermId(queryTerm);
+    System.err.println(queryTerm+" -> "+termId);
+    if(termId < 0) return null;
+    return positions.get(termId);
   }
 
   @Override
   public Iterable<Pair<Integer, String>> lookupNames(IntList hits) throws IOException {
-    return null;
+    return names.getForward(hits);
   }
 
   @Override
   public Iterable<Pair<TermSlice, IntList>> pullTermSlices(List<TermSlice> slices) {
-    return null;
+    return IterableFns.map(slices, (slice) -> {
+      int width = slice.size();
+      int[] words = new int[width];
+      try {
+        corpus.getSlice(words, slice.document, slice.start, width);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return Pair.of(slice, new IntList(words));
+    });
   }
 
   @Override
@@ -190,7 +203,9 @@ public class IntCoopIndex implements CoopIndex {
   public void close() throws IOException {
     this.vocab.close();
     this.names.close();
-    this.positions.close();
+    if(positions != null) {
+      this.positions.close();
+    }
     this.corpus.close();
   }
 }

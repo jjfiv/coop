@@ -139,6 +139,9 @@ public class JSONServer implements WebHandler {
       out.println(json.toString());
       out.close();
 
+      response.setStatus(200);
+      System.out.println(json);
+
     } catch (IllegalArgumentException iae) {
       iae.printStackTrace(System.err);
       response.sendError(ServerErr.BadRequest, iae.getMessage());
@@ -157,7 +160,6 @@ public class JSONServer implements WebHandler {
       }
       response.sendError(501, e.getMessage());
     }
-    return;
   }
 
   public static Parameters parseBody(HttpServletRequest req) throws ServerErr {
