@@ -18,7 +18,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.IntBuffer;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
@@ -179,14 +179,14 @@ public class IntVocabBuilder {
     public void getSlice(int[] target, int document, int position, int width) throws IOException {
       Arrays.fill(target, -1);
 
+      System.out.println("doc: " + document + " pos: " + position + " w: " + width);
       assert(target.length >= width);
       long start = docOffsetReader.readLong(document*8);
-      IntBuffer buf = corpusReader.read(start + position*4, width*4)
-          .asIntBuffer();
-
-      int n = Math.min(buf.remaining(), width);
-      for (int i = 0; i < n; i++) {
-        target[i] = buf.get();
+      long termOff = start+position*4;
+      System.out.println("start: "+start+" pos: "+termOff);
+      ByteBuffer bbuf = corpusReader.read(termOff, width*4);
+      for (int i = 0; i < width; i++) {
+        target[i] = bbuf.getInt(i*4);
       }
     }
 

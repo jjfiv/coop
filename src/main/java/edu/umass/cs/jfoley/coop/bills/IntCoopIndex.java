@@ -13,6 +13,8 @@ import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import edu.umass.cs.ciir.waltz.sys.KeyMetadata;
+import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsIndexFile;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
@@ -158,13 +160,30 @@ public class IntCoopIndex implements CoopIndex {
   }
 
   @Override
-  public long getCollectionLength() {
-    return 0;
+  public long getCollectionLength() throws IOException {
+    return corpus.numberOfTermOccurrences();
   }
 
   @Override
   public int collectionFrequency(int termId) {
-    return 0;
+    PostingMover<PositionsList> mover = null;
+    try {
+      mover = positions.get(termId);
+    } catch (IOException e) {
+      e.printStackTrace();
+      return 0;
+    }
+    if(mover == null) return 0;
+    KeyMetadata<?> meta = mover.getMetadata();
+    if(meta != null && meta instanceof PositionsCountMetadata) {
+      PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
+      return pmc.totalCount;
+    }
+
+    int cf = 0;
+    for(mover.start(); !mover.isDone(); mover.next())
+      cf += mover.getCurrentPosting().size();
+    return cf;
   }
 
   public TIntObjectHashMap<String> termTranslator(IntList termIds) throws IOException {

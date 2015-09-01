@@ -140,26 +140,33 @@ public class JSONServer implements WebHandler {
       out.close();
 
       response.setStatus(200);
-      System.out.println(json);
 
     } catch (IllegalArgumentException iae) {
       iae.printStackTrace(System.err);
-      response.sendError(ServerErr.BadRequest, iae.getMessage());
+      doError(response, ServerErr.BadRequest, iae.getMessage());
     } catch (ServerErr err) {
-      response.sendError(err.code, err.msg);
+      doError(response, err.code, err.msg);
     } catch (AssertionError e) {
       e.printStackTrace(System.err);
       try (PrintWriter out = response.getWriter()) {
         e.printStackTrace(out);
       }
-      response.sendError(501, "Assertion Failed: "+e.getMessage());
+      doError(response, 501, "Assertion Failed: "+e.getMessage());
     } catch (Exception e) {
       e.printStackTrace(System.err);
       try (PrintWriter out = response.getWriter()) {
         e.printStackTrace(out);
       }
-      response.sendError(501, e.getMessage());
+      doError(response, 501, e.getMessage());
     }
+  }
+
+  public static void doError(HttpServletResponse response, int code, String message) throws IOException {
+    response.setStatus(code);
+    response.setContentType("application/json");
+    PrintWriter out = response.getWriter();
+    out.println(Parameters.parseArray("message", message).toString());
+    out.close();
   }
 
   public static Parameters parseBody(HttpServletRequest req) throws ServerErr {

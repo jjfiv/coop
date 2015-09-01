@@ -27,7 +27,7 @@ public interface CoopIndex extends Closeable {
   Iterable<Pair<Integer, String>> lookupNames(IntList hits) throws IOException;
   Iterable<Pair<TermSlice, IntList>> pullTermSlices(List<TermSlice> slices);
   Iterable<Pair<String, Integer>> lookupTermIds(List<String> query) throws IOException;
-  long getCollectionLength();
+  long getCollectionLength() throws IOException;
   int collectionFrequency(int termId);
   Iterable<Pair<Integer, String>> lookupTerms(IntList termIds) throws IOException;
   IntList translateFromTerms(List<String> query) throws IOException;

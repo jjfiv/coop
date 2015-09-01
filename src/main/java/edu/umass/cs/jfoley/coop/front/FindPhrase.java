@@ -86,10 +86,12 @@ public class FindPhrase extends CoopIndexServerFn {
 
       for (Pair<TermSlice, IntList> pair : index.pullTermSlices(slices)) {
         if(pullSlices) {
+          System.out.println(pair);
           hitInfos.get(pair.left.document).put("terms", pair.right);
         }
         if(scoreTerms) {
           for (int term : pair.right) {
+            assert(term >= 0);
             if(queryIds.contains(term)) continue;
             termProxCounts.adjustOrPutValue(term, 1, 1);
           }
@@ -126,7 +128,7 @@ public class FindPhrase extends CoopIndexServerFn {
       output.put("termResults", termResults);
     }
 
-    output.put("results", new ArrayList<>(hitInfos.valueCollection()));
+    output.put("results", ListFns.slice(new ArrayList<>(hitInfos.valueCollection()), 0, 200));
     return output;
   }
 }
