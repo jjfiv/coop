@@ -23,5 +23,10 @@ public class TermSlice implements Comparable<TermSlice> {
     return cmp;
   }
 
+  @Override
+  public String toString() {
+    return "D"+document+" ["+start+","+end+")";
+  }
+
   public int size() { return end - start; }
 }

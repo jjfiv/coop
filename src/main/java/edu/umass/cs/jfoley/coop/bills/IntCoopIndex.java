@@ -87,8 +87,9 @@ public class IntCoopIndex implements CoopIndex {
   @Override
   public CoopDoc getDocument(int id) {
     CoopDoc doc = new CoopDoc();
+    doc.setIdentifier(id);
     try {
-      doc.setTerms("lemmas", translateToTerms(new IntList(corpus.getDocument(id))));
+      doc.setTerms("tokens", translateToTerms(new IntList(corpus.getDocument(id))));
     } catch (IOException e) {
       e.printStackTrace(System.err);
       return null;
@@ -139,6 +140,12 @@ public class IntCoopIndex implements CoopIndex {
   }
 
   @Override
+  public PostingMover<PositionsList> getPositionsMover(String termKind, int termId) throws IOException {
+    if(termId < 0) return null;
+    return positions.get(termId);
+  }
+
+  @Override
   public Iterable<Pair<Integer, String>> lookupNames(IntList hits) throws IOException {
     return names.getForward(hits);
   }
@@ -146,14 +153,13 @@ public class IntCoopIndex implements CoopIndex {
   @Override
   public Iterable<Pair<TermSlice, IntList>> pullTermSlices(Iterable<TermSlice> slices) {
     return IterableFns.map(slices, (slice) -> {
-      int width = slice.size();
-      int[] words = new int[width];
       try {
-        corpus.getSlice(words, slice.document, slice.start, width);
+        int width = slice.size();
+        IntList words = corpus.getSlice(slice.document, slice.start, width);
+        return Pair.of(slice, words);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-      return Pair.of(slice, new IntList(words));
     });
   }
 

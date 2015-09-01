@@ -66,6 +66,8 @@ public class LocatePhrase {
       features.add(new FeatureQueryNode<>(positionsMover));
     }
 
+    System.err.println("phrase: "+phraseMovers);
+
     QueryEvalEngine.EvaluateOneToMany(
         new AllOfMover<>(phraseMovers),
         new PhraseNode(features),

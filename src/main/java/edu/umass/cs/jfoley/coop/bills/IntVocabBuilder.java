@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.bills;
 
 import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.fn.SinkFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
@@ -19,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -168,24 +168,30 @@ public class IntVocabBuilder {
     public int[] getDocument(int document) throws IOException {
       Pair<Long,Long> bounds = getDocumentRange(document);
       int length = IntMath.fromLong(bounds.right - bounds.left);
-      int[] output = new int[length];
-      corpusReader.read(bounds.left, length).asIntBuffer().get(output);
+      int numWords = length/4;
+      int[] output = new int[numWords];
+      ByteBuffer buf = corpusReader.read(bounds.left, length);
+      for (int i = 0; i < numWords; i++) {
+        output[i] = buf.getInt(i*4);
+      }
       return output;
     }
     public int getTerm(int document, int position) throws IOException {
       long start = docOffsetReader.readLong(document * 8);
       return corpusReader.readInt(start + position * 4);
     }
-    public void getSlice(int[] target, int document, int position, int width) throws IOException {
-      Arrays.fill(target, -1);
-
-      assert(target.length >= width);
+    public IntList getSlice(int document, int position, int width) throws IOException {
+      IntList output = new IntList(width);
       long start = docOffsetReader.readLong(document*8);
-      long termOff = start+position*4;
-      ByteBuffer bbuf = corpusReader.read(termOff, width*4);
+      long end = docOffsetReader.readLong((document+1)*8);
+      width = IntMath.fromLong(end - start) / 4;
+      //long termOff = start+position*4;
+      //ByteBuffer bbuf = corpusReader.read(termOff, width * 4);
+      ByteBuffer bbuf = corpusReader.read(start, width*4);
       for (int i = 0; i < width; i++) {
-        target[i] = bbuf.getInt(i*4);
+        output.push(bbuf.getInt(i * 4));
       }
+      return output;
     }
 
     public void setTermTranslationTable(MemoryVocab targetVocabulary) throws IOException {
