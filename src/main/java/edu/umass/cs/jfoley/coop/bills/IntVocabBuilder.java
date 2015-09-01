@@ -1,5 +1,7 @@
 package edu.umass.cs.jfoley.coop.bills;
 
+import ciir.jfoley.chai.IntMath;
+import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.fn.SinkFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
@@ -150,6 +152,34 @@ public class IntVocabBuilder {
     public long numberOfDocuments() throws IOException {
       return docOffsetReader.size() / 8;
     }
+    public int getTerm(long corpusPosition) throws IOException {
+      return corpusReader.readInt(corpusPosition * 4);
+    }
+    public Pair<Long,Long> getDocumentRange(int document) throws IOException {
+      long start = docOffsetReader.readLong(document * 8);
+      if(document == numberOfDocuments()) {
+        return Pair.of(start, corpusReader.size());
+      }
+      return Pair.of(start, docOffsetReader.readLong((document + 1) * 8));
+    }
+    public int[] getDocument(int document) throws IOException {
+      Pair<Long,Long> bounds = getDocumentRange(document);
+      int length = IntMath.fromLong(bounds.right - bounds.left);
+      int[] output = new int[length];
+      corpusReader.read(bounds.left, length).asIntBuffer().get(output);
+      return output;
+    }
+    public int getTerm(int document, int position) throws IOException {
+      long start = docOffsetReader.readLong(document * 8);
+      return corpusReader.readInt(start + position * 4);
+    }
+    public void getSlice(int[] target, int document, int position, int width) throws IOException {
+      assert(target.length >= width);
+      long start = docOffsetReader.readLong(document*8);
+      corpusReader.read(start + position*4, width*4)
+          .asIntBuffer()
+          .get(target, 0, width);
+    }
 
     public void setTermTranslationTable(MemoryVocab targetVocabulary) throws IOException {
       assert(this.termTranslationTable == null);
@@ -161,6 +191,24 @@ public class IntVocabBuilder {
       termsReader.close();
       termsReader = null;
       this.termTranslationTable = result;
+    }
+
+    public int getNumTerms() {
+      return numTerms;
+    }
+
+    public void forEachName(SinkFn<Pair<Integer,String>> nameFn) throws IOException {
+      for (int i = 0; i < numberOfDocuments(); i++) {
+        nameFn.process(Pair.of(i, IntVocabWriter.strCoder.read(docNamesReader)));
+      }
+      docNamesReader.close();
+    }
+
+    public void forEachTerm(SinkFn<Pair<Integer,String>> termFn) throws IOException {
+      for (int i = 0; i < numTerms; i++) {
+        termFn.process(Pair.of(i, IntVocabWriter.strCoder.read(termsReader)));
+      }
+      termsReader.close();
     }
 
     @Override

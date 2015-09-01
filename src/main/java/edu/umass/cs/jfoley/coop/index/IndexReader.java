@@ -149,7 +149,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   @Nonnull
   public List<Integer> getAllDocumentIds() {
     try {
-      return IterableFns.collect(names.forwardReader.keys(), new IntList());
+      return IterableFns.collect(names.ids(), new IntList());
     } catch (IOException e) {
       throw new IndexErrorException(e);
     }
@@ -211,7 +211,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   @Nullable
   public String getDocumentName(int id) {
     try {
-      return names.forwardReader.get(id);
+      return names.getForward(id);
     } catch (IOException e) {
       throw new IndexErrorException(e);
     }
@@ -220,7 +220,7 @@ public class IndexReader extends AbstractIndex implements Closeable {
   @Override
   public int getDocumentId(String documentName) {
     try {
-      Integer id = names.reverseReader.get(documentName);
+      Integer id = names.getReverse(documentName);
       if(id == null) return -1;
       return id;
     } catch (IOException e) {
@@ -265,11 +265,11 @@ public class IndexReader extends AbstractIndex implements Closeable {
   }
 
   public Iterable<Pair<Integer,String>> lookupNames(IntList ids) throws IOException {
-    return names.forwardReader.getInBulk(ids);
+    return names.getForward(ids);
   }
   public Set<String> getDocumentNames(IntList ids) {
     try {
-      return ChaiIterable.create(names.forwardReader.getInBulk(ids))
+      return ChaiIterable.create(names.getForward(ids))
           .map(x -> (x.right))
           .intoSet();
     } catch (IOException e) {

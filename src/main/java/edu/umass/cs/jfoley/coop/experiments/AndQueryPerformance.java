@@ -18,8 +18,8 @@ import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.ciir.waltz.sys.PositionsIndexFile;
-import edu.umass.cs.ciir.waltz.sys.PostingIndex;
+import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
+import edu.umass.cs.ciir.waltz.sys.PostingsConfig;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.Arguments;
 
@@ -30,7 +30,7 @@ import java.util.*;
  * @author jfoley
  */
 public class AndQueryPerformance {
-  public static PostingIndex.PostingsConfig<Integer,PositionsIndexFile.PositionsCountMetadata, PositionsList> getCfg(String what) {
+  public static PostingsConfig<Integer, PositionsList> getCfg(String what) {
     int blockSize;
     IntsCoder docsCoder;
 
@@ -66,12 +66,11 @@ public class AndQueryPerformance {
       default: throw new RuntimeException();
     }
 
-    PostingIndex.PostingsConfig<Integer, PositionsIndexFile.PositionsCountMetadata, PositionsList> config = new PostingIndex.PostingsConfig<>(
+    PostingsConfig<Integer, PositionsList> config = new PostingsConfig<>(
         FixedSize.ints,
-        new PositionsIndexFile.PositionsCountMetadataCoder(),
         new PositionsListCoder(),
         Comparing.defaultComparator(),
-        new PositionsIndexFile.PositionsCountMetadata()
+        new PositionsCountMetadata()
     );
 
     config.blockSize = blockSize;
@@ -85,7 +84,7 @@ public class AndQueryPerformance {
     Directory input = Directory.Read(argp.get("input", "robust.ints"));
 
     String target = "upositions";
-    PostingIndex.PostingsConfig<Integer,PositionsIndexFile.PositionsCountMetadata,PositionsList> cfg = getCfg(target);
+    PostingsConfig<Integer,PositionsList> cfg = getCfg(target);
     IOMap<Integer, PostingMover<PositionsList>> index = cfg.openReader(input, target);
     IdMaps.Reader<String> vocab = GalagoIO.openIdMapsReader(input.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8);
 
@@ -106,7 +105,7 @@ public class AndQueryPerformance {
 
     IntList phraseTermIds = new IntList();
     Map<String, Integer> termMapping = new HashMap<>();
-    for (Pair<String, Integer> kv : vocab.reverseReader.getInBulk(uniqueTerms)) {
+    for (Pair<String, Integer> kv : vocab.getReverse(uniqueTerms)) {
       termMapping.put(kv.getKey(), kv.getValue());
     }
     for (String phraseTerm : phraseTerms) {

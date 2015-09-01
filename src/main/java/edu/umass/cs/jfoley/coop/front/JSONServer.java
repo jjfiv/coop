@@ -3,9 +3,9 @@ package edu.umass.cs.jfoley.coop.front;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.conll.server.ServerErr;
 import edu.umass.cs.jfoley.coop.conll.server.ServerFn;
-import edu.umass.cs.jfoley.coop.index.IndexReader;
 import org.lemurproject.galago.tupleflow.web.WebHandler;
 import org.lemurproject.galago.tupleflow.web.WebServer;
 import org.lemurproject.galago.tupleflow.web.WebServerException;
@@ -26,12 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author jfoley
  */
 public class JSONServer implements WebHandler {
-  public final IndexReader coopIndex;
+  public final CoopIndex coopIndex;
   public final Directory htmlDir;
   private Map<String, ServerFn> apiMethods;
 
   public JSONServer(Directory coopDir, Directory htmlDir) throws IOException {
-    this.coopIndex = new IndexReader(coopDir);
+    this.coopIndex = new IntCoopIndex(coopDir);
     this.htmlDir = htmlDir;
 
     apiMethods = new ConcurrentHashMap<>();
@@ -42,8 +42,7 @@ public class JSONServer implements WebHandler {
   public static void main(String[] args) throws IOException, WebServerException {
     Parameters argp = Arguments.parse(args);
 
-    String defaultIndex = "bills-complete.index";
-    //String defaultIndex = "bible.index";
+    String defaultIndex = "bills.ints";
 
     Directory input = Directory.Read(argp.get("input", defaultIndex));
     Directory htmlDir = Directory.Read(argp.get("html", "coop/front_html"));

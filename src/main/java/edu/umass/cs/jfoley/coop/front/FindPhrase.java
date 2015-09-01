@@ -5,33 +5,26 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
-import ciir.jfoley.chai.random.ReservoirSampler;
 import edu.umass.cs.jfoley.coop.PMITerm;
-import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author jfoley
  */
 public class FindPhrase extends CoopIndexServerFn {
-  protected FindPhrase(IndexReader index) {
+  protected FindPhrase(CoopIndex index) {
     super(index);
-  }
-
-  public static class TermHitInfo {
-    public ReservoirSampler<TermSlice> slices = new ReservoirSampler<TermSlice>(10);
   }
 
   @Override
@@ -47,10 +40,18 @@ public class FindPhrase extends CoopIndexServerFn {
 
     CoopTokenizer tokenizer = index.getTokenizer();
     List<String> query = tokenizer.createDocument("tmp", p.getString("query")).getTerms(termKind);
-
     output.put("queryTerms", query);
 
-    final Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> LocatePhrase.find(index, termKind, query));
+    IntList queryIds = index.translateFromTerms(query);
+
+
+    final Pair<Long, List<DocumentResult<Integer>>> hits = Timing.milliseconds(() -> {
+      try {
+        return LocatePhrase.find(index, termKind, query);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
     int queryFrequency = hits.right.size();
     System.err.println(hits.left);
     output.put("queryFrequency", queryFrequency);
@@ -69,9 +70,7 @@ public class FindPhrase extends CoopIndexServerFn {
       hitInfos.get(kv.left).put("name", kv.right);
     }
 
-    final int numHitsPerTerm = 20;
-    HashMap<String, ReservoirSampler<Integer>> termInfos = new HashMap<>();
-    //TObjectIntHashMap<String> termProxCounts = new TObjectIntHashMap<>();
+    TIntIntHashMap termProxCounts = new TIntIntHashMap();
 
     // also pull terms if we want:
     if(scoreTerms || pullSlices) {
@@ -85,42 +84,43 @@ public class FindPhrase extends CoopIndexServerFn {
             pos - leftWidth, pos + rightWidth + 1));
       }
 
-      for (Pair<TermSlice, List<String>> pair : index.getCorpus().pullTermSlices(slices)) {
+      for (Pair<TermSlice, IntList> pair : index.pullTermSlices(slices)) {
         if(pullSlices) {
           hitInfos.get(pair.left.document).put("terms", pair.right);
         }
         if(scoreTerms) {
-          for (String term : pair.right) {
-            term = term.toLowerCase();
-            if(query.contains(term)) continue;
-            termInfos.computeIfAbsent(term, (k) -> new ReservoirSampler<>(numHitsPerTerm)).add(pair.left.document);
-            //termProxCounts.adjustOrPutValue(term, 1, 1);
+          for (int term : pair.right) {
+            if(queryIds.contains(term)) continue;
+            termProxCounts.adjustOrPutValue(term, 1, 1);
           }
         }
       }
     }
 
     double collectionLength = index.getCollectionLength();
-    TopKHeap<PMITerm> topTerms = new TopKHeap<>(numTerms);
+    TopKHeap<PMITerm<Integer>> topTerms = new TopKHeap<>(numTerms);
     if(scoreTerms) {
-      for (Map.Entry<String, ReservoirSampler<Integer>> kv : termInfos.entrySet()) {
-        int frequency = kv.getValue().total();
-        if(frequency > minTermFrequency) {
-          String term = kv.getKey();
-          topTerms.add(new PMITerm(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
-        }
-      }
-      /*
       termProxCounts.forEachEntry((term, frequency) -> {
-        topTerms.add(new PMITerm(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
+        if(frequency > minTermFrequency) {
+          topTerms.add(new PMITerm<>(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
+        }
         return true;
       });
-      */
+
+      IntList termIds = new IntList(numTerms);
+      for (PMITerm<Integer> topTerm : topTerms) {
+        termIds.add(topTerm.term);
+      }
+      TIntObjectHashMap<String> terms = new TIntObjectHashMap<>();
+      for (Pair<Integer, String> kv : index.lookupTerms(termIds)) {
+        terms.put(kv.getKey(), kv.getValue());
+      }
 
       List<Parameters> termResults = new ArrayList<>();
-      for (PMITerm pmiTerm : topTerms.getUnsortedList()) {
+      for (PMITerm<Integer> pmiTerm : topTerms.getUnsortedList()) {
         Parameters tjson = pmiTerm.toJSON();
-        tjson.put("docs", new ArrayList<>(termInfos.get(pmiTerm.term)));
+        tjson.put("term", terms.get(pmiTerm.term));
+        //tjson.put("docs", new ArrayList<>(termInfos.get(pmiTerm.term)));
         termResults.add(tjson);
       }
       output.put("termResults", termResults);

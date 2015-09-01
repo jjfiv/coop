@@ -26,7 +26,7 @@ public class DumpMappingToPlainText {
 
     IdMaps.Reader<String> reader = GalagoIO.openIdMapsReader(input, FixedSize.ints, CharsetCoders.utf8);
 
-    for (Pair<Integer, String> kv : reader.forwardReader.items()) {
+    for (Pair<Integer, String> kv : reader.items()) {
       System.out.println(kv.right+"\t"+kv.left);
     }
   }

@@ -8,19 +8,19 @@ import edu.umass.cs.ciir.waltz.dociter.movement.AnyOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.jfoley.coop.index.IndexReader;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author jfoley
  */
 public class MatchDocuments extends CoopIndexServerFn {
-  protected MatchDocuments(IndexReader index) {
+  protected MatchDocuments(CoopIndex index) {
     super(index);
   }
 

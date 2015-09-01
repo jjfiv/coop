@@ -52,7 +52,7 @@ public class RankByClassifierFn extends IndexServerFn {
       throw new IllegalArgumentException("No features for given classifier! "+classifier.getSparseFeatures());
     }
     Map<Integer, Mover> featurePostings = new ArrayListMap<>();
-    for (Pair<Integer, String> kv : index.features.forwardReader.getInBulk(features)) {
+    for (Pair<Integer, String> kv : index.features.getForward(features)) {
       featurePostings.put(kv.getKey(), index.featureIndex.get(kv.getValue()));
     }
     if(featurePostings.size() == 0) {

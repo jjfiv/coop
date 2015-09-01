@@ -4,13 +4,14 @@ import ciir.jfoley.chai.fn.SinkFn;
 import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.jfoley.coop.index.IndexReader;
+import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.querying.eval.QueryEvalEngine;
 import edu.umass.cs.jfoley.coop.querying.eval.QueryEvalNode;
 import edu.umass.cs.jfoley.coop.querying.eval.nodes.FeatureQueryNode;
 import edu.umass.cs.jfoley.coop.querying.eval.nodes.PhraseNode;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
  * @author jfoley
  */
 public class LocatePhrase {
-  public static List<DocumentResult<Integer>> find(IndexReader index, String termKind, List<String> terms) {
+  public static List<DocumentResult<Integer>> find(CoopIndex index, String termKind, List<String> terms) throws IOException {
     List<DocumentResult<Integer>> hits = new ArrayList<>();
     switch (terms.size()) {
       case 0: throw new IllegalArgumentException("Didn't specify any terms to search!");
@@ -29,7 +30,7 @@ public class LocatePhrase {
     return hits;
   }
 
-  public static void find(IndexReader index, String termKind, List<String> terms, SinkFn<DocumentResult<Integer>> output) {
+  public static void find(CoopIndex index, String termKind, List<String> terms, SinkFn<DocumentResult<Integer>> output) throws IOException {
     switch (terms.size()) {
       case 0: throw new IllegalArgumentException("Didn't specify any terms to search!");
       case 1: findTermImpl(index, termKind, terms.get(0), output);
@@ -37,7 +38,7 @@ public class LocatePhrase {
     }
   }
 
-  static void findTermImpl(IndexReader index, String termKind, String term, SinkFn<DocumentResult<Integer>> output) {
+  static void findTermImpl(CoopIndex index, String termKind, String term, SinkFn<DocumentResult<Integer>> output) throws IOException {
     PostingMover<PositionsList> mover = index.getPositionsMover(termKind, term);
     if(mover == null) {
       System.err.println("Couldn't find: "+termKind+":"+term);
@@ -52,7 +53,7 @@ public class LocatePhrase {
         output);
   }
 
-  static void findPhraseImpl(IndexReader index, String termKind, List<String> phraseTerms, SinkFn<DocumentResult<Integer>> output) {
+  static void findPhraseImpl(CoopIndex index, String termKind, List<String> phraseTerms, SinkFn<DocumentResult<Integer>> output) throws IOException {
     List<PostingMover<PositionsList>> phraseMovers = new ArrayList<>();
     List<QueryEvalNode<PositionsList>> features = new ArrayList<>();
     for (String phraseTerm : phraseTerms) {

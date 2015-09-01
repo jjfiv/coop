@@ -15,7 +15,7 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsIterator;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.ciir.waltz.sys.PositionsIndexFile;
+import edu.umass.cs.ciir.waltz.sys.positions.PositionsIndexFile;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.Arguments;
 
@@ -51,7 +51,7 @@ public class PhraseQueryTiming {
 
     IntList phraseTermIds = new IntList();
     Map<String, Integer> termMapping = new HashMap<>();
-    for (Pair<String, Integer> kv : vocab.reverseReader.getInBulk(uniqueTerms)) {
+    for (Pair<String, Integer> kv : vocab.getReverse(uniqueTerms)) {
       termMapping.put(kv.getKey(), kv.getValue());
     }
     for (String phraseTerm : phraseTerms) {

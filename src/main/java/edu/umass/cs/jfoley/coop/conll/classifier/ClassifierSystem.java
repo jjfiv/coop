@@ -38,7 +38,7 @@ public class ClassifierSystem implements Closeable {
 
   public ClassifierSystem(TermBasedIndexReader index) throws IOException {
     this.index = index;
-    featuresAboveThreshold = IterableFns.intoList(index.features.reverseReader.keys());
+    featuresAboveThreshold = IterableFns.intoList(index.features.values());
     this.cachedTrainedClassifier = new HashMap<>();
 
     try {

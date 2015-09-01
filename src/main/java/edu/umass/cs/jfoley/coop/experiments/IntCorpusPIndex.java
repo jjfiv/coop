@@ -9,8 +9,8 @@ import ciir.jfoley.chai.time.Debouncer;
 import edu.umass.cs.ciir.waltz.coders.files.FileChannelSource;
 import edu.umass.cs.ciir.waltz.io.postings.ArrayPosList;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.ciir.waltz.sys.PositionsIndexFile;
-import edu.umass.cs.ciir.waltz.sys.PostingIndex;
+import edu.umass.cs.ciir.waltz.sys.PostingsConfig;
+import edu.umass.cs.ciir.waltz.sys.positions.PIndexWriter;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.tools.Arguments;
 
@@ -39,9 +39,9 @@ public class IntCorpusPIndex {
     Debouncer msg = new Debouncer(5000);
 
     String target = "p128";
-    PostingIndex.PostingsConfig<Integer, PositionsIndexFile.PositionsCountMetadata, PositionsList> cfg = AndQueryPerformance.getCfg(target);
+    PostingsConfig<Integer, PositionsList> cfg = AndQueryPerformance.getCfg(target);
 
-    try (PositionsIndexFile.PIndexWriter<Integer> writer = cfg.getWriter(input, target)) {
+    try (PIndexWriter<Integer> writer = cfg.getWriter(input, target)) {
       for (long docIndex = 0; docIndex < numDocuments; docIndex++) {
         long offset = docOffsets.readLong(docIndex * 8);
         long nextOffset = (docIndex + 1 == numDocuments) ?

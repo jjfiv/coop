@@ -3,18 +3,20 @@ package edu.umass.cs.jfoley.coop;
 import ciir.jfoley.chai.lang.LazyPtr;
 import org.lemurproject.galago.utility.Parameters;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author jfoley
  */
-public class PMITerm implements Comparable<PMITerm> {
-  public final String term;
+public class PMITerm<Term> implements Comparable<PMITerm<?>> {
+  public final Term term;
   public final int termFrequency; // px, py
   public final int queryFrequency; // py
   public final int queryProxFrequency; // pxy
   public final double collectionLength;
   private final LazyPtr<Double> cachedPMI;
 
-  public PMITerm(String term, int termFrequency, int queryFrequency, int queryProxFrequency, double collectionLength) {
+  public PMITerm(Term term, int termFrequency, int queryFrequency, int queryProxFrequency, double collectionLength) {
     this.term = term;
     this.termFrequency = termFrequency;
     this.queryFrequency = queryFrequency;
@@ -44,7 +46,7 @@ public class PMITerm implements Comparable<PMITerm> {
   }
 
   @Override
-  public int compareTo(PMITerm o) {
+  public int compareTo(@Nonnull PMITerm<?> o) {
     return Double.compare(pmi(), o.pmi());
   }
 
