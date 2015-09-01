@@ -144,7 +144,9 @@ public class FindPhrase extends CoopIndexServerFn {
       for (Pair<TermSlice, IntList> pair : index.pullTermSlices(slices)) {
         System.err.println(queryIds);
         System.err.println(pair.right);
-        assert(pair.right.contains(queryIds.get(0)));
+        for (Integer queryId : queryIds) {
+          assert(pair.right.contains(queryId));
+        }
         int firstHit = pair.right.indexOf(queryIds.get(0));
         System.out.println(pair.left);
         System.out.println("first-hit: "+firstHit);
