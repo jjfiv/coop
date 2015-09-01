@@ -43,7 +43,9 @@ public class IntCoopIndex implements CoopIndex {
 
   public IntCoopIndex(Directory baseDir) throws IOException {
     this.baseDir = baseDir;
-    this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, "p128");
+    if(baseDir.child("p128.keys").exists()) {
+      this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, "p128");
+    }
     this.corpus = new IntVocabBuilder.IntVocabReader(baseDir);
 
     if(!baseDir.child("names.fwd").exists()) {
@@ -129,6 +131,7 @@ public class IntCoopIndex implements CoopIndex {
   @Override
   public PostingMover<PositionsList> getPositionsMover(String termKind, String queryTerm) throws IOException {
     assert(Objects.equals(termKind, "lemmas"));
+    System.err.println(queryTerm);
     int termId = getTermId(queryTerm);
     System.err.println(queryTerm+" -> "+termId);
     if(termId < 0) return null;
@@ -141,7 +144,7 @@ public class IntCoopIndex implements CoopIndex {
   }
 
   @Override
-  public Iterable<Pair<TermSlice, IntList>> pullTermSlices(List<TermSlice> slices) {
+  public Iterable<Pair<TermSlice, IntList>> pullTermSlices(Iterable<TermSlice> slices) {
     return IterableFns.map(slices, (slice) -> {
       int width = slice.size();
       int[] words = new int[width];

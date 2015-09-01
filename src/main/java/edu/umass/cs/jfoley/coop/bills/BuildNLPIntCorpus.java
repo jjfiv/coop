@@ -108,7 +108,10 @@ public class BuildNLPIntCorpus {
   private static void processSentences(String id, List<Parameters> info, String field, IntVocabBuilder.IntVocabWriter writer) throws IOException {
     List<String> items = new ArrayList<>();
     for (Parameters sentence : info) {
-      items.addAll(sentence.getAsList(field, String.class));
+      // if lowercase:
+      for (String term : sentence.getAsList(field, String.class)) {
+        items.add(term.toLowerCase());
+      }
     }
 
     // finish doc:

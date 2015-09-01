@@ -25,7 +25,7 @@ public interface CoopIndex extends Closeable {
   CoopDoc getDocument(String name);
   PostingMover<PositionsList> getPositionsMover(String termKind, String queryTerm) throws IOException;
   Iterable<Pair<Integer, String>> lookupNames(IntList hits) throws IOException;
-  Iterable<Pair<TermSlice, IntList>> pullTermSlices(List<TermSlice> slices);
+  Iterable<Pair<TermSlice, IntList>> pullTermSlices(Iterable<TermSlice> slices);
   Iterable<Pair<String, Integer>> lookupTermIds(List<String> query) throws IOException;
   long getCollectionLength() throws IOException;
   int collectionFrequency(int termId);

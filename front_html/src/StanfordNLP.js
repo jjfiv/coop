@@ -1,10 +1,12 @@
 class StanfordNLPToken {
     static normalize(x) {
-        switch(x) {
-            case "-LSB-": return "[";
-            case "-RSB-": return "]";
-            case "-LRB-": return "(";
-            case "-RRB-": return ")";
+        let y = x.toLowerCase();
+        console.log(y);
+        switch(y) {
+            case "-lsb-": return "[";
+            case "-rsb-": return "]";
+            case "-lrb-": return "(";
+            case "-rrb-": return ")";
             default: return x;
         }
     }

@@ -4,6 +4,7 @@ import ciir.jfoley.chai.Timing;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
+import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.querying.LocatePhrase;
@@ -39,7 +40,7 @@ public class FindPhrase extends CoopIndexServerFn {
     final int minTermFrequency = p.get("minTermFrequency", 4);
 
     CoopTokenizer tokenizer = index.getTokenizer();
-    List<String> query = tokenizer.createDocument("tmp", p.getString("query")).getTerms(termKind);
+    List<String> query = ListFns.map(tokenizer.createDocument("tmp", p.getString("query")).getTerms(termKind), String::toLowerCase);
     output.put("queryTerms", query);
 
     IntList queryIds = index.translateFromTerms(query);
@@ -58,8 +59,8 @@ public class FindPhrase extends CoopIndexServerFn {
     output.put("queryTime", hits.left);
 
     final TIntObjectHashMap<Parameters> hitInfos = new TIntObjectHashMap<>();
-    // build slices from the results, based on arguments to this file:
-    for (DocumentResult<Integer> hit : hits.right) {
+    // only return 200 results
+    for (DocumentResult<Integer> hit : ListFns.slice(hits.right, 0, 200)) {
       Parameters doc = Parameters.create();
       doc.put("id", hit.document);
       doc.put("loc", hit.value);
@@ -77,17 +78,27 @@ public class FindPhrase extends CoopIndexServerFn {
       int leftWidth = Math.max(0, p.get("leftWidth", 1));
       int rightWidth = Math.max(0, p.get("rightWidth", 1));
 
-      List<TermSlice> slices = new ArrayList<>(count);
+      /*List<TermSlice> slices = new ArrayList<>(count);
       for (DocumentResult<Integer> result : ListFns.slice(hits.right, 0, count)) {
         int pos = result.value;
         slices.add(new TermSlice(result.document,
             pos - leftWidth, pos + rightWidth + 1));
-      }
+      }*/
 
+      // Lazy convert hits to slices:
+      Iterable<TermSlice> slices = IterableFns.map(hits.right, (result) -> {
+        int pos = result.value;
+        return new TermSlice(result.document,
+            pos - leftWidth, pos + rightWidth + 1);
+      });
+
+      // Lazy pull and calculate most frequent terms:
       for (Pair<TermSlice, IntList> pair : index.pullTermSlices(slices)) {
         if(pullSlices) {
-          System.out.println(pair);
-          hitInfos.get(pair.left.document).put("terms", pair.right);
+          Parameters docp = hitInfos.get(pair.left.document);
+          if(docp != null) {
+            docp.put("terms", index.translateToTerms(pair.right));
+          }
         }
         if(scoreTerms) {
           for (int term : pair.right) {
