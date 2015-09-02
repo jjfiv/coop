@@ -206,7 +206,7 @@ class PhraseSearchResultPanels extends React.Component {
         let setFilter = (ids) => this.setState({filterSet: ids});
         return <div>
             <div>
-                Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} />.
+                Found {resp.queryFrequency} results for <QueryDisplay text={req.query} kind={req.termKind} terms={resp.queryTerms} /> in {resp.time} milliseconds.
             </div>
             <div className="uiPanel">
                 {(resp.termResults ? <UIWindow title="Word Cloud">

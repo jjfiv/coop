@@ -1,7 +1,7 @@
 class StanfordNLPToken {
     static normalize(x) {
         let y = x.toLowerCase();
-        console.log(y);
+        //console.log(y);
         switch(y) {
             case "-lsb-": return "[";
             case "-rsb-": return "]";
