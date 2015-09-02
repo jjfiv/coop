@@ -35,6 +35,7 @@ import java.util.Objects;
  * @author jfoley
  */
 public class IntCoopIndex implements CoopIndex {
+  public static final String positionsFileName = "positions.waltz";
   final Directory baseDir;
   final IntVocabBuilder.IntVocabReader corpus;
   final IdMaps.Reader<String> names;
@@ -43,8 +44,8 @@ public class IntCoopIndex implements CoopIndex {
 
   public IntCoopIndex(Directory baseDir) throws IOException {
     this.baseDir = baseDir;
-    if(baseDir.child("p128.keys").exists()) {
-      this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, "p128");
+    if(baseDir.child(positionsFileName+".keys").exists()) {
+      this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, positionsFileName);
     }
     this.corpus = new IntVocabBuilder.IntVocabReader(baseDir);
 

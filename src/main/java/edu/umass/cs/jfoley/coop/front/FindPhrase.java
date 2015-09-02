@@ -32,7 +32,7 @@ public class FindPhrase extends CoopIndexServerFn {
     super(index);
   }
 
-  public List<DocumentResult<Integer>> locatePhrase(IntList queryIds) throws IOException {
+  public static List<DocumentResult<Integer>> locatePhrase(CoopIndex index, IntList queryIds) throws IOException {
     ArrayList<DocumentResult<Integer>> output = new ArrayList<>();
     IntList uniqueTerms = new IntList();
     IntList termIdMapping = new IntList();
@@ -66,10 +66,13 @@ public class FindPhrase extends CoopIndexServerFn {
       int doc = andMover.currentKey();
       ArrayList<SpanIterator> posIters = new ArrayList<>(termIdMapping.size());
       for (int i = 0; i < termIdMapping.size(); i++) {
-        posIters.add(iters.get(termIdMapping.getQuick(i)).getCurrentPosting().getSpanIterator());
+        int trueTerm = termIdMapping.getQuick(i);
+        PostingMover<PositionsList> mover = iters.get(trueTerm);
+        PositionsList pl = mover.getPosting(doc);
+        System.err.println("term[pos="+i+", true="+trueTerm+"]@"+mover.currentKey()+"="+pl);
+        posIters.add(pl.getSpanIterator());
       }
       for (int position : OrderedWindow.findIter(posIters, 1)) {
-        System.err.println("D"+doc+" "+position);
         output.add(new DocumentResult<>(doc, position));
       }
     }
@@ -95,7 +98,7 @@ public class FindPhrase extends CoopIndexServerFn {
 
 
     long startTime = System.currentTimeMillis();
-    List<DocumentResult<Integer>> hits = locatePhrase(queryIds);
+    List<DocumentResult<Integer>> hits = locatePhrase(index, queryIds);
     long endTime = System.currentTimeMillis();
     int queryFrequency = hits.size();
     output.put("queryFrequency", queryFrequency);

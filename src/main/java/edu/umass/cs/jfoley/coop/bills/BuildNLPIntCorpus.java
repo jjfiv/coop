@@ -22,6 +22,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author jfoley
@@ -58,6 +59,7 @@ public class BuildNLPIntCorpus {
     List<TemporaryDirectory> shards = new ArrayList<>();
     List<ForkJoinTask<?>> tasks = new ArrayList<>();
     AtomicInteger totalComplete = new AtomicInteger(0);
+    AtomicLong totalTermsProcessed = new AtomicLong(0);
 
     for (List<Integer> jobIds : ListFns.partition(IntRange.exclusive(0, N), 50)) {
       final TemporaryDirectory jobTmpDir = new TemporaryDirectory();
@@ -71,9 +73,11 @@ public class BuildNLPIntCorpus {
             processSentences(Integer.toString(i), info, "lemmas", writer);
 
             int total = totalComplete.incrementAndGet();
+            long totalTerms = totalTermsProcessed.addAndGet(info.size());
             if (msg.ready()) {
               System.out.println("Running threads: "+jobs.getActiveThreadCount());
               System.out.println(msg.estimate(total, N));
+              System.out.println("Terms/s: "+msg.estimate(totalTerms));
             }
           }
         } catch (IOException e) {
@@ -84,18 +88,15 @@ public class BuildNLPIntCorpus {
       tasks.add(task);
     }
 
-    for (int i = 0; i < tasks.size(); i++) {
-      ForkJoinTask<?> task = tasks.get(i);
-      System.err.println("#join "+(i+1)+"/"+tasks.size()+" "+msg.estimate(i, tasks.size()));
-      task.join();
-    }
-
     // merge shards:
     try (IntVocabBuilder.IntVocabWriter finalWriter = new IntVocabBuilder.IntVocabWriter(output)) {
       for (int i = 0; i < shards.size(); i++) {
-        System.err.println("Merged: "+(i+1)+"/"+shards.size()+" "+msg.estimate(i, shards.size()));
+        ForkJoinTask<?> task = tasks.get(i);
+        System.err.println("#join "+(i+1)+"/"+tasks.size()+" "+msg.estimate(i, tasks.size()));
+        task.join();
         TemporaryDirectory shard = shards.get(i);
         finalWriter.put(new IntVocabBuilder.IntVocabReader(shard));
+        System.err.println("Merged: "+(i+1)+"/"+shards.size()+" "+msg.estimate(i, shards.size()));
       }
     }
 

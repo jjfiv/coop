@@ -81,9 +81,9 @@ public class AndQueryPerformance {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory input = Directory.Read(argp.get("input", "robust.ints"));
+    Directory input = Directory.Read(argp.get("input", "/mnt/scratch/jfoley/int-corpora/robust.ints/"));
 
-    String target = "upositions";
+    String target = "p128";
     PostingsConfig<Integer,PositionsList> cfg = getCfg(target);
     IOMap<Integer, PostingMover<PositionsList>> index = cfg.openReader(input, target);
     IdMaps.Reader<String> vocab = GalagoIO.openIdMapsReader(input.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8);
@@ -140,7 +140,7 @@ public class AndQueryPerformance {
         int x = andMover.currentKey();
         highestNums.add(x);
         for (PostingMover<PositionsList> iter : iters) {
-          sizes.push((double) iter.getCurrentPosting().size());
+          sizes.push((double) iter.getPosting(x).size());
         }
       }
       andMover.reset();

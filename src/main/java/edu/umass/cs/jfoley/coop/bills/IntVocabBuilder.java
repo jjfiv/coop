@@ -152,22 +152,31 @@ public class IntVocabBuilder {
     public long numberOfTermOccurrences() throws IOException {
       return corpusReader.size() / 4;
     }
-    public long numberOfDocuments() throws IOException {
-      return docOffsetReader.size() / 8;
+    public int numberOfDocuments() throws IOException {
+      return IntMath.fromLong(docOffsetReader.size() / 8);
     }
     public int getTerm(long corpusPosition) throws IOException {
       return corpusReader.readInt(corpusPosition * 4);
     }
     public Pair<Long,Long> getDocumentRange(int document) throws IOException {
       long start = docOffsetReader.readLong(document * 8);
-      if((document+1) == numberOfDocuments()) {
+      if((document+1) >= numberOfDocuments()) {
         return Pair.of(start, corpusReader.size());
       }
-      return Pair.of(start, docOffsetReader.readLong((document + 1) * 8));
+      return Pair.of(start, docOffsetReader.readLong((document+1) * 8));
     }
     public int[] getDocument(int document) throws IOException {
       Pair<Long,Long> bounds = getDocumentRange(document);
+      if(bounds.right == 0) {
+        System.err.println(bounds);
+        System.err.println(document);
+        System.err.println(docOffsetReader.size());
+        System.err.println(docOffsetReader.readLong(document+1)*8);
+        System.err.println(docOffsetReader.readLong(document)*8);
+      }
+      assert(bounds.right >= 0);
       int length = IntMath.fromLong(bounds.right - bounds.left);
+      assert(length >= 0);
       int numWords = length/4;
       int[] output = new int[numWords];
       ByteBuffer buf = corpusReader.read(bounds.left, length);
