@@ -92,7 +92,7 @@ public class BuildNLPIntCorpus {
     try (IntVocabBuilder.IntVocabWriter finalWriter = new IntVocabBuilder.IntVocabWriter(output)) {
       for (int i = 0; i < shards.size(); i++) {
         ForkJoinTask<?> task = tasks.get(i);
-        System.err.println("#join "+(i+1)+"/"+tasks.size()+" "+msg.estimate(i, tasks.size()));
+        System.err.println("#join " + (i + 1) + "/" + tasks.size() + " " + msg.estimate(i, tasks.size()));
         task.join();
         TemporaryDirectory shard = shards.get(i);
         finalWriter.put(new IntVocabBuilder.IntVocabReader(shard));

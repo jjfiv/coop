@@ -29,7 +29,9 @@ public class IntCorpusPIndex {
       long numTerms = reader.numberOfTermOccurrences();
 
       for (int i = 0; i < numDocuments; i++) {
-        indexer.add(i, reader.getDocument(i));
+        int[] terms = reader.getDocument(i);
+        indexer.add(i, terms);
+        globalPosition += terms.length;
 
         if (msg.ready()) {
           System.out.println("Progress: " + globalPosition + " / " + numTerms);

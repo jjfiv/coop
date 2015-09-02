@@ -69,7 +69,7 @@ public class FindPhrase extends CoopIndexServerFn {
         int trueTerm = termIdMapping.getQuick(i);
         PostingMover<PositionsList> mover = iters.get(trueTerm);
         PositionsList pl = mover.getPosting(doc);
-        System.err.println("term[pos="+i+", true="+trueTerm+"]@"+mover.currentKey()+"="+pl);
+        //System.err.println("term[pos="+i+", true="+trueTerm+"]@"+mover.currentKey()+"="+pl);
         posIters.add(pl.getSpanIterator());
       }
       for (int position : OrderedWindow.findIter(posIters, 1)) {
@@ -138,21 +138,13 @@ public class FindPhrase extends CoopIndexServerFn {
         int pos = result.value;
         TermSlice slice = new TermSlice(result.document,
             pos - leftWidth, pos + rightWidth + phraseWidth);
-        System.err.println("#D"+result.document+" "+pos);
+        //System.err.println("#D"+result.document+" "+pos);
         assert(slice.size() == leftWidth+rightWidth+phraseWidth);
         return slice;
       });
 
       // Lazy pull and calculate most frequent terms:
       for (Pair<TermSlice, IntList> pair : index.pullTermSlices(slices)) {
-        System.err.println(queryIds);
-        System.err.println(pair.right);
-        for (Integer queryId : queryIds) {
-          assert(pair.right.contains(queryId));
-        }
-        int firstHit = pair.right.indexOf(queryIds.get(0));
-        System.out.println(pair.left);
-        System.out.println("first-hit: "+firstHit);
         if(pullSlices) {
           Parameters docp = hitInfos.get(pair.left.document);
           if(docp != null) {
