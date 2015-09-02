@@ -102,6 +102,9 @@ public class IntVocabBuilder {
       // copy term ids
       other.setTermTranslationTable(this.vocabulary);
 
+      // start of this segment:
+      long stepOver = corpusWriter.tell();
+
       // copy corpus:
       for (long i = 0; i < other.numberOfTermOccurrences(); i++) {
         int originalId = other.corpusReader.readInt(i*4);
@@ -111,7 +114,7 @@ public class IntVocabBuilder {
 
       // copy "doc-offsets"
       for (long i = 0; i < other.numberOfDocuments(); i++) {
-        long offset = other.docOffsetReader.readLong(i*8);
+        long offset = stepOver + other.docOffsetReader.readLong(i*8);
         docOffsetWriter.write(FixedSize.longs, offset);
       }
 

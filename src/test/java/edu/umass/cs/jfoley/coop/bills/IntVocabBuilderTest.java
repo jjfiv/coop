@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.bills;
 
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
@@ -106,13 +107,65 @@ public class IntVocabBuilderTest {
         Map<Integer, PositionsList> overPos = reader.getPositionsMover("lemmas", "over").toMap();
         Map<Integer, PositionsList> thePos = reader.getPositionsMover("lemmas", "the").toMap();
 
-        System.err.println(overPos);
-        System.err.println(thePos);
-
         List<Integer> results = OrderedWindow.findIter(Arrays.asList(overPos.get(1).getSpanIterator(), thePos.get(1).getSpanIterator()), 1);
         assertEquals(Arrays.asList(5), results);
 
-        System.err.println(results);
+        List<DocumentResult<Integer>> hits;
+        hits = FindPhrase.locatePhrase(reader, reader.translateFromTerms(Arrays.asList("over", "the")));
+        assertEquals(hits.size(), 1);
+        assertEquals(1, hits.get(0).document);
+        assertEquals(5, hits.get(0).value.intValue());
+      }
+    }
+  }
+
+  @Test
+  public void phraseQuery2() throws IOException {
+    List<String> documents = new ArrayList<>();
+    documents.add("this is the time for all good men to come to the party");
+    documents.add("the quick brown fox jumped over the lazy dog");
+    documents.add("any dog would want to go to a party");
+
+    List<List<String>> docTerms = ListFns.map(documents,
+        (doc) -> Arrays.asList(doc.split("\\s+")));
+
+    List<String> corpus = new ArrayList<>();
+    for (List<String> docTerm : docTerms) {
+      corpus.addAll(docTerm);
+    }
+
+    Set<String> uniqueTerms = new TreeSet<>(corpus);
+
+    try (TemporaryDirectory tmpdir = new TemporaryDirectory()) {
+      try (IntVocabBuilder.IntVocabWriter finalWriter = new IntVocabBuilder.IntVocabWriter(tmpdir)) {
+        for (int i = 0; i < docTerms.size(); i++) {
+          Directory ithDir = tmpdir.childDir(Integer.toString(i));
+          try (IntVocabBuilder.IntVocabWriter writer = new IntVocabBuilder.IntVocabWriter(ithDir)) {
+            List<String> doc = docTerms.get(i);
+            writer.process("doc" + i, doc);
+          }
+
+          try (IntVocabBuilder.IntVocabReader other = new IntVocabBuilder.IntVocabReader(ithDir)) {
+            finalWriter.put(other);
+          }
+        }
+      }
+
+      // build a positions part:
+      try (IntVocabBuilder.IntVocabReader reader = new IntVocabBuilder.IntVocabReader(tmpdir);
+           IntCorpusPositionIndexer pwriter = new IntCorpusPositionIndexer(tmpdir)) {
+        pwriter.indexFromCorpus(reader);
+      }
+
+      try (IntCoopIndex reader = new IntCoopIndex(tmpdir)) {
+        assertNotNull(reader.positions);
+        assertEquals(uniqueTerms.size(), reader.getCorpus().getNumTerms());
+
+        Map<Integer, PositionsList> overPos = reader.getPositionsMover("lemmas", "over").toMap();
+        Map<Integer, PositionsList> thePos = reader.getPositionsMover("lemmas", "the").toMap();
+
+        List<Integer> results = OrderedWindow.findIter(Arrays.asList(overPos.get(1).getSpanIterator(), thePos.get(1).getSpanIterator()), 1);
+        assertEquals(Arrays.asList(5), results);
 
         List<DocumentResult<Integer>> hits;
         hits = FindPhrase.locatePhrase(reader, reader.translateFromTerms(Arrays.asList("over", "the")));
