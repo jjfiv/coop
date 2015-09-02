@@ -36,9 +36,9 @@ import java.util.Objects;
  */
 public class IntCoopIndex implements CoopIndex {
   final Directory baseDir;
-  private final IntVocabBuilder.IntVocabReader corpus;
-  private final IdMaps.Reader<String> names;
-  private final IdMaps.Reader<String> vocab;
+  final IntVocabBuilder.IntVocabReader corpus;
+  final IdMaps.Reader<String> names;
+  final IdMaps.Reader<String> vocab;
   IOMap<Integer, PostingMover<PositionsList>> positions;
 
   public IntCoopIndex(Directory baseDir) throws IOException {
@@ -235,5 +235,9 @@ public class IntCoopIndex implements CoopIndex {
       this.positions.close();
     }
     this.corpus.close();
+  }
+
+  public IntVocabBuilder.IntVocabReader getCorpus() {
+    return corpus;
   }
 }

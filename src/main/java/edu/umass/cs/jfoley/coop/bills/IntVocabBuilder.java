@@ -160,7 +160,7 @@ public class IntVocabBuilder {
     }
     public Pair<Long,Long> getDocumentRange(int document) throws IOException {
       long start = docOffsetReader.readLong(document * 8);
-      if(document == numberOfDocuments()) {
+      if((document+1) == numberOfDocuments()) {
         return Pair.of(start, corpusReader.size());
       }
       return Pair.of(start, docOffsetReader.readLong((document + 1) * 8));
@@ -182,11 +182,10 @@ public class IntVocabBuilder {
     }
     public IntList getSlice(int document, int position, int width) throws IOException {
       IntList output = new IntList(width);
-      long start = docOffsetReader.readLong(document*8);
-      long end = docOffsetReader.readLong((document+1)*8);
-      width = IntMath.fromLong(end - start) / 4;
-      //long termOff = start+position*4;
-      //ByteBuffer bbuf = corpusReader.read(termOff, width * 4);
+      Pair<Long,Long> docRange = getDocumentRange(document);
+      long start = docRange.left + position*4;
+      long end = start + width * 4;
+      assert(end <= docRange.right);
       ByteBuffer bbuf = corpusReader.read(start, width*4);
       for (int i = 0; i < width; i++) {
         output.push(bbuf.getInt(i * 4));
