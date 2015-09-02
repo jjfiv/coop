@@ -120,6 +120,7 @@ public class FindPhrase extends CoopIndexServerFn {
 
     TIntIntHashMap termProxCounts = new TIntIntHashMap();
 
+    long startScoring = System.currentTimeMillis();
     // also pull terms if we want:
     if(scoreTerms || pullSlices) {
       int leftWidth = Math.max(0, p.get("leftWidth", 1));
@@ -179,6 +180,11 @@ public class FindPhrase extends CoopIndexServerFn {
       for (Pair<Integer, String> kv : index.lookupTerms(termIds)) {
         terms.put(kv.getKey(), kv.getValue());
       }
+      long endScoring = System.currentTimeMillis();
+
+      long millisForScoring = (endScoring - startScoring);
+      System.out.printf("Spent %d milliseconds scoring terms for %d locations; %1.2f ms/hit\n", millisForScoring, hits.size(),
+          ( (double) millisForScoring / (double) hits.size() ));
 
       List<Parameters> termResults = new ArrayList<>();
       for (PMITerm<Integer> pmiTerm : topTerms.getUnsortedList()) {

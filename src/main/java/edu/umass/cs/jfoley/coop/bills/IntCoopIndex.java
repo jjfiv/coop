@@ -28,6 +28,7 @@ import org.lemurproject.galago.utility.Parameters;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -174,25 +175,38 @@ public class IntCoopIndex implements CoopIndex {
     return corpus.numberOfTermOccurrences();
   }
 
+  // TODO, LRU cache, or LeastFrequencyCache?
+  private HashMap<Integer, Integer> cachedCollectionFreq = new HashMap<>();
   @Override
   public int collectionFrequency(int termId) {
-    PostingMover<PositionsList> mover = null;
+    Integer cached = cachedCollectionFreq.get(termId);
+    if(cached != null) {
+      System.err.println(cachedCollectionFreq.size());
+      return cached;
+    }
+
+    PostingMover<PositionsList> mover;
     try {
       mover = positions.get(termId);
     } catch (IOException e) {
       e.printStackTrace();
       return 0;
     }
-    if(mover == null) return 0;
+    if(mover == null) {
+      cachedCollectionFreq.put(termId, 0);
+      return 0;
+    }
     KeyMetadata<?> meta = mover.getMetadata();
     if(meta != null && meta instanceof PositionsCountMetadata) {
       PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
+      cachedCollectionFreq.put(termId, pmc.totalCount);
       return pmc.totalCount;
     }
 
     int cf = 0;
     for(mover.start(); !mover.isDone(); mover.next())
       cf += mover.getCurrentPosting().size();
+    cachedCollectionFreq.put(termId, cf);
     return cf;
   }
 
