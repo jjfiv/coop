@@ -7,6 +7,7 @@ import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
+import gnu.trove.map.hash.TIntIntHashMap;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
@@ -33,4 +34,5 @@ public interface CoopIndex extends Closeable {
   Iterable<Pair<Integer, String>> lookupTerms(IntList termIds) throws IOException;
   IntList translateFromTerms(List<String> query) throws IOException;
   Parameters getMetadata();
+  TIntIntHashMap getCollectionFrequencies(IntList integers) throws IOException;
 }

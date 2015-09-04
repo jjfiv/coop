@@ -21,16 +21,14 @@ import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.tokenization.StanfordNLPTokenizer;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author jfoley
@@ -134,9 +132,9 @@ public class IntCoopIndex implements CoopIndex {
   @Override
   public PostingMover<PositionsList> getPositionsMover(String termKind, String queryTerm) throws IOException {
     assert(Objects.equals(termKind, "lemmas"));
-    System.err.println(queryTerm);
+    //System.err.println(queryTerm);
     int termId = getTermId(queryTerm);
-    System.err.println(queryTerm+" -> "+termId);
+    //System.err.println(queryTerm+" -> "+termId);
     if(termId < 0) return null;
     return positions.get(termId);
   }
@@ -177,11 +175,53 @@ public class IntCoopIndex implements CoopIndex {
 
   // TODO, LRU cache, or LeastFrequencyCache?
   private HashMap<Integer, Integer> cachedCollectionFreq = new HashMap<>();
+
+  public TIntIntHashMap getCollectionFrequencies(IntList ids) throws IOException {
+    TIntIntHashMap output = new TIntIntHashMap(ids.size());
+    //IntList uncached = new IntList(ids.size());
+    /*for (int id : ids) {
+      Integer cached = cachedCollectionFreq.get(id);
+      if(cached == null) {
+        uncached.add(id);
+      } else {
+        output.put(id, cached);
+      }
+    }
+    Collections.sort(uncached);*/
+    IntList uncached = ids;
+    uncached.sort();
+    System.err.println(uncached.size());
+
+    for (List<Integer> batch : IterableFns.batches(uncached, 20)) {
+      for (Pair<Integer, PostingMover<PositionsList>> kv : positions.getInBulk(batch)) {
+        int id = kv.getKey();
+        PostingMover<PositionsList> mover = kv.getValue();
+        KeyMetadata<?> meta = mover.getMetadata();
+        if(meta != null && meta instanceof PositionsCountMetadata) {
+          PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
+          //cachedCollectionFreq.put(termId, pmc.totalCount);
+          output.put(id, pmc.totalCount);
+          continue;
+        }
+
+        // Only calculate if we absolutely must.
+        int cf = 0;
+        for(mover.start(); !mover.isDone(); mover.next()) {
+          cf += mover.getCurrentPosting().size();
+        }
+
+        //cachedCollectionFreq.put(termId, cf);
+        output.put(id, cf);
+      }
+    }
+
+    return output;
+  }
   @Override
   public int collectionFrequency(int termId) {
     Integer cached = cachedCollectionFreq.get(termId);
     if(cached != null) {
-      System.err.println(cachedCollectionFreq.size());
+      //System.err.println(cachedCollectionFreq.size());
       return cached;
     }
 
@@ -193,20 +233,20 @@ public class IntCoopIndex implements CoopIndex {
       return 0;
     }
     if(mover == null) {
-      cachedCollectionFreq.put(termId, 0);
+      //cachedCollectionFreq.put(termId, 0);
       return 0;
     }
     KeyMetadata<?> meta = mover.getMetadata();
     if(meta != null && meta instanceof PositionsCountMetadata) {
       PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
-      cachedCollectionFreq.put(termId, pmc.totalCount);
+      //cachedCollectionFreq.put(termId, pmc.totalCount);
       return pmc.totalCount;
     }
 
     int cf = 0;
     for(mover.start(); !mover.isDone(); mover.next())
       cf += mover.getCurrentPosting().size();
-    cachedCollectionFreq.put(termId, cf);
+    //cachedCollectionFreq.put(termId, cf);
     return cf;
   }
 

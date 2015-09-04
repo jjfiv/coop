@@ -118,7 +118,7 @@ public class FindPhrase extends CoopIndexServerFn {
       hitInfos.get(kv.left).put("name", kv.right);
     }
 
-    TIntIntHashMap termProxCounts = new TIntIntHashMap();
+    TIntIntHashMap termProxCounts = new TIntIntHashMap(Math.max(1000, hits.size() / 10));
 
     long startScoring = System.currentTimeMillis();
     // also pull terms if we want:
@@ -126,13 +126,6 @@ public class FindPhrase extends CoopIndexServerFn {
       int leftWidth = Math.max(0, p.get("leftWidth", 1));
       int rightWidth = Math.max(0, p.get("rightWidth", 1));
       int phraseWidth = queryIds.size();
-
-      /*List<TermSlice> slices = new ArrayList<>(count);
-      for (DocumentResult<Integer> result : ListFns.slice(hits.right, 0, count)) {
-        int pos = result.value;
-        slices.add(new TermSlice(result.document,
-            pos - leftWidth, pos + rightWidth + 1));
-      }*/
 
       // Lazy convert hits to slices:
       Iterable<TermSlice> slices = IterableFns.map(hits, (result) -> {
@@ -162,12 +155,18 @@ public class FindPhrase extends CoopIndexServerFn {
       }
     }
 
+
     double collectionLength = index.getCollectionLength();
     TopKHeap<PMITerm<Integer>> topTerms = new TopKHeap<>(numTerms);
     if(scoreTerms) {
+      long start = System.currentTimeMillis();
+      TIntIntHashMap freq = index.getCollectionFrequencies(new IntList(termProxCounts.keys()));
+      long end = System.currentTimeMillis();
+      System.err.println("Pull frequencies: "+(end-start)+"ms.");
+
       termProxCounts.forEachEntry((term, frequency) -> {
         if(frequency > minTermFrequency) {
-          topTerms.add(new PMITerm<>(term, index.collectionFrequency(term), queryFrequency, frequency, collectionLength));
+          topTerms.add(new PMITerm<>(term, freq.get(term), queryFrequency, frequency, collectionLength));
         }
         return true;
       });
@@ -176,15 +175,17 @@ public class FindPhrase extends CoopIndexServerFn {
       for (PMITerm<Integer> topTerm : topTerms) {
         termIds.add(topTerm.term);
       }
+      long endScoring = System.currentTimeMillis();
+
+      long millisForScoring = (endScoring - startScoring);
+      System.out.printf("Spent %d milliseconds scoring terms for %d locations; %1.2f ms/hit; %d candidates.\n", millisForScoring, hits.size(),
+          ( (double) millisForScoring / (double) hits.size() ),
+          termProxCounts.size());
+
       TIntObjectHashMap<String> terms = new TIntObjectHashMap<>();
       for (Pair<Integer, String> kv : index.lookupTerms(termIds)) {
         terms.put(kv.getKey(), kv.getValue());
       }
-      long endScoring = System.currentTimeMillis();
-
-      long millisForScoring = (endScoring - startScoring);
-      System.out.printf("Spent %d milliseconds scoring terms for %d locations; %1.2f ms/hit\n", millisForScoring, hits.size(),
-          ( (double) millisForScoring / (double) hits.size() ));
 
       List<Parameters> termResults = new ArrayList<>();
       for (PMITerm<Integer> pmiTerm : topTerms.getUnsortedList()) {
