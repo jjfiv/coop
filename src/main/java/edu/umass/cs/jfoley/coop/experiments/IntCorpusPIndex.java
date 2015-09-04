@@ -45,7 +45,11 @@ public class IntCorpusPIndex {
     System.out.println("Total Time: "+(endTime - startTime));
     // Progress: 249670890 / 252359881
     // 1414862.5 items/s  1.9 seconds left, 98.9% complete.
-
     // Total Time: 242472
+
+    // bills
+    // Progress: 324483348 / 334913031
+    // 2179993.7 items/s  4.8 seconds left, 96.9% complete.
+    // Total Time: 181479
   }
 }

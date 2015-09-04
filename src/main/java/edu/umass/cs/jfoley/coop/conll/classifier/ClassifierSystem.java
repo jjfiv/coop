@@ -8,11 +8,11 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import edu.umass.cs.ciir.waltz.dbindex.DBConfig;
-import edu.umass.cs.ciir.waltz.dbindex.SQLIterable;
 import edu.umass.cs.jfoley.coop.conll.TermBasedIndexReader;
+import edu.umass.cs.jfoley.coop.conll.classifier.labeldb.DBConfig;
 import edu.umass.cs.jfoley.coop.conll.classifier.labeldb.LabelInfo;
 import edu.umass.cs.jfoley.coop.conll.classifier.labeldb.LabelJudgment;
+import edu.umass.cs.jfoley.coop.conll.classifier.labeldb.SQLIterable;
 import edu.umass.cs.jfoley.coop.document.CoopToken;
 import org.lemurproject.galago.utility.Parameters;
 
