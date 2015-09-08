@@ -7,8 +7,6 @@ import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
 import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
-import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
-import edu.umass.cs.ciir.waltz.postings.extents.SpanIterator;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
@@ -21,7 +19,6 @@ import org.lemurproject.galago.utility.Parameters;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,47 +31,20 @@ public class FindPhrase extends CoopIndexServerFn {
 
   public static List<DocumentResult<Integer>> locatePhrase(CoopIndex index, IntList queryIds) throws IOException {
     ArrayList<DocumentResult<Integer>> output = new ArrayList<>();
-    IntList uniqueTerms = new IntList();
-    IntList termIdMapping = new IntList();
-    for (int i = 0; i < queryIds.size(); i++) {
-      int term_i = queryIds.getQuick(i);
-      int first_pos = queryIds.indexOf(term_i);
-      termIdMapping.add(first_pos);
-      if(first_pos == i) {
-        uniqueTerms.add(term_i);
-      }
-    }
+
+    QueryEngine.QueryRepr repr = new QueryEngine.QueryRepr();
+    QueryEngine.PhraseNode phrase = new QueryEngine.PhraseNode(queryIds, repr);
 
     System.out.println("query: "+queryIds);
-    System.out.println("unique: "+uniqueTerms);
-    System.out.println("mapping: "+termIdMapping);
+    System.out.println("unique: "+repr.getUniqueTerms());
+    System.out.println("mapping: "+phrase.termIdMapping);
 
-    ArrayList<PostingMover<PositionsList>> iters = new ArrayList<>();
-    for (int uniqueTerm : uniqueTerms) {
-      PostingMover<PositionsList> iter = index.getPositionsMover("lemmas", uniqueTerm);
-      int numDocuments = iter != null ? iter.totalKeys() : 0;
-      System.out.println("termId: " + uniqueTerm + " numDocs: " + numDocuments);
-      if (iter == null) {
-        return Collections.emptyList();
-      }
-      iters.add(iter);
-    }
-
+    ArrayList<PostingMover<PositionsList>> iters = repr.getMovers(index);
     AllOfMover<?> andMover = new AllOfMover<>(iters);
 
     for(andMover.start(); !andMover.isDone(); andMover.next()) {
       int doc = andMover.currentKey();
-      ArrayList<SpanIterator> posIters = new ArrayList<>(termIdMapping.size());
-      for (int i = 0; i < termIdMapping.size(); i++) {
-        int trueTerm = termIdMapping.getQuick(i);
-        PostingMover<PositionsList> mover = iters.get(trueTerm);
-        PositionsList pl = mover.getPosting(doc);
-        //System.err.println("term[pos="+i+", true="+trueTerm+"]@"+mover.currentKey()+"="+pl);
-        posIters.add(pl.getSpanIterator());
-      }
-      for (int position : OrderedWindow.findIter(posIters, 1)) {
-        output.add(new DocumentResult<>(doc, position));
-      }
+      phrase.process(doc, iters, output::add);
     }
     return output;
   }
@@ -132,7 +102,6 @@ public class FindPhrase extends CoopIndexServerFn {
         int pos = result.value;
         TermSlice slice = new TermSlice(result.document,
             pos - leftWidth, pos + rightWidth + phraseWidth);
-        //System.err.println("#D"+result.document+" "+pos);
         assert(slice.size() == leftWidth+rightWidth+phraseWidth);
         return slice;
       });
@@ -147,6 +116,9 @@ public class FindPhrase extends CoopIndexServerFn {
         }
         if(scoreTerms) {
           for (int term : pair.right) {
+            if(term == 240602) {
+              System.out.println("240602: "+pair.left);
+            }
             assert(term >= 0);
             if(queryIds.contains(term)) continue;
             termProxCounts.adjustOrPutValue(term, 1, 1);
@@ -165,6 +137,10 @@ public class FindPhrase extends CoopIndexServerFn {
       System.err.println("Pull frequencies: "+(end-start)+"ms.");
 
       termProxCounts.forEachEntry((term, frequency) -> {
+        int collectionFrequency = freq.get(term);
+        if(frequency > collectionFrequency) {
+          System.err.println(term+" "+frequency+" "+collectionFrequency);
+        }
         if(frequency > minTermFrequency) {
           topTerms.add(new PMITerm<>(term, freq.get(term), queryFrequency, frequency, collectionLength));
         }

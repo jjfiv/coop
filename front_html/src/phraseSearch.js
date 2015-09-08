@@ -9,8 +9,10 @@ class PhraseSearchInterface extends ReactSingleAjax {
             termKind: urlP.termKind || "lemmas",
             pullSlices: urlP.pullSlices || true,
             scoreTerms: urlP.scoreTerms || true,
+            numTerms: parseInt(urlP.numTerms) || 10,
+            minTermFrequency: parseInt(urlP.minTermFrequency) || 10,
             query: urlP.query || "",
-            count: parseInt(urlP.count) || 200,
+            count: parseInt(urlP.count) || 200
         };
         this.init();
     }
@@ -27,6 +29,8 @@ class PhraseSearchInterface extends ReactSingleAjax {
         request.termKind = this.state.termKind;
         request.count = this.state.count;
         request.query = this.state.query;
+        request.numTerms = this.state.numTerms;
+        request.minTermFrequency = this.state.minTermFrequency;
         if(this.state.pullSlices) {
             request.pullSlices = true;
             request.leftWidth = this.state.leftWidth;
@@ -76,10 +80,16 @@ class PhraseSearchInterface extends ReactSingleAjax {
                 &nbsp;
                 <IntegerInput visible={pullSlices || scoreTerms}
                               onChange={(x) => this.setState({leftWidth: x})}
-                              min={0} max={20} start={this.state.leftWidth} label="Terms on Left:" />
+                              min={0} max={20} start={this.state.leftWidth} label="Terms on Left: " />
                 <IntegerInput visible={pullSlices || scoreTerms}
                               onChange={(x) => this.setState({rightWidth: x})}
-                              min={0} max={20} start={this.state.rightWidth} label="Terms on Right:" />
+                              min={0} max={20} start={this.state.rightWidth} label="Terms on Right: " />
+                <IntegerInput visible={scoreTerms}
+                              onChange={(x) => this.setState({numTerms: x})}
+                              min={1} max={200} start={this.state.numTerms} label="Number of Terms to score: " />
+                <IntegerInput visible={scoreTerms}
+                              onChange={(x) => this.setState({minTermFrequency: x})}
+                              min={0} max={20} start={this.state.minTermFrequency} label="Minimum Term Frequency: " />
             </div>
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>
             <PhraseSearchResultPanels error={this.state.error} request={this.state.request} response={this.state.response} />

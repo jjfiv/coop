@@ -40,6 +40,7 @@ public class IntCoopIndex implements CoopIndex {
   final IdMaps.Reader<String> names;
   final IdMaps.Reader<String> vocab;
   IOMap<Integer, PostingMover<PositionsList>> positions;
+  HashMap<Integer, KeyMetadata<?>> pmeta;
 
   public IntCoopIndex(Directory baseDir) throws IOException {
     this.baseDir = baseDir;
@@ -73,6 +74,14 @@ public class IntCoopIndex implements CoopIndex {
         }
       }
     }
+
+    long start = System.currentTimeMillis();
+    pmeta = new HashMap<>();
+    for (Pair<Integer, PostingMover<PositionsList>> kv : this.positions.items()) {
+      pmeta.put(kv.getKey(), kv.getValue().getMetadata());
+    }
+    long end = System.currentTimeMillis();
+    System.out.println("Caching metadata: "+(end-start)+"ms.");
 
     this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8);
     this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), VarUInt.instance, CharsetCoders.utf8);
@@ -173,81 +182,25 @@ public class IntCoopIndex implements CoopIndex {
     return corpus.numberOfTermOccurrences();
   }
 
-  // TODO, LRU cache, or LeastFrequencyCache?
-  private HashMap<Integer, Integer> cachedCollectionFreq = new HashMap<>();
-
   public TIntIntHashMap getCollectionFrequencies(IntList ids) throws IOException {
     TIntIntHashMap output = new TIntIntHashMap(ids.size());
-    //IntList uncached = new IntList(ids.size());
-    /*for (int id : ids) {
-      Integer cached = cachedCollectionFreq.get(id);
-      if(cached == null) {
-        uncached.add(id);
-      } else {
-        output.put(id, cached);
-      }
+    for (int id : ids) {
+      KeyMetadata<?> meta = pmeta.get(id);
+      assert(meta != null);
+      assert(meta instanceof PositionsCountMetadata);
+      PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
+      output.put(id, pmc.totalCount);
     }
-    Collections.sort(uncached);*/
-    IntList uncached = ids;
-    uncached.sort();
-    System.err.println(uncached.size());
-
-    for (List<Integer> batch : IterableFns.batches(uncached, 20)) {
-      for (Pair<Integer, PostingMover<PositionsList>> kv : positions.getInBulk(batch)) {
-        int id = kv.getKey();
-        PostingMover<PositionsList> mover = kv.getValue();
-        KeyMetadata<?> meta = mover.getMetadata();
-        if(meta != null && meta instanceof PositionsCountMetadata) {
-          PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
-          //cachedCollectionFreq.put(termId, pmc.totalCount);
-          output.put(id, pmc.totalCount);
-          continue;
-        }
-
-        // Only calculate if we absolutely must.
-        int cf = 0;
-        for(mover.start(); !mover.isDone(); mover.next()) {
-          cf += mover.getCurrentPosting().size();
-        }
-
-        //cachedCollectionFreq.put(termId, cf);
-        output.put(id, cf);
-      }
-    }
-
     return output;
   }
+
   @Override
   public int collectionFrequency(int termId) {
-    Integer cached = cachedCollectionFreq.get(termId);
-    if(cached != null) {
-      //System.err.println(cachedCollectionFreq.size());
-      return cached;
-    }
-
-    PostingMover<PositionsList> mover;
-    try {
-      mover = positions.get(termId);
-    } catch (IOException e) {
-      e.printStackTrace();
-      return 0;
-    }
-    if(mover == null) {
-      //cachedCollectionFreq.put(termId, 0);
-      return 0;
-    }
-    KeyMetadata<?> meta = mover.getMetadata();
-    if(meta != null && meta instanceof PositionsCountMetadata) {
-      PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
-      //cachedCollectionFreq.put(termId, pmc.totalCount);
-      return pmc.totalCount;
-    }
-
-    int cf = 0;
-    for(mover.start(); !mover.isDone(); mover.next())
-      cf += mover.getCurrentPosting().size();
-    //cachedCollectionFreq.put(termId, cf);
-    return cf;
+    KeyMetadata<?> meta = pmeta.get(termId);
+    assert(meta != null);
+    assert(meta instanceof PositionsCountMetadata);
+    PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
+    return pmc.totalCount;
   }
 
   public TIntObjectHashMap<String> termTranslator(IntList termIds) throws IOException {
