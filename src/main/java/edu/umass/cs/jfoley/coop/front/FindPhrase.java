@@ -5,6 +5,7 @@ import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.fn.LazyReduceFn;
 import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
@@ -106,8 +107,21 @@ public class FindPhrase extends CoopIndexServerFn {
         return slice;
       });
 
+      LazyReduceFn<TermSlice> mergeSlicesFn = new LazyReduceFn<TermSlice>() {
+        @Override
+        public boolean shouldReduce(TermSlice lhs, TermSlice rhs) {
+          return (rhs.document == lhs.document) && lhs.end >= rhs.start;
+        }
+
+        @Override
+        public TermSlice reduce(TermSlice lhs, TermSlice rhs) {
+          return new TermSlice(lhs.document, lhs.start, rhs.end);
+        }
+      };
+      Iterable<TermSlice> mergedSlices = IterableFns.lazyReduce(slices, mergeSlicesFn);
+
       // Lazy pull and calculate most frequent terms:
-      for (Pair<TermSlice, IntList> pair : index.pullTermSlices(slices)) {
+      for (Pair<TermSlice, IntList> pair : index.pullTermSlices(mergedSlices)) {
         if(pullSlices) {
           Parameters docp = hitInfos.get(pair.left.document);
           if(docp != null) {
