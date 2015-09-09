@@ -15,10 +15,7 @@ import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.utility.StreamUtil;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -147,9 +144,15 @@ public class IntVocabBuilder {
     public IntVocabReader(Directory inputDir) throws IOException {
       corpusReader = new FileChannelSource(inputDir.childPath("intCorpus"));
       docOffsetReader = new FileChannelSource(inputDir.childPath("docOffset"));
-      docNamesReader = IO.openInputStream(inputDir.child("docNames"));
-      termsReader = IO.openInputStream(inputDir.child("terms"));
-      numTerms = FixedSize.ints.read(termsReader);
+      File docNames = inputDir.child("docNames");
+      if (docNames.exists()) {
+        docNamesReader = IO.openInputStream(docNames);
+      }
+      File terms = inputDir.child("terms");
+      if (terms.exists()) {
+        termsReader = IO.openInputStream(inputDir.child("terms"));
+        numTerms = FixedSize.ints.read(termsReader);
+      }
     }
 
     public long numberOfTermOccurrences() throws IOException {
@@ -239,8 +242,8 @@ public class IntVocabBuilder {
     public void close() throws IOException {
       termTranslationTable = null;
       corpusReader.close();
-      docOffsetReader.close();
-      docNamesReader.close();
+      IO.close(docOffsetReader);
+      IO.close(docNamesReader);
     }
   }
 

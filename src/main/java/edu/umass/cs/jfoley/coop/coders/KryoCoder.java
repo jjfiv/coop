@@ -37,6 +37,12 @@ public class KryoCoder<T> extends Coder<T> {
     this.encodingClass = encodingClass;
   }
 
+  @Nonnull
+  @Override
+  public Class<?> getTargetClass() {
+    return encodingClass;
+  }
+
   @Override
   public boolean knowsOwnSize() {
     return true;

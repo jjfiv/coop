@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public class IntCorpusPositionIndexer implements Closeable {
   private final PostingsConfig<Integer, PositionsList> cfg;
-  private final PIndexWriter<Integer> writer;
+  private final PIndexWriter<Integer, PositionsList> writer;
 
   public IntCorpusPositionIndexer(Directory input) throws IOException {
     cfg = new PostingsConfig<>(

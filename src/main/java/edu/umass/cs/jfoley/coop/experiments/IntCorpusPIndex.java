@@ -17,13 +17,14 @@ public class IntCorpusPIndex {
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
     Directory input = Directory.Read(argp.get("input", "bills.ints"));
+    Directory output = new Directory(argp.get("output", "test.out"));
     //Directory input = Directory.Read(argp.get("input", "/mnt/scratch/jfoley/int-corpora/robust.ints"));
 
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);
 
     try (IntVocabBuilder.IntVocabReader reader = new IntVocabBuilder.IntVocabReader(input);
-        IntCorpusPositionIndexer indexer = new IntCorpusPositionIndexer(input)) {
+        IntCorpusPositionIndexer indexer = new IntCorpusPositionIndexer(output)) {
       int numDocuments = reader.numberOfDocuments();
       long globalPosition = 0;
       long numTerms = reader.numberOfTermOccurrences();

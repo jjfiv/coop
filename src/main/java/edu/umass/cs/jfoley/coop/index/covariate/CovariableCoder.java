@@ -21,6 +21,12 @@ public class CovariableCoder<A, B> extends Coder<Covariable<A, B>> {
     this.yCoder = yCoder;
   }
 
+  @Nonnull
+  @Override
+  public Class<?> getTargetClass() {
+    return Covariable.class;
+  }
+
   @Override
   public boolean knowsOwnSize() {
     return true;

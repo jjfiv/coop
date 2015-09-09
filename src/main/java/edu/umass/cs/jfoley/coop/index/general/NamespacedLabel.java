@@ -29,6 +29,7 @@ public class NamespacedLabel implements Comparable<NamespacedLabel> {
   }
 
   public static Coder<NamespacedLabel> coder = new MappingCoder<>(
+      NamespacedLabel.class,
       CharsetCoders.utf8,
       NamespacedLabel::toString,
       NamespacedLabel::fromString
