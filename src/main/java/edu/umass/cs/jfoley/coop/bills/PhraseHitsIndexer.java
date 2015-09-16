@@ -44,8 +44,8 @@ public class PhraseHitsIndexer {
     HashMap<IntList, Integer> phraseVocab = new HashMap<>();
 
     try (
-        PrintWriter hits = IO.openPrintWriter("phrase.hits.gz");
-        PrintWriter vocab = IO.openPrintWriter("phrase.vocab.gz")) {
+        PrintWriter hits = IO.openPrintWriter("t_phrase.hits.gz");
+        PrintWriter vocab = IO.openPrintWriter("t_phrase.vocab.gz")) {
       try (LinesIterable lines = LinesIterable.fromFile(input)) {
         for (String line : lines) {
           String docName = StrUtil.takeBefore(line, "\t").trim();
