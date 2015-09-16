@@ -16,8 +16,8 @@ public class IntCorpusPIndex {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory input = Directory.Read(argp.get("input", "bills.ints"));
-    Directory output = new Directory(argp.get("output", "test.out"));
+    Directory input = Directory.Read(argp.get("input", "dbpedia.ints"));
+    Directory output = new Directory(argp.get("output", "dbpedia.ints"));
     //Directory input = Directory.Read(argp.get("input", "/mnt/scratch/jfoley/int-corpora/robust.ints"));
 
     long startTime = System.currentTimeMillis();
@@ -31,6 +31,10 @@ public class IntCorpusPIndex {
 
       for (int i = 0; i < numDocuments; i++) {
         int[] terms = reader.getDocument(i);
+        if(terms.length == 0) {
+          System.err.println("Empty-doc: "+i);
+          continue;
+        }
         indexer.add(i, terms);
         globalPosition += terms.length;
 

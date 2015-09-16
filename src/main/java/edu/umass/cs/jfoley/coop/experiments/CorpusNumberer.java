@@ -15,11 +15,14 @@ import org.lemurproject.galago.core.parse.DocumentStreamParser;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.types.DocumentSplit;
 import org.lemurproject.galago.utility.Parameters;
+import org.lemurproject.galago.utility.StringPooler;
 import org.lemurproject.galago.utility.tools.Arguments;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -71,11 +74,16 @@ public class CorpusNumberer {
       long documentStart = corpusWriter.tell();
       docOffsetWriter.write(FixedSize.longs, documentStart);
 
+      ByteBuffer ints = ByteBuffer.allocate(terms.size()*4);
+      //IntList data = new IntList(terms.size());
       for (String term : terms) {
         int tid = getTermId(term);
-
-        corpusWriter.write(FixedSize.ints, tid);
+        //data.add(tid);
+        ints.putInt(tid);
       }
+      ints.rewind();
+      corpusWriter.write(ints);
+      //corpusWriter.write(FixedSize.ints, tid);
     }
 
     public int getTermId(String term) throws IOException {
@@ -103,19 +111,23 @@ public class CorpusNumberer {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-
-    Directory output = new Directory(argp.get("output", "robust.ints"));
+    Directory output = new Directory(argp.get("output", "dbpedia.ints"));
 
     List<DocumentSplit> documentSplits = DocumentSource.processDirectory(
-        new File(argp.get("input", "/mnt/scratch/jfoley/robust04raw")),
+        new File(argp.get("input", "/mnt/scratch/jfoley/dbpedia.trectext")),
         argp);
 
     Debouncer msg = new Debouncer(3000);
 
+    HashSet<String> alreadySeenDocuments = new HashSet<>();
+
     TagTokenizer tokenizer = new TagTokenizer();
+    StringPooler.disable();
+
     StreamingStats parsingTime = new StreamingStats();
     StreamingStats tokenizationTime = new StreamingStats();
     StreamingStats processTime = new StreamingStats();
+    int skipped = 0;
     try (IntCorpusWriter writer = new IntCorpusWriter(output)) {
       for (DocumentSplit documentSplit : documentSplits) {
         DocumentStreamParser parser = DocumentStreamParser.create(documentSplit, argp);
@@ -128,14 +140,24 @@ public class CorpusNumberer {
           if (doc == null) break;
           parsingTime.push((et - st) / 1e9);
 
+          if(alreadySeenDocuments.contains(doc.name)) {
+            skipped++;
+            continue;
+          }
+
+          // prefix with name:
+          doc.text = doc.name.replace('_', ' ') + '\n' + doc.text;
+
+          alreadySeenDocuments.add(doc.name);
           st = System.nanoTime();
           tokenizer.tokenize(doc);
           et = System.nanoTime();
           tokenizationTime.push((et -st) / 1e9);
 
           if(msg.ready()) {
-            System.out.println(msg.estimate(writer.nextDocId, 525050));
+            System.out.println(msg.estimate(writer.nextDocId, 5000000));
             System.out.println("# "+doc.name+" "+writer.nextDocId);
+            System.out.println("\t skipped     : "+skipped);
             System.out.println("\t parse     : "+parsingTime);
             System.out.println("\t tokenizing: "+tokenizationTime);
             System.out.println("\t processing : "+processTime);

@@ -173,15 +173,20 @@ public class IntVocabBuilder {
     }
     public int[] getDocument(int document) throws IOException {
       Pair<Long,Long> bounds = getDocumentRange(document);
-      if(bounds.right == 0) {
+      int length = IntMath.fromLong(bounds.right - bounds.left);
+      if(length == 0) {
+        return new int[0];
+      }
+      if(length <= 0 || bounds.right <= 0) {
         System.err.println(bounds);
+        System.err.println(length);
         System.err.println(document);
         System.err.println(docOffsetReader.size());
         System.err.println(docOffsetReader.readLong(document+1)*8);
         System.err.println(docOffsetReader.readLong(document)*8);
+        return new int[0];
       }
       assert(bounds.right >= 0);
-      int length = IntMath.fromLong(bounds.right - bounds.left);
       assert(length >= 0);
       int numWords = length/4;
       int[] output = new int[numWords];
