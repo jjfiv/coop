@@ -43,7 +43,6 @@ public class PhraseHitsIndexer {
     Debouncer msg = new Debouncer();
 
     HashMap<IntList, Integer> phraseVocab = new HashMap<>();
-    IntListTrie<Integer> trieVocab = new IntListTrie<>();
 
     StreamingStats lookupTime = new StreamingStats();
     try (
@@ -60,7 +59,7 @@ public class PhraseHitsIndexer {
           if (msg.ready()) {
             System.out.println(docId + " " + docName);
             System.out.println("rate: " + msg.estimate(processed, totalExpected));
-            System.out.println("processed: " + Math.max(phraseVocab.size(), trieVocab.size())+" unique, "+total+" total docs: "+processed);
+            System.out.println("processed: " + phraseVocab.size()+" unique, "+total+" total docs: "+processed);
             System.out.println("lookup: " + lookupTime);
             System.out.println("term-rate: " + msg.estimate(total));
           }
@@ -75,31 +74,23 @@ public class PhraseHitsIndexer {
             IntList slice = index.corpus.getSlice(docId, begin, width);
             long start,end;
 
-            int maybeTermId = trieVocab.size();
-            start = System.nanoTime();
-            int termId = trieVocab.findOrInsert(slice, maybeTermId);
-            end = System.nanoTime();
-
-            /*
-            int maybeTermId = trieVocab.size();
+            int maybeTermId = phraseVocab.size();
             start = System.nanoTime();
             Integer termId = phraseVocab.putIfAbsent(slice, maybeTermId);
             if(termId == null) { termId = maybeTermId; }
             end = System.nanoTime();
-            */
 
             lookupTime.push((end-start) / 1e9);
             if(termId != maybeTermId) {
-              /*vocab.print(termId);
+              vocab.print(termId);
               vocab.print("\t");
               for (int j = 0; j < slice.size(); j++) {
                 vocab.print(slice.getQuick(j));
                 vocab.print(' ');
               }
-              vocab.println();*/
+              vocab.println();
             }
-
-            //hits.println(termId+" "+docId+" "+begin);
+            hits.println(termId+" "+docId+" "+begin);
           }
         }
       }
