@@ -150,7 +150,7 @@ public class IntVocabBuilder {
       }
       File terms = inputDir.child("terms");
       if (terms.exists()) {
-        termsReader = IO.openInputStream(inputDir.child("terms"));
+        termsReader = IO.openInputStream(terms);
         numTerms = FixedSize.ints.read(termsReader);
       }
     }
@@ -184,7 +184,7 @@ public class IntVocabBuilder {
         System.err.println(docOffsetReader.size());
         System.err.println(docOffsetReader.readLong(document+1)*8);
         System.err.println(docOffsetReader.readLong(document)*8);
-        return new int[0];
+
       }
       assert(bounds.right >= 0);
       assert(length >= 0);

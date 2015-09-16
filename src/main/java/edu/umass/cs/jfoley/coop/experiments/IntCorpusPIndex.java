@@ -16,9 +16,10 @@ public class IntCorpusPIndex {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory input = Directory.Read(argp.get("input", "dbpedia.ints"));
-    Directory output = new Directory(argp.get("output", "dbpedia.ints"));
-    //Directory input = Directory.Read(argp.get("input", "/mnt/scratch/jfoley/int-corpora/robust.ints"));
+    //Directory input = Directory.Read(argp.get("input", "dbpedia.ints"));
+    //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
+    Directory input = Directory.Read(argp.get("input", "robust.ints"));
+    Directory output = Directory.Read(argp.get("input", "robust.ints"));
 
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);
@@ -48,9 +49,9 @@ public class IntCorpusPIndex {
     long endTime = System.currentTimeMillis();
 
     System.out.println("Total Time: "+(endTime - startTime));
-    // Progress: 249670890 / 252359881
-    // 1414862.5 items/s  1.9 seconds left, 98.9% complete.
-    // Total Time: 242472
+    // Progress: 237809552 / 252359881
+    // 3642915.9 items/s  4.0 seconds left, 94.2% complete.
+    // Total Time: 169016
 
     // bills
     // Progress: 324483348 / 334913031

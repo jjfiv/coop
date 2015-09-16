@@ -111,10 +111,10 @@ public class CorpusNumberer {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory output = new Directory(argp.get("output", "dbpedia.ints"));
+    Directory output = new Directory(argp.get("output", "robust.ints"));
 
     List<DocumentSplit> documentSplits = DocumentSource.processDirectory(
-        new File(argp.get("input", "/mnt/scratch/jfoley/dbpedia.trectext")),
+        new File(argp.get("input", "/mnt/scratch/jfoley/robust04raw")),
         argp);
 
     Debouncer msg = new Debouncer(3000);
@@ -146,7 +146,7 @@ public class CorpusNumberer {
           }
 
           // prefix with name:
-          doc.text = doc.name.replace('_', ' ') + '\n' + doc.text;
+          // doc.text = doc.name.replace('_', ' ') + '\n' + doc.text;
 
           alreadySeenDocuments.add(doc.name);
           st = System.nanoTime();

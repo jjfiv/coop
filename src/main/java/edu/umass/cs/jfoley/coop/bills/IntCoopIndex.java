@@ -8,7 +8,6 @@ import ciir.jfoley.chai.io.IO;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
@@ -28,7 +27,10 @@ import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author jfoley
@@ -50,7 +52,7 @@ public class IntCoopIndex implements CoopIndex {
     this.corpus = new IntVocabBuilder.IntVocabReader(baseDir);
 
     if(!baseDir.child("names.fwd").exists()) {
-      try (IdMaps.Writer<String> namesWriter = GalagoIO.openIdMapsWriter(baseDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8)) {
+      try (IdMaps.Writer<String> namesWriter = GalagoIO.openIdMapsWriter(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8)) {
         corpus.forEachName((kv) -> {
           try {
             namesWriter.put(kv.getKey(), kv.getValue());
@@ -61,7 +63,7 @@ public class IntCoopIndex implements CoopIndex {
       }
     }
     if(!baseDir.child("vocab.fwd").exists()) {
-      try (IdMaps.Writer<String> termsWriter = GalagoIO.openIdMapsWriter(baseDir.childPath("vocab"), VarUInt.instance, CharsetCoders.utf8)) {
+      try (IdMaps.Writer<String> termsWriter = GalagoIO.openIdMapsWriter(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8)) {
         try (PrintWriter out = IO.openPrintWriter(baseDir.childPath("vocab.tsv.gz"))){
           corpus.forEachTerm((kv) -> {
             try {
@@ -83,8 +85,8 @@ public class IntCoopIndex implements CoopIndex {
     long end = System.currentTimeMillis();
     System.out.println("Caching metadata: "+(end-start)+"ms.");
 
-    this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), VarUInt.instance, CharsetCoders.utf8);
-    this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), VarUInt.instance, CharsetCoders.utf8);
+    this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8);
+    this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8);
 
   }
 
@@ -111,7 +113,12 @@ public class IntCoopIndex implements CoopIndex {
     TObjectIntHashMap<String> translator = termIdTranslator(query);
     IntList output = new IntList(query.size());
     for (String q : query) {
-      output.add(translator.get(q));
+      int id = translator.get(q);
+      if(id == translator.getNoEntryValue()) {
+        output.add(-1);
+      } else {
+        output.add(translator.get(q));
+      }
     }
     return output;
   }
