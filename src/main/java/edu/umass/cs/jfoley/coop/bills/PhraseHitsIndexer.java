@@ -5,6 +5,7 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
+import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.string.StrUtil;
 import ciir.jfoley.chai.time.Debouncer;
 import edu.umass.cs.ciir.waltz.coders.Coder;
@@ -42,7 +43,9 @@ public class PhraseHitsIndexer {
     Debouncer msg = new Debouncer();
 
     HashMap<IntList, Integer> phraseVocab = new HashMap<>();
+    IntListTrie<Integer> trieVocab = new IntListTrie<>();
 
+    StreamingStats lookupTime = new StreamingStats();
     try (
         PrintWriter hits = IO.openPrintWriter("t_phrase.hits.gz");
         PrintWriter vocab = IO.openPrintWriter("t_phrase.vocab.gz")) {
@@ -57,7 +60,8 @@ public class PhraseHitsIndexer {
           if (msg.ready()) {
             System.out.println(docId + " " + docName);
             System.out.println("rate: " + msg.estimate(processed, totalExpected));
-            System.out.println("processed: " + phraseVocab.size()+" unique, "+total+" total docs: "+processed);
+            System.out.println("processed: " + Math.max(phraseVocab.size(), trieVocab.size())+" unique, "+total+" total docs: "+processed);
+            System.out.println("lookup: " + lookupTime);
             System.out.println("term-rate: " + msg.estimate(total));
           }
 
@@ -69,18 +73,33 @@ public class PhraseHitsIndexer {
 
             // handle TermSlice:
             IntList slice = index.corpus.getSlice(docId, begin, width);
-            int termId = phraseVocab.computeIfAbsent(slice, (ignored) -> {
-              int id = phraseVocab.size();
-              vocab.print(id);
+            long start,end;
+
+            int maybeTermId = trieVocab.size();
+            start = System.nanoTime();
+            int termId = trieVocab.findOrInsert(slice, maybeTermId);
+            end = System.nanoTime();
+
+            /*
+            int maybeTermId = trieVocab.size();
+            start = System.nanoTime();
+            Integer termId = phraseVocab.putIfAbsent(slice, maybeTermId);
+            if(termId == null) { termId = maybeTermId; }
+            end = System.nanoTime();
+            */
+
+            lookupTime.push((end-start) / 1e9);
+            if(termId != maybeTermId) {
+              /*vocab.print(termId);
               vocab.print("\t");
               for (int j = 0; j < slice.size(); j++) {
                 vocab.print(slice.getQuick(j));
                 vocab.print(' ');
               }
-              vocab.println();
-              return id;
-            });
-            hits.println(termId+" "+docId+" "+begin);
+              vocab.println();*/
+            }
+
+            //hits.println(termId+" "+docId+" "+begin);
           }
         }
       }
