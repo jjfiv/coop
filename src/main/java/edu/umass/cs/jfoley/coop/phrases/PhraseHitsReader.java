@@ -45,6 +45,11 @@ public class PhraseHitsReader implements Closeable {
   }
 
   @Override
+  public String toString() {
+    return "PhraseHitsReader("+baseDir.childPath(baseName)+")";
+  }
+
+  @Override
   public void close() throws IOException {
     docHits.close();
     vocab.close();;

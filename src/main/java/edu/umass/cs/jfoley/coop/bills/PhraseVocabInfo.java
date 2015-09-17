@@ -10,6 +10,7 @@ import java.io.IOException;
  * @author jfoley
  */
 public class PhraseVocabInfo {
+
   public static void main(String[] args) throws IOException {
     Debouncer msg = new Debouncer(1000);
     TIntIntHashMap lengthHist = new TIntIntHashMap();
