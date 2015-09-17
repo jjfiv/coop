@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 /**
  * @author jfoley
  */
-public class NERIndex {
+public class ExtractNames2 {
 
   public static void main(String[] args) throws IOException {
     IntCoopIndex target = new IntCoopIndex(new Directory("robust.ints"));
@@ -41,7 +41,7 @@ public class NERIndex {
         for (String str : col) {
           pattern.add(Integer.parseInt(str));
         }
-        matchingBySize.get(n-1).add(pattern);
+        matchingBySize.get(n - 1).add(pattern);
       }
     }
     end = System.currentTimeMillis();
