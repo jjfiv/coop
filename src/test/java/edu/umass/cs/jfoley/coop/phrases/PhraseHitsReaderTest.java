@@ -97,7 +97,17 @@ public class PhraseHitsReaderTest {
         }
         assertEquals(phrasesThatWillBeFound, phrasesFound);
 
-        System.out.println(reader.docHits.get(0));
+        System.out.println("phraseHits in 0: " + reader.docHits.get(0));
+        System.out.println("phraseHits in 1: " + reader.docHits.get(1));
+        System.out.println("phraseHits in 2: " + reader.docHits.get(2));
+
+        System.out.println(ListFns.map(reader.docHits.get(0), (ph) -> {
+          try {
+            return index.translateToTerms(reader.vocab.getForward(ph.id));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }));
 
         System.out.println(reader.toString());
       }
