@@ -41,11 +41,13 @@ public class PhraseHitListCoder extends Coder<PhraseHitList> {
     IntList data = obj.memData;
     int prevStart = 0;
 
-    VarUInt.instance.writePrim(out, data.size());
+    VarUInt.instance.writePrim(out, obj.size());
+
     for (int i = 0; i < data.size(); i += 3) {
       int start = data.getQuick(i);
       int size = data.getQuick(i + 1);
       int id = data.getQuick(i + 2);
+      System.err.println("write["+i+"]: "+new PhraseHit(start, size, id));
 
       int delta = start - prevStart;
       VarUInt.instance.writePrim(out, delta);
@@ -66,6 +68,7 @@ public class PhraseHitListCoder extends Coder<PhraseHitList> {
       delta += VarUInt.instance.readPrim(inputStream);
       int size = VarUInt.instance.readPrim(inputStream);
       int id = FixedSize.ints.read(inputStream);
+      System.err.println(new PhraseHit(delta, size, id));
       out.add(delta, size, id);
     }
     return out;

@@ -1,23 +1,36 @@
 package edu.umass.cs.jfoley.coop.phrases;
 
+import ciir.jfoley.chai.collections.list.AChaiList;
 import ciir.jfoley.chai.collections.list.IntList;
 
 /**
  * @author jfoley
  */
-public class PhraseHitList {
+public class PhraseHitList extends AChaiList<PhraseHit> {
   IntList memData;
 
   public PhraseHitList() {
     this(200); // mean
   }
 
+  @Override
+  public int size() {
+    return memData.size() / 3;
+  }
+
+  @Override
+  public PhraseHit get(int index) {
+    int i = index * 3;
+    return new PhraseHit(memData.getQuick(i), memData.getQuick(i+1), memData.getQuick(i+2));
+  }
+
   public PhraseHitList(int count) {
     memData = new IntList(count * 3);
   }
 
-  public void add(PhraseHit hit) {
+  public boolean add(PhraseHit hit) {
     this.add(hit.start, hit.size, hit.id);
+    return true;
   }
 
   public void add(int start, int size, int id) {

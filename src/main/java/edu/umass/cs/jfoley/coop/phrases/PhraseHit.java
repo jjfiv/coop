@@ -13,4 +13,9 @@ public class PhraseHit {
     this.size = size;
     this.id = id;
   }
+
+  @Override
+  public String toString() {
+    return "PhraseHit("+start+","+size+","+id+")";
+  }
 }

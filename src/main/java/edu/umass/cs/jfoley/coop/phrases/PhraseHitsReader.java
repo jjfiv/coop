@@ -37,7 +37,8 @@ public class PhraseHitsReader implements Closeable {
     TIntHashSet wordToEntity = new TIntHashSet();
     long start = System.currentTimeMillis();
     for (IntList key : vocab.values()) {
-      wordToEntity.addAll(key.asArray());
+      //wordToEntity.addAll(key.asArray());
+      wordToEntity.add(key.getQuick(0));
     }
     System.err.println("# entity-trigger-words: " + wordToEntity.size());
     long end = System.currentTimeMillis();

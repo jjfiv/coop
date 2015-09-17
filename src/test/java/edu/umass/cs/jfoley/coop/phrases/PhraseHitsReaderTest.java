@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.phrases;
 
+import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.io.Directory;
@@ -87,10 +88,16 @@ public class PhraseHitsReaderTest {
       try (
           PhraseHitsReader reader = new PhraseHitsReader(index, tmpdir, "foo")) {
         HashSet<List<String>> phrasesFound = new HashSet<>();
-        for (IntList words : reader.vocab.values()) {
+        for (Pair<Integer, IntList> pr : reader.vocab.items()) {
+          int id = pr.left;
+          IntList words = pr.right;
           phrasesFound.add(index.translateToTerms(words));
+
+          System.out.println(reader.postings.get(id).toMap());
         }
         assertEquals(phrasesThatWillBeFound, phrasesFound);
+
+        System.out.println(reader.docHits.get(0));
 
         System.out.println(reader.toString());
       }
