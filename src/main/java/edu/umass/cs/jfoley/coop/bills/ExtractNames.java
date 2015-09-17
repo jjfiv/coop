@@ -2,12 +2,10 @@ package edu.umass.cs.jfoley.coop.bills;
 
 import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
-import ciir.jfoley.chai.collections.list.FixedSlidingWindow;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
-import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.time.Debouncer;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
@@ -89,57 +87,6 @@ public class ExtractNames {
       }
     }
 
-    ArrayList<FixedSlidingWindow<Integer>> patternBuffers = new ArrayList<>();
-    for (int i = 0; i < N; i++) {
-      patternBuffers.add(new FixedSlidingWindow<>(i+1));
-    }
-
-    Debouncer msg2 = new Debouncer(500);
-    StreamingStats hitsPerDoc = new StreamingStats();
-    long globalPosition = 0;
-    try (PrintWriter hits = IO.openPrintWriter(target.baseDir.childPath("dbpedia.titles.hits.gz"))) {
-      int ND = target.corpus.numberOfDocuments();
-      for (int docIndex = 133367; docIndex < ND; docIndex++) {
-        int[] doc = target.corpus.getDocument(docIndex);
-
-        int hitcount = 0;
-        for (int position = 0; position < doc.length; position++) {
-          int term = doc[position];
-
-          for (int i = 0; i < patternBuffers.size(); i++) {
-            FixedSlidingWindow<Integer> buffer = patternBuffers.get(i);
-            buffer.add(term);
-            if (buffer.full() && matchingBySize.get(i).contains(buffer)) {
-              int hitStart = position-i;
-              int hitSize = i+1;
-              // hit!
-              //hits.printf("%d\t%d\t%d\t%s\n", docIndex, position-i, i+1, buffer);
-              hits.print(docIndex); hits.print('\t');
-              hits.print(hitStart); hits.print('\t');
-              hits.print(hitSize); hits.print('\t');
-
-              assert(hitStart >= 0);
-              assert(hitSize >= 1);
-
-              for (int termIndex = 0; termIndex < hitSize; termIndex++) {
-                hits.print(doc[termIndex+hitStart]); hits.print(' ');
-              }
-              hits.println();
-
-              hitcount++;
-            }
-          }
-        }
-        globalPosition += doc.length;
-        hitsPerDoc.push(hitcount);
-
-        if(msg2.ready()) {
-          System.out.println("docIndex="+docIndex);
-          System.out.println("NERing documents at: "+msg2.estimate(docIndex, ND));
-          System.out.println("NERing documents at terms/s: "+msg2.estimate(globalPosition));
-          System.out.println("hitsPerDoc: "+hitsPerDoc);
-        }
-      }
-    }
+    // Now, see NERIndex
   }
 }
