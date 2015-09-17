@@ -17,6 +17,7 @@ import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsIndexFile;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
+import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.tokenization.StanfordNLPTokenizer;
@@ -44,7 +45,7 @@ public class IntCoopIndex implements CoopIndex {
   IOMap<Integer, PostingMover<PositionsList>> positions;
   HashMap<Integer, KeyMetadata<?>> pmeta;
 
-  IOMap<IntList, PostingMover<PositionsList>> entities;
+  PhraseHitsReader entities;
 
   public IntCoopIndex(Directory baseDir) throws IOException {
     long start, end;
@@ -91,18 +92,9 @@ public class IntCoopIndex implements CoopIndex {
     this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8);
     this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8);
 
-    //TIntHashSet wordToEntity = new TIntHashSet();
-    start = System.currentTimeMillis();
-    if(baseDir.child("dbpedia.positions.keys").exists()) {
-      entities = PositionsIndexFile.openReader(new ZeroTerminatedIds(), baseDir, "dbpedia.positions");
-      System.err.println("# entities.size=" + entities.keyCount());
-      //for (IntList key : entities.keys()) {
-        //wordToEntity.addAll(key.asArray());
-      //}
-      //System.err.println("# entity-trigger-words: " + wordToEntity.size());
+    if(baseDir.child("entities.positions.keys").exists()) {
+      entities = new PhraseHitsReader(this, baseDir, "entities");
     }
-    end = System.currentTimeMillis();
-    System.out.println("Entity autocomplete: "+(end-start)+"ms.");
   }
 
   @Override
