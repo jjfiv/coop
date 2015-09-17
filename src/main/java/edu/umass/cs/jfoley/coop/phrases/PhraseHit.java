@@ -18,4 +18,11 @@ public class PhraseHit {
   public String toString() {
     return "PhraseHit("+start+","+size+","+id+")";
   }
+
+  @Override
+  public boolean equals(Object other) {
+    if(!(other instanceof PhraseHit)) return false;
+    PhraseHit rhs = (PhraseHit) other;
+    return rhs.id == id && rhs.start == start && rhs.size == size;
+  }
 }

@@ -57,7 +57,8 @@ public class PhraseDetector {
     int hits = 0;
     for (int position = 0; position < data.length; position++) {
       int term = data[position];
-      for (int i = 0; i < patternBuffers.size(); i++) {
+      // tag backwards, so that we get the longest/earliest patterns first
+      for (int i = patternBuffers.size() - 1; i >= 0; i--) {
         CircularIntBuffer buffer = patternBuffers.get(i);
         buffer.push(term);
         if (buffer.full() && matches(buffer)) {

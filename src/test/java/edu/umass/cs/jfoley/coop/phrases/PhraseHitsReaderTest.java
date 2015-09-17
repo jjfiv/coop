@@ -1,8 +1,10 @@
 package edu.umass.cs.jfoley.coop.phrases;
 
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.chained.ChaiMap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.fn.TransformFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.jfoley.coop.bills.ExtractNames234;
@@ -81,35 +83,46 @@ public class PhraseHitsReaderTest {
       ExtractNames234.CorpusTagger tagger = new ExtractNames234.CorpusTagger(det, index.getCorpus());
 
       try (PhraseHitsWriter writer = new PhraseHitsWriter(tmpdir, "foo")) {
-        tagger.tag(null, (doc,start,size,terms) -> {
-          writer.onPhraseHit(doc, start, size, IntList.clone(terms, start, size));
-        });
+        tagger.tag(null, (doc,start,size,terms) ->
+            writer.onPhraseHit(doc, start, size, IntList.clone(terms, start, size)));
       }
       try (
           PhraseHitsReader reader = new PhraseHitsReader(index, tmpdir, "foo")) {
         HashSet<List<String>> phrasesFound = new HashSet<>();
         for (Pair<Integer, IntList> pr : reader.vocab.items()) {
-          int id = pr.left;
+          //int id = pr.left;
           IntList words = pr.right;
           phrasesFound.add(index.translateToTerms(words));
-
-          System.out.println(reader.postings.get(id).toMap());
+          //System.out.println(reader.postings.get(id).toMap());
         }
         assertEquals(phrasesThatWillBeFound, phrasesFound);
 
-        System.out.println("phraseHits in 0: " + reader.docHits.get(0));
-        System.out.println("phraseHits in 1: " + reader.docHits.get(1));
-        System.out.println("phraseHits in 2: " + reader.docHits.get(2));
+        //System.out.println("phraseHits in 0: " + reader.docHits.get(0));
+        //System.out.println("phraseHits in 1: " + reader.docHits.get(1));
+        //System.out.println("phraseHits in 2: " + reader.docHits.get(2));
 
-        System.out.println(ListFns.map(reader.docHits.get(0), (ph) -> {
+        TransformFn<String,Integer> lookup = (str) -> {
           try {
-            return index.translateToTerms(reader.vocab.getForward(ph.id));
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }));
+            IntList phrase = index.translateFromTerms(Arrays.asList(str.split("\\s+")));
+            return reader.vocab.getReverse(phrase);
+          } catch (IOException e) { throw new RuntimeException(e); }
+        };
 
-        System.out.println(reader.toString());
+        int allGoodMen = lookup.transform("all good men");
+        int party = lookup.transform("party");
+        int quickBrownFox = lookup.transform("quick brown fox");
+        int lazyDog = lookup.transform("lazy dog");
+        int dog = lookup.transform("dog");
+        assertEquals((List) Arrays.asList(new PhraseHit(5, 3, allGoodMen), new PhraseHit(12, 1, party)), reader.docHits.get(0));
+        assertEquals((List) Arrays.asList(new PhraseHit(1, 3, quickBrownFox), new PhraseHit(7, 2, lazyDog), new PhraseHit(8, 1, dog)), reader.docHits.get(1));
+        assertEquals((List) Arrays.asList(new PhraseHit(1, 1, dog), new PhraseHit(8, 1, party)), reader.docHits.get(2));
+
+        assertEquals((Map) ChaiMap.create(
+            Pair.of(1, Collections.singletonList(8)),
+            Pair.of(2, Collections.singletonList(1))), Objects.requireNonNull(reader.postings.get(dog)).toMap());
+        assertEquals((Map) ChaiMap.create(
+            Pair.of(0, Collections.singletonList(12)),
+            Pair.of(2, Collections.singletonList(8))), Objects.requireNonNull(reader.postings.get(party)).toMap());
       }
 
     }
