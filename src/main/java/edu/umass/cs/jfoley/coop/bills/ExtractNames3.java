@@ -1,62 +1,22 @@
 package edu.umass.cs.jfoley.coop.bills;
 
 import ciir.jfoley.chai.collections.list.IntList;
-import ciir.jfoley.chai.collections.util.MapFns;
-import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.time.Debouncer;
-import edu.umass.cs.ciir.waltz.io.postings.ArrayPosList;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.PostingsConfig;
-import edu.umass.cs.ciir.waltz.sys.positions.PIndexWriter;
+import edu.umass.cs.ciir.waltz.sys.positions.AccumulatingPositionsWriter;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
  * @author jfoley
  */
 public class ExtractNames3 {
-
-  public static class AccumulatingPositionsWriter<K> implements Closeable {
-    int lastDoc = -1;
-    HashMap<K, IntList> docHits = new HashMap<>();
-
-    public final PIndexWriter<K,PositionsList> output;
-
-    public AccumulatingPositionsWriter(PIndexWriter<K, PositionsList> output) {
-      this.output = output;
-    }
-
-    public void add(K word, int doc, int pos) {
-      if(lastDoc != doc) {
-        flush();
-      }
-      lastDoc = doc;
-      MapFns.extendCollectionInMap(docHits, word, pos, (GenerateFn<IntList>) IntList::new);
-    }
-
-    private void flush() {
-      if(lastDoc != -1) {
-        for (Map.Entry<K, IntList> kv : docHits.entrySet()) {
-          output.add(kv.getKey(), lastDoc, new ArrayPosList(kv.getValue()));
-        }
-        docHits.clear();
-      }
-    }
-
-    @Override
-    public void close() throws IOException {
-      flush();
-      output.close();
-    }
-  }
 
   public static void main(String[] args) throws IOException {
     IntCoopIndex target = new IntCoopIndex(new Directory("robust.ints"));
@@ -71,7 +31,7 @@ public class ExtractNames3 {
     Debouncer msg2 = new Debouncer(3000);
     // load up precomputed queries:
     Pattern spaces = Pattern.compile("\\s+");
-    try (AccumulatingPositionsWriter<IntList> writer = new AccumulatingPositionsWriter<>(cfg.getWriter(target.baseDir, "dbpedia.positions"))) {
+    try (AccumulatingPositionsWriter<IntList> writer = cfg.getPositionsWriter(target.baseDir, "dbpedia.positions")) {
       try (LinesIterable lines = LinesIterable.fromFile(target.baseDir.child("dbpedia.titles.hits.gz"))) {
         for (String line : lines) {
           String[] col = spaces.split(line);
