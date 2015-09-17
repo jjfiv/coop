@@ -14,12 +14,14 @@ import java.util.regex.Pattern;
 /**
  * Contains an hashset for each candidate size while working through patterns that may match.
  * This allows rapid tagging of a large dictionary. (300k+ terms/second with 355k dbpedia titles.)
+ *
+ * Based on intutition in the <a href="https://en.wikipedia.org/wiki/Rabin%E2%80%93Karp_algorithm">Rabin%E2%80%93Karp_algorithm</a> but without a special rolling hash, for now.
+ *
  * @author jfoley
  */
 public class PhraseDetector {
   public ArrayList<HashSet<List<Integer>>> matchingBySize;
   public int N;
-  IntList matchingSizes;
 
   public PhraseDetector(int N) {
     this.N = N;
@@ -27,10 +29,9 @@ public class PhraseDetector {
     for (int i = 0; i < N; i++) {
       matchingBySize.add(new HashSet<>());
     }
-    matchingSizes = new IntList(N);
   }
 
-  public void addPattern(IntList data) {
+  public void addPattern(List<Integer> data) {
     int n = data.size()-1;
     if(n < 0 || n >= N) return;
     matchingBySize.get(n).add(data);
