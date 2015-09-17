@@ -9,9 +9,14 @@ class DocViewInterface extends React.Component {
         }
     }
     componentDidMount() {
+        let request = {id: this.state.docId};
+        console.log({what:"/api/PullDocument", request});
         postJSON("/api/PullDocument",
-            {id: this.state.docId},
-            (data) => this.setState({response: data}));
+            request,
+            (data) => {
+                console.log({what:"/api/PullDocument", request, response:data});
+                this.setState({response: data})
+            });
     }
     render() {
         let doc = this.state.response;
@@ -25,17 +30,20 @@ class DocViewInterface extends React.Component {
                 " "];
         }).value();
 
-        var sentences = _.map(doc.tags.sentence, (extent) => {
-            var begin = extent[0];
-            var end = extent[1];
-            return <span className={"sentence"}>{
-                _.slice(tokens, begin, end)
-            }</span>;
-        });
+        let render = tokens;
+        if(doc.tags.sentence) {
+            render = _.map(doc.tags.sentence, (extent) => {
+                var begin = extent[0];
+                var end = extent[1];
+                return <span className={"sentence"}>{
+                    _.slice(tokens, begin, end)
+                }</span>;
+            });
+        }
 
         return <div>
             <label>Document #{doc.identifier}: {doc.name}</label>
-            <div>{sentences}</div>
+            <div>{render}</div>
         </div>
     }
 }
