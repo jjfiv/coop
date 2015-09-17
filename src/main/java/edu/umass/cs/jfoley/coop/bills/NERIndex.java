@@ -1,18 +1,16 @@
 package edu.umass.cs.jfoley.coop.bills;
 
-import ciir.jfoley.chai.collections.list.FixedSlidingWindow;
+import ciir.jfoley.chai.collections.list.CircularIntBuffer;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.time.Debouncer;
-import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -29,7 +27,7 @@ public class NERIndex {
 
     int N = 20;
     ArrayList<HashSet<List<Integer>>> matchingBySize = new ArrayList<>(N);
-    for (int i = 0; i < N; i++) { matchingBySize.add(new HashSet<>()); }
+    for (int i = 0; i < N; i++) { matchingBySize.add(new HashSet<>(60000)); }
 
     // load up precomputed queries:
     Pattern spaces = Pattern.compile("\\s+");
@@ -38,6 +36,7 @@ public class NERIndex {
       for (String line : lines) {
         String[] col = spaces.split(line);
         int n = col.length;
+        if(n > N) continue;
         IntList pattern = new IntList(n);
         for (String str : col) {
           pattern.add(Integer.parseInt(str));
@@ -49,9 +48,9 @@ public class NERIndex {
     System.out.println("loading titles: "+(end-start)+"ms.");
 
 
-    ArrayList<FixedSlidingWindow<Integer>> patternBuffers = new ArrayList<>(N);
+    ArrayList<CircularIntBuffer> patternBuffers = new ArrayList<>(N);
     for (int i = 0; i < N; i++) {
-      patternBuffers.add(new FixedSlidingWindow<>(i+1));
+      patternBuffers.add(new CircularIntBuffer(i+1));
     }
 
     Debouncer msg2 = new Debouncer(500);
@@ -62,8 +61,9 @@ public class NERIndex {
       for (int docIndex = 0; docIndex < ND; docIndex++) {
         int[] doc = target.corpus.getDocument(docIndex);
 
+        StringBuilder outputForThisDoc = new StringBuilder();
         for (int i = 0; i < N; i++) {
-          FixedSlidingWindow<Integer> buffer = patternBuffers.get(i);
+          CircularIntBuffer buffer = patternBuffers.get(i);
           buffer.clear();
         }
         int hitcount = 0;
@@ -71,40 +71,33 @@ public class NERIndex {
           int term = doc[position];
 
           for (int i = 0; i < N; i++) {
-            FixedSlidingWindow<Integer> buffer = patternBuffers.get(i);
+            CircularIntBuffer buffer = patternBuffers.get(i);
             buffer.add(term);
             if (buffer.full() && matchingBySize.get(i).contains(buffer)) {
               int hitStart = position-i;
               int hitSize = i+1;
-              // hit!
-              //hits.printf("%d\t%d\t%d\t%s\n", docIndex, position-i, i+1, buffer);
-              hits.print(docIndex); hits.print('\t');
-              hits.print(hitStart); hits.print('\t');
-              hits.print(hitSize); hits.print('\t');
 
-              if(hitSize < 0 || hitStart < 0) {
-                System.err.println(Parameters.parseArray(
-                    "doc.length", doc.length,
-                    "buffer", buffer,
-                    "position", position,
-                    "buffer.length", buffer.size(),
-                    "buffer.hashCode", buffer.hashCode(),
-                    "doc[]", Arrays.toString(Arrays.copyOf(doc, Math.max(20, position)))
-                ));
-              }
+              //hits.printf("%d\t%d\t%d\t%s\n", docIndex, position-i, i+1, buffer);
+              outputForThisDoc
+                  .append(docIndex).append('\t')
+                  .append(hitStart).append('\t')
+                  .append(hitSize).append('\t');
 
               assert(hitStart >= 0);
               assert(hitSize >= 1);
 
               for (int termIndex = 0; termIndex < hitSize; termIndex++) {
-                hits.print(doc[termIndex+hitStart]); hits.print(' ');
+                outputForThisDoc
+                    .append(doc[termIndex+hitStart])
+                    .append(' ');
               }
-              hits.println();
+              outputForThisDoc.append('\n');
 
               hitcount++;
             }
           }
         }
+        hits.print(outputForThisDoc.toString());
         globalPosition += doc.length;
         hitsPerDoc.push(hitcount);
 
