@@ -93,7 +93,7 @@ public class PhraseHitsReaderTest {
           //int id = pr.left;
           IntList words = pr.right;
           phrasesFound.add(index.translateToTerms(words));
-          //System.out.println(reader.postings.get(id).toMap());
+          //System.out.println(reader.documentsByPhrase.get(id).toMap());
         }
         assertEquals(phrasesThatWillBeFound, phrasesFound);
 
@@ -119,10 +119,14 @@ public class PhraseHitsReaderTest {
 
         assertEquals((Map) ChaiMap.create(
             Pair.of(1, Collections.singletonList(8)),
-            Pair.of(2, Collections.singletonList(1))), Objects.requireNonNull(reader.postings.get(dog)).toMap());
+            Pair.of(2, Collections.singletonList(1))), Objects.requireNonNull(reader.documentsByPhrase.get(dog)).toMap());
         assertEquals((Map) ChaiMap.create(
             Pair.of(0, Collections.singletonList(12)),
-            Pair.of(2, Collections.singletonList(8))), Objects.requireNonNull(reader.postings.get(party)).toMap());
+            Pair.of(2, Collections.singletonList(8))), Objects.requireNonNull(reader.documentsByPhrase.get(party)).toMap());
+
+        assertEquals((Map) ChaiMap.create(
+            Pair.of(lazyDog, Collections.singletonList(1)),
+            Pair.of(dog, Collections.singletonList(0))), Objects.requireNonNull(reader.phrasesByTerm.get(index.getTermId("dog"))).toMap());
       }
 
     }

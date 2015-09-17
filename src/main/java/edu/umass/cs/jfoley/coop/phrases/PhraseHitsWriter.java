@@ -34,7 +34,7 @@ public class PhraseHitsWriter implements Closeable {
   public final Directory outputDir;
   public final String baseName;
   public final AccumulatingHitListWriter byDocHitsWriter;
-  public final AccumulatingPositionsWriter<Integer> writer;
+  public final AccumulatingPositionsWriter<Integer> docPositionsWriter;
   public final HashMap<IntList, Integer> vocab;
 
 
@@ -43,24 +43,38 @@ public class PhraseHitsWriter implements Closeable {
     this.baseName = baseName;
     vocab = new HashMap<>();
     byDocHitsWriter = new AccumulatingHitListWriter(new WaltzDiskMapWriter<>(outputDir, baseName+".dochits", FixedSize.ints, new PhraseHitListCoder()));
-    writer = cfg.getPositionsWriter(outputDir, baseName+".positions");
+    docPositionsWriter = cfg.getPositionsWriter(outputDir, baseName+".positions");
   }
 
   public void onPhraseHit(int docId, int start, int size, IntList slice) {
     int id = MapFns.getOrInsert(vocab, slice);
-    writer.add(id, docId, start);
+    docPositionsWriter.add(id, docId, start);
     byDocHitsWriter.add(docId, start, size, id);
   }
 
   @Override
   public void close() throws IOException {
-    try (IdMaps.Writer<IntList> phraseVocabWriter = GalagoIO.openIdMapsWriter(outputDir.childPath(baseName+".vocab"), FixedSize.ints, new ZeroTerminatedIds())) {
+    try (IdMaps.Writer<IntList> phraseVocabWriter = GalagoIO.openIdMapsWriter(outputDir.childPath(baseName+".vocab"), FixedSize.ints, new ZeroTerminatedIds());
+         AccumulatingPositionsWriter<Integer> phrasePositionsWriter = cfg.getPositionsWriter(outputDir, baseName + ".index")) {
+      IntList[] docs = new IntList[vocab.size()];
       for (Map.Entry<IntList, Integer> kv : vocab.entrySet()) {
-        phraseVocabWriter.put(kv.getValue(), kv.getKey());
+        IntList words = kv.getKey();
+        int phraseId = kv.getValue();
+        docs[phraseId-1] = words;
+      }
+      vocab.clear();
+      for (int i = 0; i < docs.length; i++) {
+        int phraseId = i+1;
+        IntList words = docs[i];
+        phraseVocabWriter.put(phraseId, words);
+        for (int j = 0; j < words.size(); j++) {
+          // word, doc, pos
+          phrasePositionsWriter.add(words.getQuick(j), phraseId, j);
+        }
       }
     }
-    writer.close();
+
+    docPositionsWriter.close();
     byDocHitsWriter.close();
   }
-
-  }
+}

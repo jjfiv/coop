@@ -24,7 +24,10 @@ public class PhraseHitsReader implements Closeable {
   final WaltzDiskMapReader<Integer, PhraseHitList> docHits;
   final IdMaps.Reader<IntList> vocab;
   final IntCoopIndex index;
-  final WaltzDiskMapReader<Integer, PostingMover<PositionsList>> postings;
+  /** find documents by phrase id */
+  final WaltzDiskMapReader<Integer, PostingMover<PositionsList>> documentsByPhrase;
+  /** find phrases by term ids */
+  final WaltzDiskMapReader<Integer, PostingMover<PositionsList>> phrasesByTerm;
 
   public PhraseHitsReader(IntCoopIndex index, Directory input, String baseName) throws IOException {
     this.baseDir = input;
@@ -32,7 +35,8 @@ public class PhraseHitsReader implements Closeable {
     this.index = index;
     docHits = new WaltzDiskMapReader<>(input, baseName+".dochits", FixedSize.ints, new PhraseHitListCoder());
     vocab = GalagoIO.openIdMapsReader(input.childPath(baseName + ".vocab"), FixedSize.ints, new ZeroTerminatedIds());
-    postings = PhraseHitsWriter.cfg.openReader(input, baseName+".positions");
+    documentsByPhrase = PhraseHitsWriter.cfg.openReader(input, baseName + ".positions");
+    phrasesByTerm = PhraseHitsWriter.cfg.openReader(input, baseName + ".index");
 
     TIntHashSet wordToEntity = new TIntHashSet();
     long start = System.currentTimeMillis();
@@ -54,6 +58,6 @@ public class PhraseHitsReader implements Closeable {
   public void close() throws IOException {
     docHits.close();
     vocab.close();;
-    postings.close();
+    documentsByPhrase.close();
   }
 }
