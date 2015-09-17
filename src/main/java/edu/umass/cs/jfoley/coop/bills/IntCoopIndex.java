@@ -47,9 +47,17 @@ public class IntCoopIndex implements CoopIndex {
   IOMap<IntList, PostingMover<PositionsList>> entities;
 
   public IntCoopIndex(Directory baseDir) throws IOException {
+    long start, end;
     this.baseDir = baseDir;
     if(baseDir.child(positionsFileName+".keys").exists()) {
       this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, positionsFileName);
+      start = System.currentTimeMillis();
+      pmeta = new HashMap<>();
+      for (Pair<Integer, PostingMover<PositionsList>> kv : this.positions.items()) {
+        pmeta.put(kv.getKey(), kv.getValue().getMetadata());
+      }
+      end = System.currentTimeMillis();
+      System.out.println("Caching metadata: "+(end-start)+"ms.");
     }
     this.corpus = new IntVocabBuilder.IntVocabReader(baseDir);
 
@@ -79,13 +87,6 @@ public class IntCoopIndex implements CoopIndex {
       }
     }
 
-    long start = System.currentTimeMillis();
-    pmeta = new HashMap<>();
-    for (Pair<Integer, PostingMover<PositionsList>> kv : this.positions.items()) {
-      pmeta.put(kv.getKey(), kv.getValue().getMetadata());
-    }
-    long end = System.currentTimeMillis();
-    System.out.println("Caching metadata: "+(end-start)+"ms.");
 
     this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8);
     this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8);

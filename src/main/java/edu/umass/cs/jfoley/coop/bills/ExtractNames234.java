@@ -1,27 +1,13 @@
 package edu.umass.cs.jfoley.coop.bills;
 
 import ciir.jfoley.chai.collections.list.IntList;
-import ciir.jfoley.chai.collections.util.Comparing;
-import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.time.Debouncer;
-import edu.umass.cs.ciir.waltz.IdMaps;
-import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
-import edu.umass.cs.ciir.waltz.coders.map.impl.WaltzDiskMapWriter;
-import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
-import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
-import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.ciir.waltz.sys.PostingsConfig;
-import edu.umass.cs.ciir.waltz.sys.positions.AccumulatingPositionsWriter;
-import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
-import edu.umass.cs.jfoley.coop.phrases.AccumulatingHitListWriter;
 import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
-import edu.umass.cs.jfoley.coop.phrases.PhraseHitListCoder;
+import edu.umass.cs.jfoley.coop.phrases.PhraseHitsWriter;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -88,14 +74,6 @@ public class ExtractNames234 {
 
   public static void main(String[] args) throws IOException {
     IntCoopIndex target = new IntCoopIndex(new Directory("robust.ints"));
-
-    PostingsConfig<Integer, PositionsList> cfg = new PostingsConfig<>(
-        FixedSize.ints,
-        new PositionsListCoder(),
-        Comparing.defaultComparator(),
-        new PositionsCountMetadata()
-    );
-
     long start, end;
 
     // load up precomputed queries:
@@ -106,24 +84,11 @@ public class ExtractNames234 {
 
     CorpusTagger tagger = new CorpusTagger(detector, target.getCorpus());
 
-    HashMap<IntList, Integer> vocab = new HashMap<>();
     Debouncer msg = new Debouncer(2000);
-    try (
-        AccumulatingHitListWriter byDocHitsWriter = new AccumulatingHitListWriter(new WaltzDiskMapWriter<>(target.baseDir, "entities.dochits", FixedSize.ints, new PhraseHitListCoder()));
-        AccumulatingPositionsWriter<Integer> writer = cfg.getPositionsWriter(target.baseDir, "entities.positions")) {
+    try (PhraseHitsWriter writer = new PhraseHitsWriter(target.baseDir, "entities")) {
       tagger.tag(msg, (docId, hitStart, hitSize, terms) -> {
-        IntList slice = IntList.clone(terms, hitStart, hitSize);
-        int id = MapFns.getOrInsert(vocab, slice);
-        writer.add(id, docId, hitStart);
-        byDocHitsWriter.add(docId, hitStart, hitSize, id);
+        writer.onPhraseHit(docId, hitStart, hitSize, IntList.clone(terms, hitStart, hitSize));
       });
-    } // positions-writers
-
-    try (IdMaps.Writer<IntList> phraseVocabWriter = GalagoIO.openIdMapsWriter(target.baseDir.childPath("entities.vocab"), FixedSize.ints, new ZeroTerminatedIds())) {
-      // write vocab:
-      for (Map.Entry<IntList, Integer> kv : vocab.entrySet()) {
-        phraseVocabWriter.put(kv.getValue(), kv.getKey());
-      }
-    }
+    } // phrase-hits-writer
   } // main
 }
