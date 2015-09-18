@@ -7,7 +7,6 @@ import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
-import gnu.trove.map.hash.TIntIntHashMap;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.Closeable;
@@ -24,15 +23,24 @@ public interface CoopIndex extends Closeable {
   List<String> translateToTerms(IntList termIds) throws IOException;
 
   CoopDoc getDocument(String name);
-  PostingMover<PositionsList> getPositionsMover(String termKind, String queryTerm) throws IOException;
-  PostingMover<PositionsList> getPositionsMover(String termKind, int queryTermId) throws IOException;
+  default PostingMover<PositionsList> getPositionsMover(String termKind, String queryTerm) throws IOException {
+    TermPositionsIndex index = getPositionsIndex(termKind);
+    if(index == null) return null;
+    return index.getPositionsMover(queryTerm);
+  }
+  default PostingMover<PositionsList> getPositionsMover(String termKind, int queryTermId) throws IOException {
+    TermPositionsIndex index = getPositionsIndex(termKind);
+    if(index == null) return null;
+    return index.getPositionsMover(queryTermId);
+  }
   Iterable<Pair<Integer, String>> lookupNames(IntList hits) throws IOException;
   Iterable<Pair<TermSlice, IntList>> pullTermSlices(Iterable<TermSlice> slices);
   Iterable<Pair<String, Integer>> lookupTermIds(List<String> query) throws IOException;
   long getCollectionLength() throws IOException;
-  int collectionFrequency(int termId);
   Iterable<Pair<Integer, String>> lookupTerms(IntList termIds) throws IOException;
   IntList translateFromTerms(List<String> query) throws IOException;
   Parameters getMetadata();
-  TIntIntHashMap getCollectionFrequencies(IntList integers) throws IOException;
+
+  TermPositionsIndex getPositionsIndex(String termKind);
+
 }

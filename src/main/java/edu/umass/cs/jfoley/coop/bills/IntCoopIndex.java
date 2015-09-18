@@ -12,16 +12,14 @@ import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.ciir.waltz.sys.KeyMetadata;
-import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsIndexFile;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
+import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.tokenization.StanfordNLPTokenizer;
-import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.utility.Parameters;
@@ -29,9 +27,7 @@ import org.lemurproject.galago.utility.Parameters;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author jfoley
@@ -43,25 +39,11 @@ public class IntCoopIndex implements CoopIndex {
   final IdMaps.Reader<String> names;
   final IdMaps.Reader<String> vocab;
   IOMap<Integer, PostingMover<PositionsList>> positions;
-  HashMap<Integer, KeyMetadata<?>> pmeta;
 
   PhraseHitsReader entities;
+  TermPositionsIndex positionsIndex;
 
-  public IntCoopIndex(Directory baseDir) throws IOException {
-    long start, end;
-    this.baseDir = baseDir;
-    if(baseDir.child(positionsFileName+".keys").exists()) {
-      this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, positionsFileName);
-      start = System.currentTimeMillis();
-      pmeta = new HashMap<>();
-      for (Pair<Integer, PostingMover<PositionsList>> kv : this.positions.items()) {
-        pmeta.put(kv.getKey(), kv.getValue().getMetadata());
-      }
-      end = System.currentTimeMillis();
-      System.out.println("Caching metadata: "+(end-start)+"ms.");
-    }
-    this.corpus = new IntVocabBuilder.IntVocabReader(baseDir);
-
+  private void tryBuildNames() throws IOException {
     if(!baseDir.child("names.fwd").exists()) {
       try (IdMaps.Writer<String> namesWriter = GalagoIO.openIdMapsWriter(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8)) {
         corpus.forEachName((kv) -> {
@@ -73,6 +55,9 @@ public class IntCoopIndex implements CoopIndex {
         });
       }
     }
+  }
+
+  private void tryBuildVocab() throws IOException {
     if(!baseDir.child("vocab.fwd").exists()) {
       try (IdMaps.Writer<String> termsWriter = GalagoIO.openIdMapsWriter(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8)) {
         try (PrintWriter out = IO.openPrintWriter(baseDir.childPath("vocab.tsv.gz"))){
@@ -87,10 +72,21 @@ public class IntCoopIndex implements CoopIndex {
         }
       }
     }
+  }
 
+  public IntCoopIndex(Directory baseDir) throws IOException {
+    this.baseDir = baseDir;
 
+    this.corpus = new IntVocabBuilder.IntVocabReader(baseDir);
+    tryBuildNames();
+    tryBuildVocab();
     this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8);
     this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8);
+
+    if(baseDir.child(positionsFileName+".keys").exists()) {
+      this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, positionsFileName);
+      this.positionsIndex = new TermPositionsIndex(vocab, positions);
+    }
 
     if(baseDir.child("entities.positions.keys").exists()) {
       entities = new PhraseHitsReader(this, baseDir, "entities");
@@ -152,20 +148,11 @@ public class IntCoopIndex implements CoopIndex {
     }
   }
 
-  @Override
-  public PostingMover<PositionsList> getPositionsMover(String termKind, String queryTerm) throws IOException {
-    assert(Objects.equals(termKind, "lemmas"));
-    //System.err.println(queryTerm);
-    int termId = getTermId(queryTerm);
-    //System.err.println(queryTerm+" -> "+termId);
-    if(termId < 0) return null;
-    return positions.get(termId);
-  }
 
   @Override
-  public PostingMover<PositionsList> getPositionsMover(String termKind, int termId) throws IOException {
-    if(termId < 0) return null;
-    return positions.get(termId);
+  public TermPositionsIndex getPositionsIndex(String termKind) {
+    if(!termKind.equals("lemmas")) return null;
+    return positionsIndex;
   }
 
   @Override
@@ -194,27 +181,6 @@ public class IntCoopIndex implements CoopIndex {
   @Override
   public long getCollectionLength() throws IOException {
     return corpus.numberOfTermOccurrences();
-  }
-
-  public TIntIntHashMap getCollectionFrequencies(IntList ids) throws IOException {
-    TIntIntHashMap output = new TIntIntHashMap(ids.size());
-    for (int id : ids) {
-      KeyMetadata<?> meta = pmeta.get(id);
-      assert(meta != null);
-      assert(meta instanceof PositionsCountMetadata);
-      PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
-      output.put(id, pmc.totalCount);
-    }
-    return output;
-  }
-
-  @Override
-  public int collectionFrequency(int termId) {
-    KeyMetadata<?> meta = pmeta.get(termId);
-    assert(meta != null);
-    assert(meta instanceof PositionsCountMetadata);
-    PositionsCountMetadata pmc = (PositionsCountMetadata) meta;
-    return pmc.totalCount;
   }
 
   public TIntObjectHashMap<String> termTranslator(IntList termIds) throws IOException {
@@ -253,13 +219,20 @@ public class IntCoopIndex implements CoopIndex {
   public void close() throws IOException {
     this.vocab.close();
     this.names.close();
-    if(positions != null) {
-      this.positions.close();
-    }
+    IO.close(this.positions);
     this.corpus.close();
+    IO.close(this.entities);
   }
 
   public IntVocabBuilder.IntVocabReader getCorpus() {
     return corpus;
+  }
+
+  public PhraseHitsReader getEntities() {
+    return entities;
+  }
+
+  public IdMaps.Reader<String> getTermVocabulary() {
+    return vocab;
   }
 }

@@ -4,12 +4,15 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
+import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.coders.map.impl.WaltzDiskMapReader;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.bills.ZeroTerminatedIds;
+import edu.umass.cs.jfoley.coop.front.CoopIndex;
+import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.io.Closeable;
@@ -25,9 +28,11 @@ public class PhraseHitsReader implements Closeable {
   final IdMaps.Reader<IntList> vocab;
   final IntCoopIndex index;
   /** find documents by phrase id */
-  final WaltzDiskMapReader<Integer, PostingMover<PositionsList>> documentsByPhrase;
+  final IOMap<Integer, PostingMover<PositionsList>> documentsByPhrase;
   /** find phrases by term ids */
-  final WaltzDiskMapReader<Integer, PostingMover<PositionsList>> phrasesByTerm;
+  final IOMap<Integer, PostingMover<PositionsList>> phrasesByTerm;
+
+  final TermPositionsIndex phrasesByTermIndex;
 
   public PhraseHitsReader(IntCoopIndex index, Directory input, String baseName) throws IOException {
     this.baseDir = input;
@@ -37,6 +42,9 @@ public class PhraseHitsReader implements Closeable {
     vocab = GalagoIO.openIdMapsReader(input.childPath(baseName + ".vocab"), FixedSize.ints, new ZeroTerminatedIds());
     documentsByPhrase = PhraseHitsWriter.cfg.openReader(input, baseName + ".positions");
     phrasesByTerm = PhraseHitsWriter.cfg.openReader(input, baseName + ".index");
+
+    phrasesByTermIndex = new TermPositionsIndex(index.getTermVocabulary(), phrasesByTerm);
+    //documentsByPhraseIndex = new CoopIndex.PositionsIndex<>(vocab, documentsByPhrase);
 
     TIntHashSet wordToEntity = new TIntHashSet();
     long start = System.currentTimeMillis();
@@ -60,4 +68,12 @@ public class PhraseHitsReader implements Closeable {
     vocab.close();;
     documentsByPhrase.close();
   }
+
+  public CoopIndex getIndex() {
+    return index;
+  }
+
+  public TermPositionsIndex getPhrasesByTerm() { return phrasesByTermIndex; }
+  //public CoopIndex.PositionsIndex<String> getDocumentsByPhrase() { return documentsByPhrase; }
+
 }

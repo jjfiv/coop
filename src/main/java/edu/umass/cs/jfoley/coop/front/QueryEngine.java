@@ -33,10 +33,10 @@ public class QueryEngine {
       return uniqueTerms;
     }
 
-    public ArrayList<PostingMover<PositionsList>> getMovers(CoopIndex index) throws IOException {
+    public ArrayList<PostingMover<PositionsList>> getMovers(TermPositionsIndex index) throws IOException {
       ArrayList<PostingMover<PositionsList>> iters = new ArrayList<>();
       for (int uniqueTerm : getUniqueTerms()) {
-        PostingMover<PositionsList> iter = index.getPositionsMover("lemmas", uniqueTerm);
+        PostingMover<PositionsList> iter = index.getPositionsMover(uniqueTerm);
         iters.add(iter);
       }
       return iters;

@@ -65,7 +65,7 @@ public class JSONServer implements WebHandler {
     String path = request.getPathInfo();
 
     // safen-up.
-    if(path.contains("..")) response.sendError(ServerErr.BadRequest);
+    if(path.contains("..")) doError(response, ServerErr.BadRequest, "Bad Request; contains '..'");
 
     if(path.startsWith("/api/")) {
       handleAPI(request, response, method, path);
@@ -88,7 +88,8 @@ public class JSONServer implements WebHandler {
     if(contentType != null) {
       InputStream is = IO.openInputStream(htmlDir.childPath(path));
       if(is == null) {
-        response.sendError(ServerErr.NotFound, path);
+        doError(response, ServerErr.NotFound, "Couldn't find resource for: "+path);
+        //response.sendError(ServerErr.NotFound, path);
         return;
       }
 
@@ -100,7 +101,7 @@ public class JSONServer implements WebHandler {
       }
     }
 
-    response.setStatus(ServerErr.NotFound);
+    doError(response, ServerErr.NotFound, "No response for: "+path);
   }
 
 
@@ -117,6 +118,8 @@ public class JSONServer implements WebHandler {
         response.sendError(ServerErr.BadRequest, "Unsupported method.");
         return;
     }
+
+    assert(path.startsWith("/api/"));
 
     String endpoint = StrUtil.takeAfter(path, "/api/");
     ServerFn apiFn = apiMethods.get(endpoint);

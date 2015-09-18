@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.front;
 
+import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.conll.server.ServerFn;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
@@ -22,6 +23,14 @@ public class IndexFns {
     methods.put("MatchDocuments", new MatchDocuments(coopIndex));
     methods.put("PullDocument", new PullDocumentFn(coopIndex));
     methods.put("Tokenize", new Tokenize(coopIndex));
+
+    if(coopIndex instanceof IntCoopIndex) {
+      IntCoopIndex index = (IntCoopIndex) coopIndex;
+      if(index.getEntities() != null) {
+        // find entity by words
+        methods.put("SuggestEntity", new SuggestEntityFn(index.getEntities()));
+      }
+    }
   }
 
   public static class Tokenize extends CoopIndexServerFn {

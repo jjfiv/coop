@@ -6,9 +6,6 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.fn.LazyReduceFn;
-import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
-import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
-import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
@@ -30,26 +27,6 @@ public class FindPhrase extends CoopIndexServerFn {
     super(index);
   }
 
-  public static List<DocumentResult<Integer>> locatePhrase(CoopIndex index, IntList queryIds) throws IOException {
-    ArrayList<DocumentResult<Integer>> output = new ArrayList<>();
-
-    QueryEngine.QueryRepr repr = new QueryEngine.QueryRepr();
-    QueryEngine.PhraseNode phrase = new QueryEngine.PhraseNode(queryIds, repr);
-
-    System.out.println("query: "+queryIds);
-    System.out.println("unique: "+repr.getUniqueTerms());
-    System.out.println("mapping: "+phrase.termIdMapping);
-
-    ArrayList<PostingMover<PositionsList>> iters = repr.getMovers(index);
-    AllOfMover<?> andMover = new AllOfMover<>(iters);
-
-    for(andMover.start(); !andMover.isDone(); andMover.next()) {
-      int doc = andMover.currentKey();
-      phrase.process(doc, iters, output::add);
-    }
-    return output;
-  }
-
   @Override
   public Parameters handleRequest(Parameters p) throws IOException, SQLException {
     final Parameters output = Parameters.create();
@@ -61,15 +38,16 @@ public class FindPhrase extends CoopIndexServerFn {
     final int numTerms = p.get("numTerms", 30);
     final int minTermFrequency = p.get("minTermFrequency", 4);
 
+    TermPositionsIndex termIndex = index.getPositionsIndex(termKind);
+
     CoopTokenizer tokenizer = index.getTokenizer();
     List<String> query = ListFns.map(tokenizer.createDocument("tmp", p.getString("query")).getTerms(termKind), String::toLowerCase);
     output.put("queryTerms", query);
 
     IntList queryIds = index.translateFromTerms(query);
 
-
     long startTime = System.currentTimeMillis();
-    List<DocumentResult<Integer>> hits = locatePhrase(index, queryIds);
+    List<DocumentResult<Integer>> hits = termIndex.locatePhrase(queryIds);
     long endTime = System.currentTimeMillis();
     int queryFrequency = hits.size();
     output.put("queryFrequency", queryFrequency);
@@ -146,7 +124,7 @@ public class FindPhrase extends CoopIndexServerFn {
     TopKHeap<PMITerm<Integer>> topTerms = new TopKHeap<>(numTerms);
     if(scoreTerms) {
       long start = System.currentTimeMillis();
-      TIntIntHashMap freq = index.getCollectionFrequencies(new IntList(termProxCounts.keys()));
+      TIntIntHashMap freq = termIndex.getCollectionFrequencies(new IntList(termProxCounts.keys()));
       long end = System.currentTimeMillis();
       System.err.println("Pull frequencies: "+(end-start)+"ms.");
 

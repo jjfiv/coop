@@ -6,7 +6,7 @@ import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.TemporaryDirectory;
 import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
-import edu.umass.cs.jfoley.coop.front.FindPhrase;
+import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import org.junit.Test;
 
@@ -104,14 +104,16 @@ public class IntVocabBuilderTest {
         assertNotNull(reader.positions);
         assertEquals(uniqueTerms.size(), reader.getCorpus().getNumTerms());
 
-        Map<Integer, PositionsList> overPos = reader.getPositionsMover("lemmas", "over").toMap();
-        Map<Integer, PositionsList> thePos = reader.getPositionsMover("lemmas", "the").toMap();
+        TermPositionsIndex lemmas = reader.getPositionsIndex("lemmas");
+
+        Map<Integer, PositionsList> overPos = lemmas.getPositionsMover("over").toMap();
+        Map<Integer, PositionsList> thePos = lemmas.getPositionsMover("the").toMap();
 
         List<Integer> results = OrderedWindow.findIter(Arrays.asList(overPos.get(1).getSpanIterator(), thePos.get(1).getSpanIterator()), 1);
         assertEquals(Arrays.asList(5), results);
 
         List<DocumentResult<Integer>> hits;
-        hits = FindPhrase.locatePhrase(reader, reader.translateFromTerms(Arrays.asList("over", "the")));
+        hits = lemmas.locatePhrase(reader.translateFromTerms(Arrays.asList("over", "the")));
         assertEquals(hits.size(), 1);
         assertEquals(1, hits.get(0).document);
         assertEquals(5, hits.get(0).value.intValue());
@@ -161,14 +163,16 @@ public class IntVocabBuilderTest {
         assertNotNull(reader.positions);
         assertEquals(uniqueTerms.size(), reader.getCorpus().getNumTerms());
 
-        Map<Integer, PositionsList> overPos = reader.getPositionsMover("lemmas", "over").toMap();
-        Map<Integer, PositionsList> thePos = reader.getPositionsMover("lemmas", "the").toMap();
+        TermPositionsIndex lemmas = reader.getPositionsIndex("lemmas");
+
+        Map<Integer, PositionsList> overPos = lemmas.getPositionsMover("over").toMap();
+        Map<Integer, PositionsList> thePos = lemmas.getPositionsMover("the").toMap();
 
         List<Integer> results = OrderedWindow.findIter(Arrays.asList(overPos.get(1).getSpanIterator(), thePos.get(1).getSpanIterator()), 1);
         assertEquals(Arrays.asList(5), results);
 
         List<DocumentResult<Integer>> hits;
-        hits = FindPhrase.locatePhrase(reader, reader.translateFromTerms(Arrays.asList("over", "the")));
+        hits = lemmas.locatePhrase(reader.translateFromTerms(Arrays.asList("over", "the")));
         assertEquals(hits.size(), 1);
         assertEquals(1, hits.get(0).document);
         assertEquals(5, hits.get(0).value.intValue());
