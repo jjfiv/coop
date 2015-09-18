@@ -15,6 +15,7 @@ import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsIndexFile;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
+import edu.umass.cs.jfoley.coop.front.PhrasePositionsIndex;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
@@ -42,6 +43,7 @@ public class IntCoopIndex implements CoopIndex {
 
   PhraseHitsReader entities;
   TermPositionsIndex positionsIndex;
+  PhrasePositionsIndex entitiesIndex;
 
   private void tryBuildNames() throws IOException {
     if(!baseDir.child("names.fwd").exists()) {
@@ -90,6 +92,7 @@ public class IntCoopIndex implements CoopIndex {
 
     if(baseDir.child("entities.positions.keys").exists()) {
       entities = new PhraseHitsReader(this, baseDir, "entities");
+      entitiesIndex = new PhrasePositionsIndex(vocab, entities.getPhraseVocab(), entities.getDocumentsByPhrase());
     }
   }
 
@@ -153,6 +156,11 @@ public class IntCoopIndex implements CoopIndex {
   public TermPositionsIndex getPositionsIndex(String termKind) {
     if(!termKind.equals("lemmas")) return null;
     return positionsIndex;
+  }
+
+  @Override
+  public PhrasePositionsIndex getEntitiesIndex() {
+    return entitiesIndex;
   }
 
   @Override

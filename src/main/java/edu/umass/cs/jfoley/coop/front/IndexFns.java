@@ -29,6 +29,7 @@ public class IndexFns {
       if(index.getEntities() != null) {
         // find entity by words
         methods.put("SuggestEntity", new SuggestEntityFn(index.getEntities()));
+        methods.put("MatchEntities", new MatchPhraseFn(index.getEntities()));
       }
     }
   }

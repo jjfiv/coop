@@ -77,11 +77,13 @@ public class PhraseHitsReader implements Closeable {
 
   public TermPositionsIndex getPhrasesByTerm() { return phrasesByTermIndex; }
 
-  public IdMaps.IdReader<IntList> getPhraseVocab() {
+  public IdMaps.Reader<IntList> getPhraseVocab() {
     return vocab;
   }
-  //public CoopIndex.PositionsIndex<String> getDocumentsByPhrase() { return documentsByPhrase; }
 
+  public IOMap<Integer, PostingMover<PositionsList>> getDocumentsByPhrase() {
+    return documentsByPhrase;
+  }
   public PositionsCountMetadata getPhraseMetadata(int phraseId) throws IOException {
     PostingMover<PositionsList> mover = documentsByPhrase.get(phraseId);
     if(mover == null) {

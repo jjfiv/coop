@@ -58,6 +58,7 @@ public class SuggestEntityFn extends CoopIndexServerFn {
     for (Pair<Integer, IntList> kv : phrases.getPhraseVocab().getForward(matchingPhraseIds)) {
       int phraseId = kv.getKey();
       Parameters info = Parameters.create();
+      info.put("id", phraseId);
       info.put("ids", kv.getValue());
       info.put("terms", index.translateToTerms(kv.getValue()));
       if(pullMetadata) {
