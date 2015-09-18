@@ -1,7 +1,9 @@
 package edu.umass.cs.jfoley.coop.front;
 
+import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
+import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
@@ -10,6 +12,7 @@ import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,6 +40,7 @@ public class SuggestEntityFn extends CoopIndexServerFn {
     IntList queryIds = index.translateFromTerms(query);
     output.put("queryIds", queryIds);
 
+    IntList matchingPhraseIds = new IntList();
     if(!queryIds.containsInt(-1)) {
       List<DocumentResult<Integer>> results = target.locatePhrase(queryIds);
       System.err.println("# found "+results.size()+" phrase matches.");
@@ -44,9 +48,22 @@ public class SuggestEntityFn extends CoopIndexServerFn {
       for (DocumentResult<Integer> result : results) {
         docs.add(result.document);
       }
-      System.err.println("# found "+results.size()+" phrase matches in "+docs.size()+" documents.");
-      output.put("matchingDocs", new IntList(docs.toArray()));
+      matchingPhraseIds = new IntList(docs.toArray());
+      System.err.println("# found " + results.size() + " phrase matches in " + docs.size() + " documents.");
     }
+    matchingPhraseIds.sort();
+
+    ArrayList<Parameters> matchInfo = new ArrayList<>();
+    for (Pair<Integer, IntList> kv : phrases.getPhraseVocab().getForward(matchingPhraseIds)) {
+      int phraseId = kv.getKey();
+      Parameters info = Parameters.create();
+      info.put("ids", kv.getValue());
+      info.put("terms", index.translateToTerms(kv.getValue()));
+      PositionsCountMetadata meta = phrases.getPhraseMetadata(phraseId);
+      info.put("meta", Parameters.wrap(meta.toMap()));
+      matchInfo.add(info);
+    }
+    output.put("matches", matchInfo);
 
     return output;
   }

@@ -108,9 +108,6 @@ public class FindPhrase extends CoopIndexServerFn {
         }
         if(scoreTerms) {
           for (int term : pair.right) {
-            if(term == 240602) {
-              System.out.println("240602: "+pair.left);
-            }
             assert(term >= 0);
             if(queryIds.contains(term)) continue;
             termProxCounts.adjustOrPutValue(term, 1, 1);

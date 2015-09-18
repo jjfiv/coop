@@ -9,6 +9,8 @@ import edu.umass.cs.ciir.waltz.coders.map.impl.WaltzDiskMapReader;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import edu.umass.cs.ciir.waltz.sys.KeyMetadata;
+import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.bills.ZeroTerminatedIds;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
@@ -74,6 +76,21 @@ public class PhraseHitsReader implements Closeable {
   }
 
   public TermPositionsIndex getPhrasesByTerm() { return phrasesByTermIndex; }
+
+  public IdMaps.IdReader<IntList> getPhraseVocab() {
+    return vocab;
+  }
   //public CoopIndex.PositionsIndex<String> getDocumentsByPhrase() { return documentsByPhrase; }
 
+  public PositionsCountMetadata getPhraseMetadata(int phraseId) throws IOException {
+    PostingMover<PositionsList> mover = documentsByPhrase.get(phraseId);
+    if(mover == null) {
+      return null;
+    }
+    KeyMetadata<?> meta = mover.getMetadata();
+    if(meta instanceof PositionsCountMetadata) {
+      return (PositionsCountMetadata) meta;
+    }
+    return null;
+  }
 }
