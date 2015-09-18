@@ -30,6 +30,7 @@ public class SuggestEntityFn extends CoopIndexServerFn {
   public Parameters handleRequest(Parameters p) throws IOException, SQLException {
     final Parameters output = Parameters.create();
     final String termKind = p.get("termKind", "lemmas");
+    final boolean pullMetadata = p.get("meta", false);
 
     TermPositionsIndex target = phrases.getPhrasesByTerm();
 
@@ -59,8 +60,10 @@ public class SuggestEntityFn extends CoopIndexServerFn {
       Parameters info = Parameters.create();
       info.put("ids", kv.getValue());
       info.put("terms", index.translateToTerms(kv.getValue()));
-      PositionsCountMetadata meta = phrases.getPhraseMetadata(phraseId);
-      info.put("meta", Parameters.wrap(meta.toMap()));
+      if(pullMetadata) {
+        PositionsCountMetadata meta = phrases.getPhraseMetadata(phraseId);
+        info.put("meta", Parameters.wrap(meta.toMap()));
+      }
       matchInfo.add(info);
     }
     output.put("matches", matchInfo);
