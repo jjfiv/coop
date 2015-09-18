@@ -12,6 +12,7 @@ import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.io.IOException;
@@ -123,5 +124,22 @@ public class TermPositionsIndex {
 
   public String translateToTerm(int termId) throws IOException {
     return vocab.getForward(termId);
+  }
+
+  public TIntObjectHashMap<String> termTranslator(IntList termIds) throws IOException {
+    TIntObjectHashMap<String> data = new TIntObjectHashMap<>();
+    for (Pair<Integer, String> kv : vocab.getForward(termIds)) {
+      data.put(kv.getKey(), kv.getValue());
+    }
+    return data;
+  }
+
+  public List<String> translateToTerms(IntList termIds) throws IOException {
+    TIntObjectHashMap<String> translator = termTranslator(termIds);
+    ArrayList<String> terms = new ArrayList<>(termIds.size());
+    for (int termId : termIds) {
+      terms.add(translator.get(termId));
+    }
+    return terms;
   }
 }

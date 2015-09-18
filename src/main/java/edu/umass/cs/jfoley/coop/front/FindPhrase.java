@@ -125,6 +125,50 @@ public class FindPhrase extends CoopIndexServerFn {
     }
   }
 
+
+  public static class LookupSinglePhraseMethod extends FindHitsMethod {
+
+    private final PostingMover<PositionsList> mover;
+    private final List<String> terms;
+    private IntList queryIds;
+
+
+    public LookupSinglePhraseMethod(Parameters input, Parameters output, CoopIndex index) throws IOException {
+      super(input, output);
+      PhrasePositionsIndex entitiesIndex = index.getEntitiesIndex();
+      int phraseId = input.getInt("phrase");
+      this.mover = entitiesIndex.getPositionsMover(phraseId);
+      queryIds = entitiesIndex.phraseVocab.getForward(phraseId);
+      terms = index.getPositionsIndex("lemmas").translateToTerms(queryIds);
+
+      output.put("phraseIds", queryIds);
+      output.put("phraseTerms", terms);
+    }
+
+    @Override
+    public ArrayList<DocumentResult<Integer>> compute() throws IOException {
+      ArrayList<DocumentResult<Integer>> hits = new ArrayList<>();
+      if(mover == null) return hits;
+      mover.execute((docId) -> {
+        PositionsList list = mover.getPosting(docId);
+        for (int i = 0; i < list.size(); i++) {
+          hits.add(new DocumentResult<>(docId, list.getPosition(i)));
+        }
+      });
+      return hits;
+    }
+
+    @Override
+    public int getPhraseWidth() {
+      return queryIds.size();
+    }
+
+    @Override
+    public boolean queryContains(int term) {
+      return this.queryIds.containsInt(term);
+    }
+  }
+
   @Override
   public Parameters handleRequest(Parameters p) throws IOException, SQLException {
     final Parameters output = Parameters.create();
@@ -146,6 +190,9 @@ public class FindPhrase extends CoopIndexServerFn {
         break;
       case "LookupSingleTerm":
         hitFinder = new LookupSingleTermMethod(p, output, termIndex);
+        break;
+      case "LookupSinglePhrase":
+        hitFinder = new LookupSinglePhraseMethod(p, output, index);
         break;
       default: throw new IllegalArgumentException("method="+method);
     }
