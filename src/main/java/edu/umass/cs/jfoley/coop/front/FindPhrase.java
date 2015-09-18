@@ -6,6 +6,8 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.fn.LazyReduceFn;
+import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
+import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
@@ -27,6 +29,102 @@ public class FindPhrase extends CoopIndexServerFn {
     super(index);
   }
 
+  public static abstract class FindHitsMethod {
+    public final Parameters output; // for taking notes on computation.
+    public FindHitsMethod(Parameters input, Parameters output) {
+      this.output = output;
+    }
+    public abstract ArrayList<DocumentResult<Integer>> compute() throws IOException;
+    public ArrayList<DocumentResult<Integer>> computeTimed() throws IOException {
+      long startTime = System.currentTimeMillis();
+      ArrayList<DocumentResult<Integer>> hits = compute();
+      long endTime = System.currentTimeMillis();
+      int queryFrequency = hits.size();
+      output.put("queryFrequency", queryFrequency);
+      output.put("queryTime", (endTime-startTime));
+      return hits;
+    }
+
+    public abstract int getPhraseWidth();
+    public abstract boolean queryContains(int term);
+
+  }
+
+  public static class EvaluatePhraseMethod extends FindHitsMethod {
+    private final TermPositionsIndex index;
+    private final IntList queryIds;
+
+    public EvaluatePhraseMethod(Parameters input, Parameters output, TermPositionsIndex index) throws IOException {
+      super(input, output);
+      this.index = index;
+      CoopTokenizer tokenizer = index.getTokenizer();
+      List<String> query = ListFns.map(tokenizer.createDocument("tmp", input.getString("query")).getTerms(tokenizer.getDefaultTermSet()), String::toLowerCase);
+      output.put("queryTerms", query);
+      this.queryIds = index.translateFromTerms(query);
+      output.put("queryIds", queryIds);
+    }
+
+    @Override
+    public ArrayList<DocumentResult<Integer>> compute() throws IOException {
+      return index.locatePhrase(queryIds);
+    }
+
+    @Override
+    public int getPhraseWidth() {
+      return queryIds.size();
+    }
+
+    @Override
+    public boolean queryContains(int term) {
+      return queryIds.containsInt(term);
+    }
+  }
+
+  public static class LookupSingleTermMethod extends FindHitsMethod {
+
+    private final PostingMover<PositionsList> mover;
+    private final String term;
+    private int termId;
+
+    public LookupSingleTermMethod(Parameters input, Parameters output, TermPositionsIndex index) throws IOException {
+      super(input, output);
+      PostingMover<PositionsList> mover = null;
+      this.termId = -1;
+      if(input.isLong("termId")) {
+        this.termId = input.getInt("termId");
+        this.term = index.translateToTerm(termId);
+      } else if(input.isString("term")) {
+        this.term = input.getString("term");
+        this.termId = index.translateFromTerm(term);
+      } else throw new IllegalArgumentException("Missing argument term=\"the\" or termId=1, etc.");
+      mover = index.getPositionsMover(termId);
+      this.mover = mover;
+    }
+
+    @Override
+    public ArrayList<DocumentResult<Integer>> compute() throws IOException {
+      ArrayList<DocumentResult<Integer>> hits = new ArrayList<>();
+      if(mover == null) return hits;
+      mover.execute((docId) -> {
+        PositionsList list = mover.getPosting(docId);
+        for (int i = 0; i < list.size(); i++) {
+          hits.add(new DocumentResult<>(docId, list.getPosition(i)));
+        }
+      });
+      return hits;
+    }
+
+    @Override
+    public int getPhraseWidth() {
+      return 1;
+    }
+
+    @Override
+    public boolean queryContains(int term) {
+      return this.termId == term;
+    }
+  }
+
   @Override
   public Parameters handleRequest(Parameters p) throws IOException, SQLException {
     final Parameters output = Parameters.create();
@@ -38,21 +136,21 @@ public class FindPhrase extends CoopIndexServerFn {
     final int numTerms = p.get("numTerms", 30);
     final int minTermFrequency = p.get("minTermFrequency", 4);
 
+    final String method = p.get("method", "EvaluatePhrase");
     TermPositionsIndex termIndex = index.getPositionsIndex(termKind);
 
-    CoopTokenizer tokenizer = index.getTokenizer();
-    List<String> query = ListFns.map(tokenizer.createDocument("tmp", p.getString("query")).getTerms(termKind), String::toLowerCase);
-    output.put("queryTerms", query);
+    FindHitsMethod hitFinder;
+    switch (method) {
+      case "EvaluatePhrase":
+        hitFinder = new EvaluatePhraseMethod(p, output, termIndex);
+        break;
+      case "LookupSingleTerm":
+        hitFinder = new LookupSingleTermMethod(p, output, termIndex);
+        break;
+      default: throw new IllegalArgumentException("method="+method);
+    }
 
-    IntList queryIds = index.translateFromTerms(query);
-
-    long startTime = System.currentTimeMillis();
-    List<DocumentResult<Integer>> hits = termIndex.locatePhrase(queryIds);
-    long endTime = System.currentTimeMillis();
-    int queryFrequency = hits.size();
-    output.put("queryFrequency", queryFrequency);
-    output.put("queryTime", (endTime-startTime));
-    System.out.println("phraseTime: "+(endTime-startTime));
+    ArrayList<DocumentResult<Integer>> hits = hitFinder.computeTimed();
 
     final TIntObjectHashMap<Parameters> hitInfos = new TIntObjectHashMap<>();
     // only return 200 results
@@ -67,14 +165,16 @@ public class FindPhrase extends CoopIndexServerFn {
       hitInfos.get(kv.left).put("name", kv.right);
     }
 
-    TIntIntHashMap termProxCounts = new TIntIntHashMap(Math.max(1000, hits.size() / 10));
+    TIntIntHashMap termProxCounts = null;
+    if(scoreTerms) termProxCounts = new TIntIntHashMap(Math.max(1000, hits.size() / 10));
+    int phraseWidth = hitFinder.getPhraseWidth();
+    int queryFrequency = hits.size();
 
     long startScoring = System.currentTimeMillis();
     // also pull terms if we want:
     if(scoreTerms || pullSlices) {
       int leftWidth = Math.max(0, p.get("leftWidth", 1));
       int rightWidth = Math.max(0, p.get("rightWidth", 1));
-      int phraseWidth = queryIds.size();
 
       // Lazy convert hits to slices:
       Iterable<TermSlice> slices = IterableFns.map(hits, (result) -> {
@@ -85,17 +185,6 @@ public class FindPhrase extends CoopIndexServerFn {
         return slice;
       });
 
-      LazyReduceFn<TermSlice> mergeSlicesFn = new LazyReduceFn<TermSlice>() {
-        @Override
-        public boolean shouldReduce(TermSlice lhs, TermSlice rhs) {
-          return (rhs.document == lhs.document) && lhs.end >= rhs.start;
-        }
-
-        @Override
-        public TermSlice reduce(TermSlice lhs, TermSlice rhs) {
-          return new TermSlice(lhs.document, lhs.start, rhs.end);
-        }
-      };
       Iterable<TermSlice> mergedSlices = IterableFns.lazyReduce(slices, mergeSlicesFn);
 
       // Lazy pull and calculate most frequent terms:
@@ -109,7 +198,7 @@ public class FindPhrase extends CoopIndexServerFn {
         if(scoreTerms) {
           for (int term : pair.right) {
             assert(term >= 0);
-            if(queryIds.contains(term)) continue;
+            if(hitFinder.queryContains(term)) continue;
             termProxCounts.adjustOrPutValue(term, 1, 1);
           }
         }
@@ -165,4 +254,17 @@ public class FindPhrase extends CoopIndexServerFn {
     output.put("results", ListFns.slice(new ArrayList<>(hitInfos.valueCollection()), 0, 200));
     return output;
   }
+
+
+  public static final LazyReduceFn<TermSlice> mergeSlicesFn = new LazyReduceFn<TermSlice>() {
+    @Override
+    public boolean shouldReduce(TermSlice lhs, TermSlice rhs) {
+      return (rhs.document == lhs.document) && lhs.end >= rhs.start;
+    }
+
+    @Override
+    public TermSlice reduce(TermSlice lhs, TermSlice rhs) {
+      return new TermSlice(lhs.document, lhs.start, rhs.end);
+    }
+  };
 }

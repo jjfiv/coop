@@ -20,7 +20,7 @@ import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
-import edu.umass.cs.jfoley.coop.tokenization.StanfordNLPTokenizer;
+import edu.umass.cs.jfoley.coop.tokenization.GalagoTokenizer;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.utility.Parameters;
@@ -87,7 +87,7 @@ public class IntCoopIndex implements CoopIndex {
 
     if(baseDir.child(positionsFileName+".keys").exists()) {
       this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, positionsFileName);
-      this.positionsIndex = new TermPositionsIndex(vocab, positions);
+      this.positionsIndex = new TermPositionsIndex(vocab, positions, getTokenizer());
     }
 
     if(baseDir.child("entities.positions.keys").exists()) {
@@ -98,7 +98,7 @@ public class IntCoopIndex implements CoopIndex {
 
   @Override
   public CoopTokenizer getTokenizer() {
-    return new StanfordNLPTokenizer();
+    return new GalagoTokenizer();
   }
 
   @Override
@@ -200,7 +200,7 @@ public class IntCoopIndex implements CoopIndex {
   }
   public TObjectIntHashMap<String> termIdTranslator(List<String> termIds) throws IOException {
     TObjectIntHashMap<String> data = new TObjectIntHashMap<>();
-    for (Pair<String, Integer> kv : lookupTermIds(termIds)) {
+    for (Pair<String, Integer> kv : vocab.getReverse(termIds)) {
       data.put(kv.getKey(), kv.getValue());
     }
     return data;

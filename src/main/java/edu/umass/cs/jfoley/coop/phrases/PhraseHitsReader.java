@@ -45,7 +45,7 @@ public class PhraseHitsReader implements Closeable {
     documentsByPhrase = PhraseHitsWriter.cfg.openReader(input, baseName + ".positions");
     phrasesByTerm = PhraseHitsWriter.cfg.openReader(input, baseName + ".index");
 
-    phrasesByTermIndex = new TermPositionsIndex(index.getTermVocabulary(), phrasesByTerm);
+    phrasesByTermIndex = new TermPositionsIndex(index.getTermVocabulary(), phrasesByTerm, index.getTokenizer());
     //documentsByPhraseIndex = new CoopIndex.PositionsIndex<>(vocab, documentsByPhrase);
 
     TIntHashSet wordToEntity = new TIntHashSet();

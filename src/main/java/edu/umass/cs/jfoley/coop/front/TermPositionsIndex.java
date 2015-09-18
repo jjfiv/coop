@@ -10,7 +10,9 @@ import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.KeyMetadata;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
+import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,11 +26,13 @@ import java.util.List;
 public class TermPositionsIndex {
   final IdMaps.Reader<String> vocab;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
+  private final CoopTokenizer tokenizer;
   HashMap<Integer, KeyMetadata<?>> pmeta;
 
-  public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<PositionsList>> positions) throws IOException {
+  public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer) throws IOException {
     this.vocab = vocab;
     this.positions = positions;
+    this.tokenizer = tokenizer;
     long start = System.currentTimeMillis();
     pmeta = new HashMap<>();
     for (Pair<Integer, PostingMover<PositionsList>> kv : this.positions.items()) {
@@ -67,7 +71,7 @@ public class TermPositionsIndex {
     return pmc.totalCount;
   }
 
-  public List<DocumentResult<Integer>> locatePhrase(IntList queryIds) throws IOException {
+  public ArrayList<DocumentResult<Integer>> locatePhrase(IntList queryIds) throws IOException {
     ArrayList<DocumentResult<Integer>> output = new ArrayList<>();
 
     QueryEngine.QueryRepr repr = new QueryEngine.QueryRepr();
@@ -87,4 +91,37 @@ public class TermPositionsIndex {
     return output;
   }
 
+  public CoopTokenizer getTokenizer() {
+    return tokenizer;
+  }
+
+  public TObjectIntHashMap<String> termIdTranslator(List<String> termIds) throws IOException {
+    TObjectIntHashMap<String> data = new TObjectIntHashMap<>();
+    for (Pair<String, Integer> kv : vocab.getReverse(termIds)) {
+      data.put(kv.getKey(), kv.getValue());
+    }
+    return data;
+  }
+
+  public IntList translateFromTerms(List<String> query) throws IOException {
+    TObjectIntHashMap<String> translator = termIdTranslator(query);
+    IntList output = new IntList(query.size());
+    for (String q : query) {
+      int id = translator.get(q);
+      if(id == translator.getNoEntryValue()) {
+        output.add(-1);
+      } else {
+        output.add(translator.get(q));
+      }
+    }
+    return output;
+  }
+
+  public int translateFromTerm(String term) throws IOException {
+    return vocab.getReverse(term);
+  }
+
+  public String translateToTerm(int termId) throws IOException {
+    return vocab.getForward(termId);
+  }
 }
