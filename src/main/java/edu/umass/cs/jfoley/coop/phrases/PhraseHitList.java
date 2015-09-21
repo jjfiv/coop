@@ -51,7 +51,7 @@ public class PhraseHitList extends AChaiList<PhraseHit> {
       int cid = memData.getQuick(i + 2);
       int cend = cstart + csize;
 
-      if(cstart > q_end) break;
+      //if(cstart > q_end) break;
 
       if(query.overlaps(cstart, cend)) {
         //System.err.printf("  YES: q:[%d,%d) c:[%d,%d)\n", query.begin, query.end, cstart, cend);

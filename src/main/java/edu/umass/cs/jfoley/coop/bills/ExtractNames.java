@@ -4,6 +4,7 @@ import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
+import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
 import ciir.jfoley.chai.time.Debouncer;
 import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
@@ -13,6 +14,7 @@ import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.utility.StringPooler;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 /**
@@ -34,6 +36,8 @@ public class ExtractNames {
     int N = 20;
     PhraseDetector detector = new PhraseDetector(N);
 
+    PrintWriter namesWriter = IO.openPrintWriter(index.baseDir.childPath("names.tsv.gz"));
+
     long start = System.currentTimeMillis();
     TObjectIntHashMap<String> vocabLookup = new TObjectIntHashMap<>(IntMath.fromLong(target.vocab.size()));
     for (Pair<Integer, String> kv : target.vocab.items()) {
@@ -49,6 +53,7 @@ public class ExtractNames {
       docNameIndex++;
       // make "el ni&ntilde;o" -> "el nino"
       String text = StrUtil.collapseSpecialMarks(name.replace('_', ' '));
+      namesWriter.println(text+"\t"+name+"\t"+phraseId);
       List<String> query = tokenizer.tokenize(text).terms;
       int size = query.size();
       if(size == 0 || size > N) continue;
@@ -64,6 +69,11 @@ public class ExtractNames {
       // vocab mismatch; phrase-match therefore not possible
       if(qIds == null) continue;
 
+      if(text.contains("el nino")) {
+        System.err.println(text);
+        System.err.println(qIds);
+        System.err.println(phraseId);
+      }
       detector.addPattern(qIds, phraseId);
 
       if(msg.ready()) {
@@ -75,6 +85,8 @@ public class ExtractNames {
       }
     }
 
+    namesWriter.close();
+
     System.out.println(detector);
 
     // Vocabulary loaded:
@@ -83,7 +95,7 @@ public class ExtractNames {
     ExtractNames234.CorpusTagger tagger = new ExtractNames234.CorpusTagger(detector, target.getCorpus());
 
     Debouncer msg2 = new Debouncer(2000);
-    try (PhraseHitsWriter writer = new PhraseHitsWriter(target.baseDir, "dbpedia")) {
+    try (PhraseHitsWriter writer = new PhraseHitsWriter(new Directory("foo-bar"), "dbpedia")) {
       tagger.tag(msg2, (phraseId, docId, hitStart, hitSize, terms) -> {
         writer.onPhraseHit(phraseId, docId, hitStart, hitSize, IntList.clone(terms, hitStart, hitSize));
       });

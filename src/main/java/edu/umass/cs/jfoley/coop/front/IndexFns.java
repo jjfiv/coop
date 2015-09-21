@@ -14,7 +14,7 @@ import java.util.Map;
  * @author jfoley
  */
 public class IndexFns {
-  public static void setup(CoopIndex coopIndex, Map<String, ServerFn> methods) {
+  public static void setup(CoopIndex coopIndex, Map<String, ServerFn> methods) throws IOException {
 
     methods.put("IndexMeta", (p) -> coopIndex.getMetadata());
     methods.put("FindPhrase", new FindPhrase(coopIndex));

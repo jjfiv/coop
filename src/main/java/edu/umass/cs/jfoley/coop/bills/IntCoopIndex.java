@@ -1,10 +1,13 @@
 package edu.umass.cs.jfoley.coop.bills;
 
+import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
+import ciir.jfoley.chai.string.StrUtil;
+import ciir.jfoley.chai.time.Debouncer;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
@@ -17,13 +20,16 @@ import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.front.PhrasePositionsIndex;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
+import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.tokenization.GalagoTokenizer;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.utility.Parameters;
+import org.lemurproject.galago.utility.StringPooler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -242,5 +248,56 @@ public class IntCoopIndex implements CoopIndex {
 
   public IdMaps.Reader<String> getTermVocabulary() {
     return vocab;
+  }
+
+  public PhraseDetector loadPhraseDetector(int N, IntCoopIndex target) throws IOException {
+    TagTokenizer tokenizer = new TagTokenizer();
+    StringPooler.disable();
+    System.err.println("Total: " + names.size());
+    int count = IntMath.fromLong(names.size());
+    Debouncer msg = new Debouncer(500);
+    PhraseDetector detector = new PhraseDetector(N);
+
+    long start = System.currentTimeMillis();
+    TObjectIntHashMap<String> vocabLookup = new TObjectIntHashMap<>(IntMath.fromLong(target.vocab.size()));
+    for (Pair<Integer, String> kv : target.vocab.items()) {
+      vocabLookup.put(StrUtil.collapseSpecialMarks(kv.getValue()), kv.getKey());
+    }
+    long end = System.currentTimeMillis();
+    System.err.println("# preload vocab: "+(end-start)+"ms.");
+    int docNameIndex = 0;
+    for (Pair<Integer,String> pair : names.items()) {
+      int phraseId = pair.left;
+      String name = pair.right;
+
+      docNameIndex++;
+      // make "el ni&ntilde;o" -> "el nino"
+      String text = StrUtil.collapseSpecialMarks(name.replace('_', ' '));
+      List<String> query = tokenizer.tokenize(text).terms;
+      int size = query.size();
+      if(size == 0 || size > N) continue;
+      IntList qIds = new IntList(query.size());
+      for (String str : query) {
+        int tid = vocabLookup.get(str);
+        if(tid == vocabLookup.getNoEntryValue()) {
+          qIds = null;
+          break;
+        }
+        qIds.push(tid);
+      }
+      // vocab mismatch; phrase-match therefore not possible
+      if(qIds == null) continue;
+
+      detector.addPattern(qIds, phraseId);
+
+      if(msg.ready()) {
+        System.err.println(text);
+        System.err.println(query);
+        System.err.println(qIds);
+        System.err.println(msg.estimate(docNameIndex, count));
+        System.err.println(detector);
+      }
+    }
+    return detector;
   }
 }

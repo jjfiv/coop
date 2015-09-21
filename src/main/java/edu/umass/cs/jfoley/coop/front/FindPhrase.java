@@ -4,9 +4,12 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.PMITerm;
+import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.eval.*;
+import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -22,8 +25,13 @@ import java.util.List;
  * @author jfoley
  */
 public class FindPhrase extends CoopIndexServerFn {
-  protected FindPhrase(CoopIndex index) {
+  private final IntCoopIndex dbpedia;
+  private final PhraseDetector dbpediaFinder;
+
+  protected FindPhrase(CoopIndex index) throws IOException {
     super(index);
+    this.dbpedia = new IntCoopIndex(new Directory("dbpedia.ints"));
+    this.dbpediaFinder = dbpedia.loadPhraseDetector(20, (IntCoopIndex) index);
   }
 
   @Override
@@ -116,9 +124,24 @@ public class FindPhrase extends CoopIndexServerFn {
     }
 
     if(findEntities) {
+      TIntIntHashMap ecounts;
       long startEntites = System.currentTimeMillis();
-      NearbyEntityFinder finder = new NearbyEntityFinder(index, p, output, phraseWidth);
-      TIntIntHashMap ecounts = finder.entityCounts(hits);
+      TIntObjectHashMap<IntList> vocab = new TIntObjectHashMap<>();
+      if(indexedEntities) {
+        NearbyEntityFinder finder = new NearbyEntityFinder(index, p, output, phraseWidth);
+        ecounts = finder.entityCounts(hits);
+      } else {
+        ecounts = new TIntIntHashMap();
+        for (Pair<TermSlice, IntList> pair : termFinder.pullSlicesForTermScoring(termFinder.hitsToSlices(hits))) {
+          IntList data = pair.right;
+          int[] doc = data.asArray();
+          dbpediaFinder.match(doc, (phraseId, position, size) -> {
+            vocab.putIfAbsent(phraseId, IntList.clone(doc, position, size));
+            ecounts.adjustOrPutValue(phraseId, 1, 1);
+          });
+        }
+      }
+
       long stopEntities = System.currentTimeMillis();
       long millisForScoring = (stopEntities - startEntites);
       System.out.printf("Spent %d milliseconds scoring %d entities for %d locations; %1.2f ms/hit; %d candidates.\n", millisForScoring, ecounts.size(), hits.size(),
@@ -135,29 +158,42 @@ public class FindPhrase extends CoopIndexServerFn {
       ecounts.forEachEntry((eid, frequency) -> {
         if (frequency >= minEntityFrequency) {
           try {
-            IntList eterms = index.getEntitiesIndex().getPhraseVocab().getForward(eid);
+            IntList eterms;
+            if(vocab.size() == 0) {
+              eterms = index.getEntitiesIndex().getPhraseVocab().getForward(eid);
+            } else {
+              eterms = vocab.get(eid);
+            }
             List<String> sterms = index.translateToTerms(eterms);
-            System.out.println(StrUtil.join(sterms, " ")+": freq: "+freq.get(eid));
+            System.out.println(StrUtil.join(sterms, " ") + ": freq: " + frequency);
           } catch (IOException e) {
             e.printStackTrace();
           }
 
-          pmiEntities.add(new PMITerm<>(eid, freq.get(eid), queryFrequency, frequency, collectionLength));
+          pmiEntities.add(new PMITerm<>(eid, 1, queryFrequency, frequency, collectionLength));
         }
         return true;
       });
 
       List<Parameters> entities = new ArrayList<>();
       for (PMITerm<Integer> pmiEntity : pmiEntities.getUnsortedList()) {
-        IntList eterms = index.getEntitiesIndex().getPhraseVocab().getForward(pmiEntity.term);
+        int eid = pmiEntity.term;
+        IntList eterms;
+        if(vocab.size() == 0) {
+          eterms = index.getEntitiesIndex().getPhraseVocab().getForward(eid);
+        } else {
+          eterms = vocab.get(eid);
+        }
         Parameters ep = pmiEntity.toJSON();
         List<String> sterms = index.translateToTerms(eterms);
         ep.put("term", StrUtil.join(sterms));
-        ep.put("eId", pmiEntity.term);
+        ep.put("eId", eid);
+        ep.put("doc", dbpedia.getDocument(eid).toJSON());
         ep.put("terms", sterms);
         ep.put("termIds", eterms);
         entities.add(ep);
       }
+
       output.put("entities", entities);
     }
 
@@ -172,4 +208,6 @@ public class FindPhrase extends CoopIndexServerFn {
     output.put("results", ListFns.slice(new ArrayList<>(hitInfos.valueCollection()), 0, 200));
     return output;
   }
+
+  public static final boolean indexedEntities = false;
 }
