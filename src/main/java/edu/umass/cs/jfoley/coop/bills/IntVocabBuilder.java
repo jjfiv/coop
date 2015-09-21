@@ -201,13 +201,14 @@ public class IntVocabBuilder {
       return corpusReader.readInt(start + position * 4);
     }
     public IntList getSlice(int document, int position, int width) throws IOException {
-      IntList output = new IntList(width);
       Pair<Long,Long> docRange = getDocumentRange(document);
       long start = docRange.left + position*4;
-      long end = start + width * 4;
+      long end = Math.min(docRange.right, start + width * 4);
+      int length = IntMath.fromLong((end - start) / 4);
       assert(end <= docRange.right);
-      ByteBuffer bbuf = corpusReader.read(start, width*4);
-      for (int i = 0; i < width; i++) {
+      IntList output = new IntList(length);
+      ByteBuffer bbuf = corpusReader.read(start, length*4);
+      for (int i = 0; i < length; i++) {
         output.push(bbuf.getInt(i * 4));
       }
       return output;

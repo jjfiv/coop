@@ -1,16 +1,10 @@
 package edu.umass.cs.jfoley.coop.front;
 
 import ciir.jfoley.chai.collections.Pair;
-import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
-import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
-import ciir.jfoley.chai.fn.LazyReduceFn;
 import edu.umass.cs.jfoley.coop.PMITerm;
-import edu.umass.cs.jfoley.coop.front.eval.EvaluatePhraseMethod;
-import edu.umass.cs.jfoley.coop.front.eval.FindHitsMethod;
-import edu.umass.cs.jfoley.coop.front.eval.LookupSinglePhraseMethod;
-import edu.umass.cs.jfoley.coop.front.eval.LookupSingleTermMethod;
+import edu.umass.cs.jfoley.coop.front.eval.*;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -29,7 +23,6 @@ public class FindPhrase extends CoopIndexServerFn {
   protected FindPhrase(CoopIndex index) {
     super(index);
   }
-
 
   @Override
   public Parameters handleRequest(Parameters p) throws IOException, SQLException {
@@ -60,10 +53,11 @@ public class FindPhrase extends CoopIndexServerFn {
     }
 
     ArrayList<DocumentResult<Integer>> hits = hitFinder.computeTimed();
+    List<DocumentResult<Integer>> topHits = ListFns.slice(hits, 0, 200);
 
     final TIntObjectHashMap<Parameters> hitInfos = new TIntObjectHashMap<>();
     // only return 200 results
-    for (DocumentResult<Integer> hit : ListFns.slice(hits, 0, 200)) {
+    for (DocumentResult<Integer> hit : topHits) {
       Parameters doc = Parameters.create();
       doc.put("id", hit.document);
       doc.put("loc", hit.value);
@@ -75,64 +69,26 @@ public class FindPhrase extends CoopIndexServerFn {
     }
 
     TIntIntHashMap termProxCounts = null;
-    if(scoreTerms) termProxCounts = new TIntIntHashMap(Math.max(1000, hits.size() / 10));
     int phraseWidth = hitFinder.getPhraseWidth();
     int queryFrequency = hits.size();
+    NearbyTermFinder termFinder = new NearbyTermFinder(index, p, output, phraseWidth);
+
+    if(scoreTerms) {
+      termProxCounts = termFinder.termCounts(hits);
+    }
 
     long startScoring = System.currentTimeMillis();
     // also pull terms if we want:
-    if(scoreTerms || pullSlices) {
-      int leftWidth = Math.max(0, p.get("leftWidth", 1));
-      int rightWidth = Math.max(0, p.get("rightWidth", 1));
-
-      // Lazy convert hits to slices:
-      Iterable<TermSlice> slices = IterableFns.map(hits, (result) -> {
-        int pos = result.value;
-        TermSlice slice = new TermSlice(result.document,
-            pos - leftWidth, pos + rightWidth + phraseWidth);
-        assert(slice.size() == leftWidth+rightWidth+phraseWidth);
-        return slice;
-      });
-
-      Iterable<TermSlice> mergedSlices = IterableFns.lazyReduce(slices, mergeSlicesFn);
-
-      // Lazy pull and calculate most frequent terms:
-      for (Pair<TermSlice, IntList> pair : index.pullTermSlices(mergedSlices)) {
-        if(pullSlices) {
-          Parameters docp = hitInfos.get(pair.left.document);
-          if(docp != null) {
-            docp.put("terms", index.translateToTerms(pair.right));
-          }
-        }
-        if(scoreTerms) {
-          for (int term : pair.right) {
-            assert(term >= 0);
-            if(hitFinder.queryContains(term)) continue;
-            termProxCounts.adjustOrPutValue(term, 1, 1);
-          }
-        }
+    if(pullSlices) {
+      for (Pair<TermSlice, IntList> pair : termFinder.pullSlicesForSnippets(hits)) {
+        Parameters docp = hitInfos.get(pair.left.document);
+        docp.put("terms", index.translateToTerms(pair.right));
       }
     }
 
-
-    double collectionLength = index.getCollectionLength();
-    TopKHeap<PMITerm<Integer>> topTerms = new TopKHeap<>(numTerms);
-    if(scoreTerms) {
-      long start = System.currentTimeMillis();
-      TIntIntHashMap freq = termIndex.getCollectionFrequencies(new IntList(termProxCounts.keys()));
-      long end = System.currentTimeMillis();
-      System.err.println("Pull frequencies: "+(end-start)+"ms.");
-
-      termProxCounts.forEachEntry((term, frequency) -> {
-        int collectionFrequency = freq.get(term);
-        if(frequency > collectionFrequency) {
-          System.err.println(term+" "+frequency+" "+collectionFrequency);
-        }
-        if(frequency > minTermFrequency) {
-          topTerms.add(new PMITerm<>(term, freq.get(term), queryFrequency, frequency, collectionLength));
-        }
-        return true;
-      });
+    if(termProxCounts != null) {
+      PMITermScorer termScorer = new PMITermScorer(termIndex, minTermFrequency, queryFrequency, index.getCollectionLength());
+      List<PMITerm<Integer>> topTerms = termScorer.scoreTerms(termProxCounts, numTerms);
 
       IntList termIds = new IntList(numTerms);
       for (PMITerm<Integer> topTerm : topTerms) {
@@ -151,7 +107,7 @@ public class FindPhrase extends CoopIndexServerFn {
       }
 
       List<Parameters> termResults = new ArrayList<>();
-      for (PMITerm<Integer> pmiTerm : topTerms.getUnsortedList()) {
+      for (PMITerm<Integer> pmiTerm : topTerms) {
         Parameters tjson = pmiTerm.toJSON();
         tjson.put("term", terms.get(pmiTerm.term));
         //tjson.put("docs", new ArrayList<>(termInfos.get(pmiTerm.term)));
@@ -163,17 +119,4 @@ public class FindPhrase extends CoopIndexServerFn {
     output.put("results", ListFns.slice(new ArrayList<>(hitInfos.valueCollection()), 0, 200));
     return output;
   }
-
-
-  public static final LazyReduceFn<TermSlice> mergeSlicesFn = new LazyReduceFn<TermSlice>() {
-    @Override
-    public boolean shouldReduce(TermSlice lhs, TermSlice rhs) {
-      return (rhs.document == lhs.document) && lhs.end >= rhs.start;
-    }
-
-    @Override
-    public TermSlice reduce(TermSlice lhs, TermSlice rhs) {
-      return new TermSlice(lhs.document, lhs.start, rhs.end);
-    }
-  };
 }
