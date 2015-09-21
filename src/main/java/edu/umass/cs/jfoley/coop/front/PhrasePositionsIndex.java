@@ -36,7 +36,7 @@ public class PhrasePositionsIndex {
   }
 
 
-  PostingMover<PositionsList> getPositionsMover(int phraseId) throws IOException {
+  public PostingMover<PositionsList> getPositionsMover(int phraseId) throws IOException {
     if (phraseId < 0) return null;
     return positions.get(phraseId);
   }
@@ -61,4 +61,7 @@ public class PhrasePositionsIndex {
     return pmeta.get(phraseId);
   }
 
+  public IdMaps.Reader<IntList> getPhraseVocab() {
+    return phraseVocab;
+  }
 }

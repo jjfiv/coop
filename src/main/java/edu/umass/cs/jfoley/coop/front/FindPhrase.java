@@ -6,12 +6,13 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.fn.LazyReduceFn;
-import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
-import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.PMITerm;
+import edu.umass.cs.jfoley.coop.front.eval.EvaluatePhraseMethod;
+import edu.umass.cs.jfoley.coop.front.eval.FindHitsMethod;
+import edu.umass.cs.jfoley.coop.front.eval.LookupSinglePhraseMethod;
+import edu.umass.cs.jfoley.coop.front.eval.LookupSingleTermMethod;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
-import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import org.lemurproject.galago.utility.Parameters;
@@ -29,145 +30,6 @@ public class FindPhrase extends CoopIndexServerFn {
     super(index);
   }
 
-  public static abstract class FindHitsMethod {
-    public final Parameters output; // for taking notes on computation.
-    public FindHitsMethod(Parameters input, Parameters output) {
-      this.output = output;
-    }
-    public abstract ArrayList<DocumentResult<Integer>> compute() throws IOException;
-    public ArrayList<DocumentResult<Integer>> computeTimed() throws IOException {
-      long startTime = System.currentTimeMillis();
-      ArrayList<DocumentResult<Integer>> hits = compute();
-      long endTime = System.currentTimeMillis();
-      int queryFrequency = hits.size();
-      output.put("queryFrequency", queryFrequency);
-      output.put("queryTime", (endTime-startTime));
-      return hits;
-    }
-
-    public abstract int getPhraseWidth();
-    public abstract boolean queryContains(int term);
-
-  }
-
-  public static class EvaluatePhraseMethod extends FindHitsMethod {
-    private final TermPositionsIndex index;
-    private final IntList queryIds;
-
-    public EvaluatePhraseMethod(Parameters input, Parameters output, TermPositionsIndex index) throws IOException {
-      super(input, output);
-      this.index = index;
-      CoopTokenizer tokenizer = index.getTokenizer();
-      List<String> query = ListFns.map(tokenizer.createDocument("tmp", input.getString("query")).getTerms(tokenizer.getDefaultTermSet()), String::toLowerCase);
-      output.put("queryTerms", query);
-      this.queryIds = index.translateFromTerms(query);
-      output.put("queryIds", queryIds);
-    }
-
-    @Override
-    public ArrayList<DocumentResult<Integer>> compute() throws IOException {
-      return index.locatePhrase(queryIds);
-    }
-
-    @Override
-    public int getPhraseWidth() {
-      return queryIds.size();
-    }
-
-    @Override
-    public boolean queryContains(int term) {
-      return queryIds.containsInt(term);
-    }
-  }
-
-  public static class LookupSingleTermMethod extends FindHitsMethod {
-
-    private final PostingMover<PositionsList> mover;
-    private final String term;
-    private int termId;
-
-    public LookupSingleTermMethod(Parameters input, Parameters output, TermPositionsIndex index) throws IOException {
-      super(input, output);
-      PostingMover<PositionsList> mover = null;
-      this.termId = -1;
-      if(input.isLong("termId")) {
-        this.termId = input.getInt("termId");
-        this.term = index.translateToTerm(termId);
-      } else if(input.isString("term")) {
-        this.term = input.getString("term");
-        this.termId = index.translateFromTerm(term);
-      } else throw new IllegalArgumentException("Missing argument term=\"the\" or termId=1, etc.");
-      mover = index.getPositionsMover(termId);
-      this.mover = mover;
-    }
-
-    @Override
-    public ArrayList<DocumentResult<Integer>> compute() throws IOException {
-      ArrayList<DocumentResult<Integer>> hits = new ArrayList<>();
-      if(mover == null) return hits;
-      mover.execute((docId) -> {
-        PositionsList list = mover.getPosting(docId);
-        for (int i = 0; i < list.size(); i++) {
-          hits.add(new DocumentResult<>(docId, list.getPosition(i)));
-        }
-      });
-      return hits;
-    }
-
-    @Override
-    public int getPhraseWidth() {
-      return 1;
-    }
-
-    @Override
-    public boolean queryContains(int term) {
-      return this.termId == term;
-    }
-  }
-
-
-  public static class LookupSinglePhraseMethod extends FindHitsMethod {
-
-    private final PostingMover<PositionsList> mover;
-    private final List<String> terms;
-    private IntList queryIds;
-
-
-    public LookupSinglePhraseMethod(Parameters input, Parameters output, CoopIndex index) throws IOException {
-      super(input, output);
-      PhrasePositionsIndex entitiesIndex = index.getEntitiesIndex();
-      int phraseId = input.getInt("phrase");
-      this.mover = entitiesIndex.getPositionsMover(phraseId);
-      queryIds = entitiesIndex.phraseVocab.getForward(phraseId);
-      terms = index.getPositionsIndex("lemmas").translateToTerms(queryIds);
-
-      output.put("phraseIds", queryIds);
-      output.put("phraseTerms", terms);
-    }
-
-    @Override
-    public ArrayList<DocumentResult<Integer>> compute() throws IOException {
-      ArrayList<DocumentResult<Integer>> hits = new ArrayList<>();
-      if(mover == null) return hits;
-      mover.execute((docId) -> {
-        PositionsList list = mover.getPosting(docId);
-        for (int i = 0; i < list.size(); i++) {
-          hits.add(new DocumentResult<>(docId, list.getPosition(i)));
-        }
-      });
-      return hits;
-    }
-
-    @Override
-    public int getPhraseWidth() {
-      return queryIds.size();
-    }
-
-    @Override
-    public boolean queryContains(int term) {
-      return this.queryIds.containsInt(term);
-    }
-  }
 
   @Override
   public Parameters handleRequest(Parameters p) throws IOException, SQLException {

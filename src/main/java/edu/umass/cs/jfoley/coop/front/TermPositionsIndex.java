@@ -47,7 +47,7 @@ public class TermPositionsIndex {
     return getPositionsMover(vocab.getReverse(queryTerm));
   }
 
-  PostingMover<PositionsList> getPositionsMover(int termId) throws IOException {
+  public PostingMover<PositionsList> getPositionsMover(int termId) throws IOException {
     if (termId < 0) return null;
     return positions.get(termId);
   }
