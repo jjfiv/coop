@@ -8,6 +8,7 @@ import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
+import gnu.trove.map.hash.TIntIntHashMap;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -69,5 +70,16 @@ public class PhrasePositionsIndex {
 
   public IdMaps.Reader<IntList> getPhraseVocab() {
     return phraseVocab;
+  }
+
+  public TIntIntHashMap getCollectionFrequencies(IntList eids) {
+    TIntIntHashMap cf = new TIntIntHashMap();
+    for (int eid : eids) {
+      PositionsCountMetadata metadata = pmeta.get(eid);
+      if(metadata != null) {
+        cf.put(eid, metadata.totalCount);
+      }
+    }
+    return cf;
   }
 }

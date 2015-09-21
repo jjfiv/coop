@@ -1,5 +1,7 @@
 package edu.umass.cs.jfoley.coop.phrases;
 
+import edu.umass.cs.ciir.waltz.postings.extents.Span;
+
 /**
  * @author jfoley
  */
@@ -12,6 +14,10 @@ public class PhraseHit {
     this.start = start;
     this.size = size;
     this.id = id;
+  }
+
+  public Span getSpan() {
+    return Span.of(start, start + size);
   }
 
   @Override

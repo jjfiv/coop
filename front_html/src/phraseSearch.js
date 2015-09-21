@@ -9,8 +9,11 @@ class PhraseSearchInterface extends ReactSingleAjax {
             termKind: urlP.termKind || "lemmas",
             pullSlices: urlP.pullSlices || true,
             scoreTerms: urlP.scoreTerms || true,
+            findEntities: urlP.findEntities || true,
             numTerms: parseInt(urlP.numTerms) || 10,
             minTermFrequency: parseInt(urlP.minTermFrequency) || 10,
+            numEntities: parseInt(urlP.numEntities) || 30,
+            minEntityFrequency: parseInt(urlP.minEntityFrequency) || 4,
             query: urlP.query || "",
             count: parseInt(urlP.count) || 200
         };
@@ -31,11 +34,14 @@ class PhraseSearchInterface extends ReactSingleAjax {
         request.query = this.state.query;
         request.numTerms = this.state.numTerms;
         request.minTermFrequency = this.state.minTermFrequency;
-        if(this.state.pullSlices) {
+        if(this.state.pullSlices || this.state.pullSlices || this.state.findEntities) {
             request.pullSlices = true;
             request.leftWidth = this.state.leftWidth;
             request.rightWidth = this.state.rightWidth;
         }
+        request.findEntities = this.state.findEntities;
+        request.numEntities = this.state.numEntities;
+        request.minEntityFrequency = this.state.minEntityFrequency;
         request.scoreTerms = this.state.scoreTerms;
 
         if(_.isEmpty(request.query)) return;
@@ -49,6 +55,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
     render() {
         let pullSlices = this.state.pullSlices;
         let scoreTerms = this.state.scoreTerms;
+        let findEntities = this.state.findEntities;
 
         return <UIWindow title="Phrase Search Interface">
             <label>Query
@@ -63,21 +70,26 @@ class PhraseSearchInterface extends ReactSingleAjax {
             <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setState({termKind: x})} />
             <div>
                 <label>
-                <input type="checkbox"
-                       checked={pullSlices}
-                       onChange={() => this.setState({pullSlices: !this.state.pullSlices}) }
-                    />
+                    <input type="checkbox"
+                           checked={pullSlices}
+                           onChange={() => this.setState({pullSlices: !this.state.pullSlices}) }
+                        />
                     Show KWIC
-                    </label>
+                </label>
                 &nbsp;
                 <label>
                     <input type="checkbox" checked={scoreTerms}
                            onChange={() => this.setState({scoreTerms: !this.state.scoreTerms})} />
                     Score Terms
                 </label>
-                </div>
-                <div>
                 &nbsp;
+                <label>
+                    <input type="checkbox" checked={findEntities}
+                           onChange={() => this.setState({findEntities: !this.state.findEntities})} />
+                    Score Entitites
+                </label>
+            </div>
+            <div>
                 <IntegerInput visible={pullSlices || scoreTerms}
                               onChange={(x) => this.setState({leftWidth: x})}
                               min={0} max={20} start={this.state.leftWidth} label="Terms on Left: " />
@@ -90,6 +102,12 @@ class PhraseSearchInterface extends ReactSingleAjax {
                 <IntegerInput visible={scoreTerms}
                               onChange={(x) => this.setState({minTermFrequency: x})}
                               min={0} max={20} start={this.state.minTermFrequency} label="Minimum Term Frequency: " />
+                <IntegerInput visible={findEntities}
+                              onChange={(x) => this.setState({numEntities: x})}
+                              min={1} max={200} start={this.state.numEntities} label="Number of Entities to score: " />
+                <IntegerInput visible={findEntities}
+                              onChange={(x) => this.setState({minEntityFrequency: x})}
+                              min={0} max={20} start={this.state.minEntityFrequency} label="Minimum Entity Frequency: " />
             </div>
             <Button label="Find!" onClick={(evt) => this.onFind(evt)}/>
             <PhraseSearchResultPanels error={this.state.error} request={this.state.request} response={this.state.response} />
@@ -228,6 +246,11 @@ class PhraseSearchResultPanels extends React.Component {
                     <TermSearchResults
                         setFilter={setFilter}
                         termResults={resp.termResults} />
+                </UIWindow> : '')}
+                {(resp.entities ? <UIWindow title="Entity Result Table">
+                    <TermSearchResults
+                        setFilter={setFilter}
+                        termResults={resp.entities} />
                 </UIWindow> : '')}
                 <UIWindow title="Phrase Results">
                     <PhraseSearchResults

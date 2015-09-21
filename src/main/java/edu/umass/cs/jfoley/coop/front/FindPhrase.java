@@ -4,6 +4,7 @@ import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.front.eval.*;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
@@ -32,10 +33,13 @@ public class FindPhrase extends CoopIndexServerFn {
     assert(count > 0);
     final String termKind = p.get("termKind", "lemmas");
     final boolean pullSlices = p.get("pullSlices", false);
-    final boolean findEntities = p.get("findEntities", false);
     final boolean scoreTerms = p.get("scoreTerms", false);
     final int numTerms = p.get("numTerms", 30);
     final int minTermFrequency = p.get("minTermFrequency", 4);
+
+    final boolean findEntities = p.get("findEntities", false);
+    final int numEntities = p.get("numEntities", 30);
+    final int minEntityFrequency = p.get("minEntityFrequency", 4);
 
     final String method = p.get("method", "EvaluatePhrase");
     TermPositionsIndex termIndex = index.getPositionsIndex(termKind);
@@ -92,7 +96,7 @@ public class FindPhrase extends CoopIndexServerFn {
       long endScoring = System.currentTimeMillis();
 
       long millisForScoring = (endScoring - startScoring);
-      System.out.printf("Spent %d milliseconds scoring terms for %d locations; %1.2f ms/hit; %d candidates.\n", millisForScoring, hits.size(),
+      System.out.printf("Spent %d milliseconds scoring %d terms for %d locations; %1.2f ms/hit; %d candidates.\n", millisForScoring, termProxCounts.size(), hits.size(),
           ( (double) millisForScoring / (double) hits.size() ),
           termProxCounts.size());
 
@@ -117,31 +121,40 @@ public class FindPhrase extends CoopIndexServerFn {
       TIntIntHashMap ecounts = finder.entityCounts(hits);
       long stopEntities = System.currentTimeMillis();
       long millisForScoring = (stopEntities - startEntites);
-      System.out.printf("Spent %d milliseconds scoring entities for %d locations; %1.2f ms/hit; %d candidates.\n", millisForScoring, hits.size(),
+      System.out.printf("Spent %d milliseconds scoring %d entities for %d locations; %1.2f ms/hit; %d candidates.\n", millisForScoring, ecounts.size(), hits.size(),
           ((double) millisForScoring / (double) hits.size()),
           ecounts.size());
 
       long start = System.currentTimeMillis();
-      TIntIntHashMap freq = termIndex.getCollectionFrequencies(new IntList(ecounts.keys()));
+      TIntIntHashMap freq = index.getEntitiesIndex().getCollectionFrequencies(new IntList(ecounts.keys()));
       long end = System.currentTimeMillis();
       System.err.println("Pull efrequencies: " + (end - start) + "ms.");
 
-      TopKHeap<PMITerm<Integer>> pmiEntities = new TopKHeap<>(numTerms);
+      TopKHeap<PMITerm<Integer>> pmiEntities = new TopKHeap<>(numEntities);
       double collectionLength = index.getCollectionLength();
       ecounts.forEachEntry((eid, frequency) -> {
-        if (frequency > minTermFrequency) {
+        if (frequency >= minEntityFrequency) {
+          try {
+            IntList eterms = index.getEntitiesIndex().getPhraseVocab().getForward(eid);
+            List<String> sterms = index.translateToTerms(eterms);
+            System.out.println(StrUtil.join(sterms, " ")+": freq: "+freq.get(eid));
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+
           pmiEntities.add(new PMITerm<>(eid, freq.get(eid), queryFrequency, frequency, collectionLength));
         }
         return true;
       });
 
       List<Parameters> entities = new ArrayList<>();
-      for (PMITerm<Integer> pmiEntity : pmiEntities) {
+      for (PMITerm<Integer> pmiEntity : pmiEntities.getUnsortedList()) {
         IntList eterms = index.getEntitiesIndex().getPhraseVocab().getForward(pmiEntity.term);
         Parameters ep = pmiEntity.toJSON();
-        ep.remove("term");
+        List<String> sterms = index.translateToTerms(eterms);
+        ep.put("term", StrUtil.join(sterms));
         ep.put("eId", pmiEntity.term);
-        ep.put("terms", index.translateToTerms(eterms));
+        ep.put("terms", sterms);
         ep.put("termIds", eterms);
         entities.add(ep);
       }

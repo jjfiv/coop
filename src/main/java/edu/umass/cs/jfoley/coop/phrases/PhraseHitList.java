@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.phrases;
 
 import ciir.jfoley.chai.collections.list.AChaiList;
 import ciir.jfoley.chai.collections.list.IntList;
+import edu.umass.cs.ciir.waltz.postings.extents.Span;
 
 /**
  * @author jfoley
@@ -41,15 +42,23 @@ public class PhraseHitList extends AChaiList<PhraseHit> {
 
   public IntList find(int start, int size) {
     IntList matching = new IntList();
+    Span query = new Span(start, start+size);
     int q_end = start + size;
+    //System.err.printf("q:[%d,%d)\n", query.begin, query.end);
     for (int i = 0; i < memData.size(); i += 3) {
       int cstart = memData.getQuick(i);
-      if (q_end < cstart) continue;
       int csize = memData.getQuick(i + 1);
       int cid = memData.getQuick(i + 2);
       int cend = cstart + csize;
-      if (cend < start) break;
-      matching.add(cid);
+
+      if(cstart > q_end) break;
+
+      if(query.overlaps(cstart, cend)) {
+        //System.err.printf("  YES: q:[%d,%d) c:[%d,%d)\n", query.begin, query.end, cstart, cend);
+        matching.add(cid);
+      } else {
+        //System.err.printf("  NO:  q:[%d,%d) c:[%d,%d)\n", query.begin, query.end, cstart, cend);
+      }
     }
     return matching;
   }
