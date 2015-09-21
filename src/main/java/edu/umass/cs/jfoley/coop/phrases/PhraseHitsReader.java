@@ -81,6 +81,10 @@ public class PhraseHitsReader implements Closeable {
     return vocab;
   }
 
+  public IOMap<Integer, PhraseHitList> getDocumentHits() {
+    return docHits;
+  }
+
   public IOMap<Integer, PostingMover<PositionsList>> getDocumentsByPhrase() {
     return documentsByPhrase;
   }

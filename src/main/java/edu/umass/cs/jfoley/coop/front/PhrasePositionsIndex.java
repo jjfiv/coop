@@ -7,6 +7,7 @@ import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
+import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -19,9 +20,11 @@ public class PhrasePositionsIndex {
   final IdMaps.Reader<String> termVocab;
   final IdMaps.Reader<IntList> phraseVocab;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
+  private final PhraseHitsReader phraseHits;
   HashMap<Integer, PositionsCountMetadata> pmeta;
 
-  public PhrasePositionsIndex(IdMaps.Reader<String> termVocab, IdMaps.Reader<IntList> phraseVocab, IOMap<Integer, PostingMover<PositionsList>> positions) throws IOException {
+  public PhrasePositionsIndex(PhraseHitsReader entities, IdMaps.Reader<String> termVocab, IdMaps.Reader<IntList> phraseVocab, IOMap<Integer, PostingMover<PositionsList>> positions) throws IOException {
+    this.phraseHits = entities;
     this.termVocab = termVocab;
     this.phraseVocab = phraseVocab;
     this.positions = positions;
@@ -35,6 +38,9 @@ public class PhrasePositionsIndex {
     System.out.println("Caching metadata: " + (end - start) + "ms.");
   }
 
+  public PhraseHitsReader getPhraseHits() {
+    return phraseHits;
+  }
 
   public PostingMover<PositionsList> getPositionsMover(int phraseId) throws IOException {
     if (phraseId < 0) return null;

@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.front;
 
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import edu.umass.cs.jfoley.coop.PMITerm;
@@ -31,6 +32,7 @@ public class FindPhrase extends CoopIndexServerFn {
     assert(count > 0);
     final String termKind = p.get("termKind", "lemmas");
     final boolean pullSlices = p.get("pullSlices", false);
+    final boolean findEntities = p.get("findEntities", false);
     final boolean scoreTerms = p.get("scoreTerms", false);
     final int numTerms = p.get("numTerms", 30);
     final int minTermFrequency = p.get("minTermFrequency", 4);
@@ -78,13 +80,6 @@ public class FindPhrase extends CoopIndexServerFn {
     }
 
     long startScoring = System.currentTimeMillis();
-    // also pull terms if we want:
-    if(pullSlices) {
-      for (Pair<TermSlice, IntList> pair : termFinder.pullSlicesForSnippets(hits)) {
-        Parameters docp = hitInfos.get(pair.left.document);
-        docp.put("terms", index.translateToTerms(pair.right));
-      }
-    }
 
     if(termProxCounts != null) {
       PMITermScorer termScorer = new PMITermScorer(termIndex, minTermFrequency, queryFrequency, index.getCollectionLength());
@@ -114,6 +109,51 @@ public class FindPhrase extends CoopIndexServerFn {
         termResults.add(tjson);
       }
       output.put("termResults", termResults);
+    }
+
+    if(findEntities) {
+      long startEntites = System.currentTimeMillis();
+      NearbyEntityFinder finder = new NearbyEntityFinder(index, p, output, phraseWidth);
+      TIntIntHashMap ecounts = finder.entityCounts(hits);
+      long stopEntities = System.currentTimeMillis();
+      long millisForScoring = (stopEntities - startEntites);
+      System.out.printf("Spent %d milliseconds scoring entities for %d locations; %1.2f ms/hit; %d candidates.\n", millisForScoring, hits.size(),
+          ((double) millisForScoring / (double) hits.size()),
+          ecounts.size());
+
+      long start = System.currentTimeMillis();
+      TIntIntHashMap freq = termIndex.getCollectionFrequencies(new IntList(ecounts.keys()));
+      long end = System.currentTimeMillis();
+      System.err.println("Pull efrequencies: " + (end - start) + "ms.");
+
+      TopKHeap<PMITerm<Integer>> pmiEntities = new TopKHeap<>(numTerms);
+      double collectionLength = index.getCollectionLength();
+      ecounts.forEachEntry((eid, frequency) -> {
+        if (frequency > minTermFrequency) {
+          pmiEntities.add(new PMITerm<>(eid, freq.get(eid), queryFrequency, frequency, collectionLength));
+        }
+        return true;
+      });
+
+      List<Parameters> entities = new ArrayList<>();
+      for (PMITerm<Integer> pmiEntity : pmiEntities) {
+        IntList eterms = index.getEntitiesIndex().getPhraseVocab().getForward(pmiEntity.term);
+        Parameters ep = pmiEntity.toJSON();
+        ep.remove("term");
+        ep.put("eId", pmiEntity.term);
+        ep.put("terms", index.translateToTerms(eterms));
+        ep.put("termIds", eterms);
+        entities.add(ep);
+      }
+      output.put("entities", entities);
+    }
+
+    // also pull terms if we want:
+    if(pullSlices) {
+      for (Pair<TermSlice, IntList> pair : termFinder.pullSlicesForSnippets(hits)) {
+        Parameters docp = hitInfos.get(pair.left.document);
+        docp.put("terms", index.translateToTerms(pair.right));
+      }
     }
 
     output.put("results", ListFns.slice(new ArrayList<>(hitInfos.valueCollection()), 0, 200));

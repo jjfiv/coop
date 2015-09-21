@@ -92,7 +92,7 @@ public class IntCoopIndex implements CoopIndex {
 
     if(baseDir.child("entities.positions.keys").exists()) {
       entities = new PhraseHitsReader(this, baseDir, "entities");
-      entitiesIndex = new PhrasePositionsIndex(vocab, entities.getPhraseVocab(), entities.getDocumentsByPhrase());
+      entitiesIndex = new PhrasePositionsIndex(entities, vocab, entities.getPhraseVocab(), entities.getDocumentsByPhrase());
     }
   }
 

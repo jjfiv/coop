@@ -33,10 +33,6 @@ public class PMITermScorer {
 
     TopKHeap<PMITerm<Integer>> topTerms = new TopKHeap<>(numTerms);
     termProxCounts.forEachEntry((term, frequency) -> {
-      int collectionFrequency = freq.get(term);
-      if (frequency > collectionFrequency) {
-        System.err.println(term + " " + frequency + " " + collectionFrequency);
-      }
       if (frequency > minTermFrequency) {
         topTerms.add(new PMITerm<>(term, freq.get(term), queryFrequency, frequency, collectionLength));
       }
