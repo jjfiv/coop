@@ -77,14 +77,14 @@ public class PhraseHitsReaderTest {
 
       PhraseDetector det = new PhraseDetector(4);
       for (List<String> phrase : phrasesToTag) {
-        det.addPattern(index.translateFromTerms(phrase));
+        det.addPattern(index.translateFromTerms(phrase), -1);
       }
 
       ExtractNames234.CorpusTagger tagger = new ExtractNames234.CorpusTagger(det, index.getCorpus());
 
       try (PhraseHitsWriter writer = new PhraseHitsWriter(tmpdir, "foo")) {
-        tagger.tag(null, (doc,start,size,terms) ->
-            writer.onPhraseHit(doc, start, size, IntList.clone(terms, start, size)));
+        tagger.tag(null, (ignored, doc,start,size,terms) ->
+            writer.onPhraseHit(-1, doc, start, size, IntList.clone(terms, start, size)));
       }
       try (
           PhraseHitsReader reader = new PhraseHitsReader(index, tmpdir, "foo")) {

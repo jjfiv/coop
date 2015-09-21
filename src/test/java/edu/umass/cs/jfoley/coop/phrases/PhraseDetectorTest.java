@@ -17,10 +17,10 @@ public class PhraseDetectorTest {
   @Test
   public void testSimple() {
     PhraseDetector detector = new PhraseDetector(10);
-    detector.addPattern(Arrays.asList(1, 2, 3));
-    detector.addPattern(Arrays.asList(2, 2, 2));
-    detector.addPattern(Arrays.asList(2, 2, 3));
-    detector.addPattern(Arrays.asList(0, 0));
+    detector.addPattern(Arrays.asList(1, 2, 3), 1);
+    detector.addPattern(Arrays.asList(2, 2, 2), 2);
+    detector.addPattern(Arrays.asList(2, 2, 3), 3);
+    detector.addPattern(Arrays.asList(0, 0), 4);
 
     int[] document = new int[] {
         1,2,3, // hit 0
@@ -34,7 +34,7 @@ public class PhraseDetectorTest {
     List<List<Integer>> matches = new ArrayList<>();
     List<Integer> positions = new ArrayList<>();
 
-    detector.match(document, (pos, size) -> {
+    detector.match(document, (id, pos, size) -> {
       IntList match = IntList.clone(document, pos, size);
       assertTrue(detector.matches(match));
       positions.add(pos);

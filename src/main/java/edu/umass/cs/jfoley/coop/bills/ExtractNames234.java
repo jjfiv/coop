@@ -26,15 +26,15 @@ public class ExtractNames234 {
     }
 
     public interface TagListener {
-      void onTag(int doc, int start, int size, int[] terms);
+      void onTag(int phraseId, int doc, int start, int size, int[] terms);
     }
     public void tag(Debouncer msg, TagListener callback) throws IOException {
       CorpusProcessor processor = new CorpusProcessor(corpus);
 
       StreamingStats hitsPerDoc = new StreamingStats();
       processor.run((docId, doc) -> {
-        int hitcount = detector.match(doc, (hitStart, hitSize) -> {
-          callback.onTag(docId, hitStart, hitSize, doc);
+        int hitcount = detector.match(doc, (phraseId, hitStart, hitSize) -> {
+          callback.onTag(phraseId, docId, hitStart, hitSize, doc);
           if (msg != null && msg.ready()) {
             System.out.println("NERing documents at: " + msg.estimate(processor.completed.get(), processor.ND));
             System.out.println("NERing documents at terms/s: " + msg.estimate(processor.termsCompleted.get()));
@@ -78,16 +78,17 @@ public class ExtractNames234 {
 
     // load up precomputed queries:
     start = System.currentTimeMillis();
-    PhraseDetector detector = PhraseDetector.loadFromTextFile(20, target.baseDir.child("dbpedia.titles.intq.gz"));
+    //PhraseDetector detector = PhraseDetector.loadFromTextFile(20, target.baseDir.child("dbpedia.titles.intq.gz"));
+    PhraseDetector detector = new PhraseDetector(20);
     end = System.currentTimeMillis();
     System.out.println("loading titles: " + (end - start) + "ms.");
 
     CorpusTagger tagger = new CorpusTagger(detector, target.getCorpus());
 
     Debouncer msg = new Debouncer(2000);
-    try (PhraseHitsWriter writer = new PhraseHitsWriter(target.baseDir, "entities")) {
-      tagger.tag(msg, (docId, hitStart, hitSize, terms) -> {
-        writer.onPhraseHit(docId, hitStart, hitSize, IntList.clone(terms, hitStart, hitSize));
+    try (PhraseHitsWriter writer = new PhraseHitsWriter(target.baseDir, "bad")) {
+      tagger.tag(msg, (phraseId, docId, hitStart, hitSize, terms) -> {
+        writer.onPhraseHit(phraseId, docId, hitStart, hitSize, IntList.clone(terms, hitStart, hitSize));
       });
     } // phrase-hits-writer
   } // main

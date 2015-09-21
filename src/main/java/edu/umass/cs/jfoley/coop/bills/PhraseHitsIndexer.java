@@ -71,7 +71,7 @@ public class PhraseHitsIndexer {
 
             // handle TermSlice:
             IntList slice = index.corpus.getSlice(docId, begin, width);
-            writer.onPhraseHit(docId, begin, width, slice);
+            writer.onPhraseHit(-1, docId, begin, width, slice);
           }
         }
       }

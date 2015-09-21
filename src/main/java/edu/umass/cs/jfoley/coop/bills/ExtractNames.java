@@ -3,18 +3,16 @@ package edu.umass.cs.jfoley.coop.bills;
 import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
-import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.io.Directory;
-import ciir.jfoley.chai.io.IO;
+import ciir.jfoley.chai.string.StrUtil;
 import ciir.jfoley.chai.time.Debouncer;
+import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
+import edu.umass.cs.jfoley.coop.phrases.PhraseHitsWriter;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.utility.StringPooler;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -32,21 +30,25 @@ public class ExtractNames {
     int count = IntMath.fromLong(index.names.size());
 
     Debouncer msg = new Debouncer(500);
+
     int N = 20;
-    ArrayList<HashSet<List<Integer>>> matchingBySize = new ArrayList<>(N);
-    for (int i = 0; i < N; i++) { matchingBySize.add(new HashSet<>()); }
+    PhraseDetector detector = new PhraseDetector(N);
 
     long start = System.currentTimeMillis();
     TObjectIntHashMap<String> vocabLookup = new TObjectIntHashMap<>(IntMath.fromLong(target.vocab.size()));
     for (Pair<Integer, String> kv : target.vocab.items()) {
-      vocabLookup.put(kv.getValue(), kv.getKey());
+      vocabLookup.put(StrUtil.collapseSpecialMarks(kv.getValue()), kv.getKey());
     }
     long end = System.currentTimeMillis();
     System.err.println("# preload vocab: "+(end-start)+"ms.");
     int docNameIndex = 0;
-    for (String name : index.names.values()) {
+    for (Pair<Integer,String> pair : index.names.items()) {
+      int phraseId = pair.left;
+      String name = pair.right;
+
       docNameIndex++;
-      String text = name.replace('_', ' ');
+      // make "el ni&ntilde;o" -> "el nino"
+      String text = StrUtil.collapseSpecialMarks(name.replace('_', ' '));
       List<String> query = tokenizer.tokenize(text).terms;
       int size = query.size();
       if(size == 0 || size > N) continue;
@@ -62,31 +64,29 @@ public class ExtractNames {
       // vocab mismatch; phrase-match therefore not possible
       if(qIds == null) continue;
 
-      matchingBySize.get(size-1).add(qIds);
+      detector.addPattern(qIds, phraseId);
 
       if(msg.ready()) {
         System.out.println(text);
         System.out.println(query);
         System.out.println(qIds);
         System.out.println(msg.estimate(docNameIndex, count));
-        System.out.println(ListFns.map(matchingBySize, HashSet::size));
+        System.out.println(detector);
       }
     }
 
-    System.out.println(ListFns.map(matchingBySize, HashSet::size));
+    System.out.println(detector);
 
-    try (PrintWriter entities = IO.openPrintWriter(target.baseDir.childPath("dbpedia.titles.intq.gz"))) {
-      for (HashSet<List<Integer>> intLists : matchingBySize) {
-        for (List<Integer> intList : intLists) {
-          for (Integer x : intList) {
-            entities.print(x);
-            entities.print(' ');
-          }
-          entities.println();
-        }
-      }
-    }
+    // Vocabulary loaded:
 
     // Now, see NERIndex
+    ExtractNames234.CorpusTagger tagger = new ExtractNames234.CorpusTagger(detector, target.getCorpus());
+
+    Debouncer msg2 = new Debouncer(2000);
+    try (PhraseHitsWriter writer = new PhraseHitsWriter(target.baseDir, "dbpedia")) {
+      tagger.tag(msg2, (phraseId, docId, hitStart, hitSize, terms) -> {
+        writer.onPhraseHit(phraseId, docId, hitStart, hitSize, IntList.clone(terms, hitStart, hitSize));
+      });
+    } // phrase-hits-writer
   }
 }
