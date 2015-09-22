@@ -3,6 +3,8 @@ package edu.umass.cs.jfoley.coop.front.eval;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
+import ciir.jfoley.chai.collections.util.MapFns;
+import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.fn.LazyReduceFn;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
@@ -63,7 +65,8 @@ public class NearbyTermFinder {
     HashMap<Integer, List<TermSlice>> slicesByDocument = new HashMap<>();
     Iterable<TermSlice> mergedSlices = IterableFns.lazyReduce(slices, mergeSlicesFn);
     for (TermSlice slice : mergedSlices) {
-      slicesByDocument.computeIfAbsent(slice.document, (ignored) -> new ArrayList()).add(slice);
+      MapFns.extendCollectionInMap(slicesByDocument, slice.document, slice, (GenerateFn<List<TermSlice>>) ArrayList::new);
+      //slicesByDocument.computeIfAbsent(slice.document, (ignored) -> new ArrayList()).add(slice);
     }
     return slicesByDocument;
   }

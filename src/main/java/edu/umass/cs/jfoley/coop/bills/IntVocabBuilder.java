@@ -170,7 +170,7 @@ public class IntVocabBuilder {
       if((document+1) >= numberOfDocuments()) {
         return Pair.of(start, corpusReader.size());
       }
-      return Pair.of(start, docOffsetReader.readLong((document+1) * 8));
+      return Pair.of(start, docOffsetReader.readLong((document + 1) * 8));
     }
     public int[] getDocument(int document) throws IOException {
       Pair<Long,Long> bounds = getDocumentRange(document);
@@ -201,6 +201,10 @@ public class IntVocabBuilder {
       long start = docOffsetReader.readLong(document * 8);
       return corpusReader.readInt(start + position * 4);
     }
+    public int getLength(int document) throws IOException {
+      Pair<Long,Long> docRange = getDocumentRange(document);
+      return IntMath.fromLong((docRange.right - docRange.left) / 4L);
+    }
     public IntList getSlice(int document, int position, int width) throws IOException {
       Pair<Long,Long> docRange = getDocumentRange(document);
 
@@ -214,6 +218,11 @@ public class IntVocabBuilder {
       int length = endPosition - position;
       assert(end <= docRange.right) : "End: "+end+" docRange="+docRange+" length: "+length+" docLength: "+length;
       if(length <= 0) {
+        System.err.println("Length[-2]="+getLength(document-2));
+        System.err.println("Length[-1]="+getLength(document-1));
+        System.err.println("Length[0]="+getLength(document));
+        System.err.println("Length[+1]="+getLength(document+1));
+        System.err.println("Length[+2]="+getLength(document+2));
         throw new RuntimeException("getSlice("+document+" "+position+" "+width+": dl: "+docLength+" "+length+" "+docRange.left+" "+docRange.right+")");
       }
       IntList output = new IntList(length);

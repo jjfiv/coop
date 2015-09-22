@@ -7,7 +7,6 @@ import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
-import edu.umass.cs.ciir.waltz.coders.map.impl.WaltzDiskMapWriter;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
@@ -45,20 +44,20 @@ public class PhraseHitsWriter implements Closeable {
     this.outputDir = outputDir;
     this.baseName = baseName;
     vocab = new HashMap<>();
-    byDocHitsWriter = new AccumulatingHitListWriter(new WaltzDiskMapWriter<>(outputDir, baseName+".dochits", FixedSize.ints, new PhraseHitListCoder()));
+    byDocHitsWriter = new AccumulatingHitListWriter(GalagoIO.getIOMapWriter(outputDir, baseName+".dochits", FixedSize.ints, new PhraseHitListCoder()));
     docPositionsWriter = cfg.getPositionsWriter(outputDir, baseName+".positions");
   }
 
-  public void onPhraseHit(int id, int docId, int start, int size, IntList slice) {
-    if(id == -1) {
+  public void onPhraseHit(int phraseId, int docId, int start, int size, IntList slice) {
+    if(phraseId == -1) {
       // internal vocabulary ids:
-      id = MapFns.getOrInsert(vocab, slice);
+      phraseId = MapFns.getOrInsert(vocab, slice);
     } else {
       // external vocabulary ids:
-      vocab.putIfAbsent(slice, id);
+      vocab.putIfAbsent(slice, phraseId);
     }
-    docPositionsWriter.add(id, docId, start);
-    byDocHitsWriter.add(docId, start, size, id);
+    docPositionsWriter.add(phraseId, docId, start);
+    byDocHitsWriter.add(docId, start, size, phraseId);
   }
 
   @Override

@@ -14,8 +14,8 @@ public class AccumulatingHitListWriter implements Closeable {
 
   public final IOMapWriter<Integer, PhraseHitList> output;
 
-  public AccumulatingHitListWriter(IOMapWriter<Integer, PhraseHitList> output) {
-    this.output = output;
+  public AccumulatingHitListWriter(IOMapWriter<Integer, PhraseHitList> output) throws IOException {
+    this.output = output.getSorting();
   }
 
   public void add(int doc, int pos, int size, int id) {

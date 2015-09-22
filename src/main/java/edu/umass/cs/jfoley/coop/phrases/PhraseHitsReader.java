@@ -5,7 +5,6 @@ import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
-import edu.umass.cs.ciir.waltz.coders.map.impl.WaltzDiskMapReader;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
@@ -26,7 +25,7 @@ import java.io.IOException;
 public class PhraseHitsReader implements Closeable {
   private final Directory baseDir;
   private final String baseName;
-  final WaltzDiskMapReader<Integer, PhraseHitList> docHits;
+  final IOMap<Integer, PhraseHitList> docHits;
   final IdMaps.Reader<IntList> vocab;
   final IntCoopIndex index;
   /** find documents by phrase id */
@@ -40,7 +39,7 @@ public class PhraseHitsReader implements Closeable {
     this.baseDir = input;
     this.baseName = baseName;
     this.index = index;
-    docHits = new WaltzDiskMapReader<>(input, baseName+".dochits", FixedSize.ints, new PhraseHitListCoder());
+    docHits = GalagoIO.openIOMap(input, baseName+".dochits", FixedSize.ints, new PhraseHitListCoder());
     vocab = GalagoIO.openIdMapsReader(input.childPath(baseName + ".vocab"), FixedSize.ints, new ZeroTerminatedIds());
     documentsByPhrase = PhraseHitsWriter.cfg.openReader(input, baseName + ".positions");
     phrasesByTerm = PhraseHitsWriter.cfg.openReader(input, baseName + ".index");
@@ -67,7 +66,7 @@ public class PhraseHitsReader implements Closeable {
   @Override
   public void close() throws IOException {
     docHits.close();
-    vocab.close();;
+    vocab.close();
     documentsByPhrase.close();
   }
 

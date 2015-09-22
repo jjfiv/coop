@@ -153,6 +153,7 @@ public class FindPhrase extends CoopIndexServerFn {
             Span query = new Span(start, start + size);
             int q_end = start + size;
             //System.err.printf("q:[%d,%d)\n", query.begin, query.end);
+            System.err.println("# dochits@"+doc+"[-1]="+ListFns.getLast(dochits));
             for (PhraseHit dochit : dochits) {
               int cstart = dochit.start();
               int cend = dochit.end();
