@@ -272,9 +272,11 @@ public class IntCoopIndex implements CoopIndex {
     long end = System.currentTimeMillis();
     System.err.println("# preload vocab: "+(end-start)+"ms.");
     int docNameIndex = 0;
+    int ND = corpus.numberOfDocuments();
     for (Pair<Integer,String> pair : names.items()) {
       int phraseId = pair.left;
       String name = pair.right;
+
 
       docNameIndex++;
       String text = parseDBPediaTitle(name);
@@ -295,8 +297,11 @@ public class IntCoopIndex implements CoopIndex {
 
       detector.addPattern(qIds, phraseId);
 
+      assert(pair.left < ND);
+
       if(msg.ready()) {
         System.err.println(text);
+        System.err.println(getDocument(pair.left));
         System.err.println(query);
         System.err.println(qIds);
         System.err.println(msg.estimate(docNameIndex, count));

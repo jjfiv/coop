@@ -165,6 +165,7 @@ public class IntVocabBuilder {
       return corpusReader.readInt(corpusPosition * 4);
     }
     public Pair<Long,Long> getDocumentRange(int document) throws IOException {
+      if(document >= numberOfDocuments()) throw new RuntimeException("Can't find document above max: "+numberOfDocuments());
       long start = docOffsetReader.readLong(document * 8);
       if((document+1) >= numberOfDocuments()) {
         return Pair.of(start, corpusReader.size());
@@ -202,10 +203,19 @@ public class IntVocabBuilder {
     }
     public IntList getSlice(int document, int position, int width) throws IOException {
       Pair<Long,Long> docRange = getDocumentRange(document);
+
+      int docLength = IntMath.fromLong((docRange.right - docRange.left) / 4L);
+      //System.err.println("position:"+position+" width:"+width+" docLength:"+docLength);
+      int endPosition = Math.min(position+width, docLength);
+
       long start = docRange.left + position*4;
-      long end = Math.min(docRange.right, start + width * 4);
-      int length = IntMath.fromLong((end - start) / 4);
-      assert(end <= docRange.right);
+      long end = docRange.left + endPosition * 4;
+
+      int length = endPosition - position;
+      assert(end <= docRange.right) : "End: "+end+" docRange="+docRange+" length: "+length+" docLength: "+length;
+      if(length <= 0) {
+        throw new RuntimeException("getSlice("+document+" "+position+" "+width+": dl: "+docLength+" "+length+" "+docRange.left+" "+docRange.right+")");
+      }
       IntList output = new IntList(length);
       ByteBuffer bbuf = corpusReader.read(start, length*4);
       for (int i = 0; i < length; i++) {

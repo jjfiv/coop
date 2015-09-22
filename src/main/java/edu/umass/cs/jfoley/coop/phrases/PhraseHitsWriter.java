@@ -55,7 +55,7 @@ public class PhraseHitsWriter implements Closeable {
       id = MapFns.getOrInsert(vocab, slice);
     } else {
       // external vocabulary ids:
-      vocab.put(slice, id);
+      vocab.putIfAbsent(slice, id);
     }
     docPositionsWriter.add(id, docId, start);
     byDocHitsWriter.add(docId, start, size, id);

@@ -10,6 +10,16 @@ public class PhraseHit {
   final int size;
   final int id;
 
+  public int end() {
+    return start+size;
+  }
+  public int start() {
+    return start;
+  }
+  public int size() {
+    return size;
+  }
+
   public PhraseHit(int start, int size, int id) {
     this.start = start;
     this.size = size;
@@ -30,5 +40,9 @@ public class PhraseHit {
     if(!(other instanceof PhraseHit)) return false;
     PhraseHit rhs = (PhraseHit) other;
     return rhs.id == id && rhs.start == start && rhs.size == size;
+  }
+
+  public int id() {
+    return id;
   }
 }

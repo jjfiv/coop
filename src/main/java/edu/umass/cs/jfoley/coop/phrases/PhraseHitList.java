@@ -3,7 +3,6 @@ package edu.umass.cs.jfoley.coop.phrases;
 import ciir.jfoley.chai.collections.list.AChaiList;
 import ciir.jfoley.chai.collections.list.IntList;
 import edu.umass.cs.ciir.waltz.postings.extents.Span;
-import gnu.trove.map.hash.TIntIntHashMap;
 
 /**
  * @author jfoley
@@ -56,28 +55,6 @@ public class PhraseHitList extends AChaiList<PhraseHit> {
 
       if(query.overlaps(cstart, cend)) {
         //System.err.printf("  YES: q:[%d,%d) c:[%d,%d,%d)\n", query.begin, query.end, cstart, cend, cid);
-        matching.add(cid);
-      } else {
-        //System.err.printf("  NO:  q:[%d,%d) c:[%d,%d)\n", query.begin, query.end, cstart, cend);
-      }
-    }
-    return matching;
-  }
-
-  public IntList find(int start, int size, TIntIntHashMap sizeFreqs) {
-    IntList matching = new IntList();
-    Span query = new Span(start, start+size);
-    int q_end = start + size;
-    //System.err.printf("q:[%d,%d)\n", query.begin, query.end);
-    for (int i = 0; i < memData.size(); i += 3) {
-      int cstart = memData.getQuick(i);
-      int csize = memData.getQuick(i + 1);
-      int cid = memData.getQuick(i + 2);
-      int cend = cstart + csize;
-
-      //if(cstart > q_end) break;
-
-      if(query.overlaps(cstart, cend)) {
         if(csize != 1) {
           System.err.printf("  YES: q:[%d,%d) c:[%d,%d:%d,%d)\n", query.begin, query.end, cstart, cend, csize, cid);
         }

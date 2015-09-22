@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.experiments;
 
+import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.time.Debouncer;
@@ -40,8 +41,8 @@ public class CorpusNumberer {
     IdMaps.Writer<String> docNames; // index points to docOffsetWriter
     IdMaps.Writer<String> vocabulary;
 
+    int nextDocId = 0;
     // reserve zero just in case
-    int nextDocId = 1;
     int nextTermId = 1;
     TObjectIntHashMap<String> memVocab;
 
@@ -67,9 +68,9 @@ public class CorpusNumberer {
     }
 
     public void process(String docName, List<String> terms) throws IOException {
-      int docId = nextDocId++;
+      int docId = IntMath.fromLong(docOffsetWriter.tell() / 8L);
       docNames.put(docId, docName);
-
+      assert(docId == nextDocId++);
 
       long documentStart = corpusWriter.tell();
       docOffsetWriter.write(FixedSize.longs, documentStart);
@@ -112,10 +113,11 @@ public class CorpusNumberer {
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
     Directory output = new Directory(argp.get("output", "robust.ints"));
+    List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/robust04raw")), argp);
+    //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
+    //List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/dbpedia.trectext")), argp);
 
-    List<DocumentSplit> documentSplits = DocumentSource.processDirectory(
-        new File(argp.get("input", "/mnt/scratch/jfoley/robust04raw")),
-        argp);
+    boolean namePrefix = argp.get("namePrefix", false);
 
     Debouncer msg = new Debouncer(3000);
 
@@ -145,8 +147,9 @@ public class CorpusNumberer {
             continue;
           }
 
-          // prefix with name:
-          // doc.text = doc.name.replace('_', ' ') + '\n' + doc.text;
+          if(namePrefix) {
+            doc.text = doc.name.replace('_', ' ') + '\n' + doc.text;
+          }
 
           alreadySeenDocuments.add(doc.name);
           st = System.nanoTime();

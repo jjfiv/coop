@@ -21,8 +21,8 @@ public class AccumulatingHitListWriter implements Closeable {
   public void add(int doc, int pos, int size, int id) {
     if (lastDoc != doc) {
       flush();
+      lastDoc = doc;
     }
-    lastDoc = doc;
     docHits.add(pos, size, id);
   }
 

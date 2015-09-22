@@ -17,10 +17,10 @@ public class PhraseDetectorTest {
   @Test
   public void testSimple() {
     PhraseDetector detector = new PhraseDetector(10);
-    detector.addPattern(Arrays.asList(1, 2, 3), 1);
-    detector.addPattern(Arrays.asList(2, 2, 2), 2);
-    detector.addPattern(Arrays.asList(2, 2, 3), 3);
-    detector.addPattern(Arrays.asList(0, 0), 4);
+    detector.addPattern(new IntList(Arrays.asList(1, 2, 3)), 1);
+    detector.addPattern(new IntList(Arrays.asList(2, 2, 2)), 2);
+    detector.addPattern(new IntList(Arrays.asList(2, 2, 3)), 3);
+    detector.addPattern(new IntList(Arrays.asList(0, 0)), 4);
 
     int[] document = new int[] {
         1,2,3, // hit 0

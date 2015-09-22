@@ -6,10 +6,14 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.ciir.waltz.coders.map.IOMap;
+import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.eval.*;
 import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
+import edu.umass.cs.jfoley.coop.phrases.PhraseHit;
+import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -19,6 +23,8 @@ import org.lemurproject.galago.utility.Parameters;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -132,8 +138,35 @@ public class FindPhrase extends CoopIndexServerFn {
       long startEntites = System.currentTimeMillis();
       TIntObjectHashMap<IntList> vocab = new TIntObjectHashMap<>();
       if(indexedEntities) {
-        NearbyEntityFinder finder = new NearbyEntityFinder(index, p, output, phraseWidth);
-        ecounts = finder.entityCounts(hits);
+        IOMap<Integer, PhraseHitList> documentHits = index.getEntitiesIndex().getPhraseHits().getDocumentHits();
+        HashMap<Integer, List<TermSlice>> slicesByDocument = termFinder.slicesByDocument(termFinder.hitsToSlices(hits));
+        ecounts = new TIntIntHashMap();
+
+        for (Pair<Integer, PhraseHitList> pair : documentHits.getInBulk(new IntList(slicesByDocument.keySet()))) {
+          int doc = pair.getKey();
+          PhraseHitList dochits = pair.getValue();
+
+          List<TermSlice> localSlices = slicesByDocument.get(doc);
+          for (TermSlice slice : localSlices) {
+            int start = slice.start;
+            int size = slice.size();
+            Span query = new Span(start, start + size);
+            int q_end = start + size;
+            //System.err.printf("q:[%d,%d)\n", query.begin, query.end);
+            for (PhraseHit dochit : dochits) {
+              int cstart = dochit.start();
+              int cend = dochit.end();
+
+              if (query.overlaps(cstart, cend)) {
+                ecounts.adjustOrPutValue(dochit.id(), 1, 1);
+
+                for (Pair<TermSlice, IntList> pairs : this.index.pullTermSlices(Arrays.asList(new TermSlice(doc, dochit.start(), dochit.end())))) {
+                  vocab.put(dochit.id(), pairs.right);
+                }
+              }
+            }
+          }
+        }
       } else {
         ecounts = new TIntIntHashMap();
         for (Pair<TermSlice, IntList> pair : termFinder.pullSlicesForTermScoring(termFinder.hitsToSlices(hits))) {
@@ -215,7 +248,9 @@ public class FindPhrase extends CoopIndexServerFn {
     if(pullSlices) {
       for (Pair<TermSlice, IntList> pair : termFinder.pullSlicesForSnippets(hits)) {
         Parameters docp = hitInfos.get(pair.left.document);
-        docp.put("terms", index.translateToTerms(pair.right));
+        if(docp != null) {
+          docp.put("terms", index.translateToTerms(pair.right));
+        }
       }
     }
 
@@ -223,5 +258,5 @@ public class FindPhrase extends CoopIndexServerFn {
     return output;
   }
 
-  public static boolean indexedEntities = false;
+  public static boolean indexedEntities = true;
 }

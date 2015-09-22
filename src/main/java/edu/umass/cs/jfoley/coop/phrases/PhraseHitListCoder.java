@@ -39,7 +39,6 @@ public class PhraseHitListCoder extends Coder<PhraseHitList> {
   @Override
   public void write(OutputStream out, PhraseHitList obj) {
     IntList data = obj.memData;
-    int prevStart = 0;
 
     VarUInt.instance.writePrim(out, obj.size());
 
@@ -48,14 +47,9 @@ public class PhraseHitListCoder extends Coder<PhraseHitList> {
       int size = data.getQuick(i + 1);
       int id = data.getQuick(i + 2);
 
-      int delta = start - prevStart;
-      assert(delta >= 0);
-      //System.err.println("write["+i+"]: "+new PhraseHit(start, size, id)+" delta="+delta);
-      VarUInt.instance.writePrim(out, delta);
+      VarUInt.instance.writePrim(out, start);
       VarUInt.instance.writePrim(out, size);
       FixedSize.ints.write(out, id);
-
-      prevStart = start;
     }
   }
 
@@ -64,14 +58,13 @@ public class PhraseHitListCoder extends Coder<PhraseHitList> {
   public PhraseHitList readImpl(InputStream inputStream) throws IOException {
     int count = VarUInt.instance.readPrim(inputStream);
     PhraseHitList out = new PhraseHitList(count);
-    int delta = 0;
     for (int i = 0; i < count; i++) {
       //System.err.println("read["+i+"]: "+delta);
-      delta += VarUInt.instance.readPrim(inputStream);
+      int start = VarUInt.instance.readPrim(inputStream);
       int size = VarUInt.instance.readPrim(inputStream);
       int id = FixedSize.ints.read(inputStream);
       //System.err.println("read["+i+"]: "+new PhraseHit(delta, size, id));
-      out.add(delta, size, id);
+      out.add(start, size, id);
     }
     return out;
   }

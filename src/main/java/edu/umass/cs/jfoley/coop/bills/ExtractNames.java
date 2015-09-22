@@ -23,9 +23,24 @@ public class ExtractNames {
     ExtractNames234.CorpusTagger tagger = new ExtractNames234.CorpusTagger(detector, target.getCorpus());
 
     Debouncer msg2 = new Debouncer(2000);
-    try (PhraseHitsWriter writer = new PhraseHitsWriter(target.baseDir, "dbpedia")) {
+    Directory output = target.baseDir;
+    //output = new Directory("test.foo");
+    try (PhraseHitsWriter writer = new PhraseHitsWriter(output, "dbpedia")) {
       tagger.tag(msg2, (phraseId, docId, hitStart, hitSize, terms) -> {
-        writer.onPhraseHit(phraseId, docId, hitStart, hitSize, IntList.clone(terms, hitStart, hitSize));
+        IntList data_found = IntList.clone(terms, hitStart, hitSize);
+        /*
+        try {
+          System.err.println("phraseId: "+phraseId);
+          IntList data = new IntList(target.corpus.getSlice(docId, hitStart, hitSize));
+          System.err.println("Found: "+target.translateToTerms(data));
+          System.err.println("Links: "+index.names.getForward(phraseId-2)+" "+index.names.getForward(phraseId-1)+" "+index.names.getForward(phraseId)+" "+index.names.getForward(phraseId+1)+" "+index.names.getForward(phraseId+2));
+          System.err.println(data+" === "+data_found);
+          assert(Objects.equals(data, data_found));
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        */
+        writer.onPhraseHit(phraseId, docId, hitStart, hitSize, data_found);
       });
     } // phrase-hits-writer
   }

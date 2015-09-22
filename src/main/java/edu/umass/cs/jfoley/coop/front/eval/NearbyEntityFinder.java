@@ -29,15 +29,6 @@ public class NearbyEntityFinder extends NearbyTermFinder {
     entities = index.getEntitiesIndex();
   }
 
-  public HashMap<Integer, List<TermSlice>> slicesByDocument(Iterable<TermSlice> slices) {
-    HashMap<Integer, List<TermSlice>> slicesByDocument = new HashMap<>();
-    Iterable<TermSlice> mergedSlices = IterableFns.lazyReduce(slices, mergeSlicesFn);
-    for (TermSlice slice : mergedSlices) {
-      slicesByDocument.computeIfAbsent(slice.document, (ignored) -> new ArrayList()).add(slice);
-    }
-    return slicesByDocument;
-  }
-
   public TIntIntHashMap entityCounts(Iterable<TermSlice> slices) throws IOException {
     IOMap<Integer, PhraseHitList> documentHits = entities.getPhraseHits().getDocumentHits();
     HashMap<Integer, List<TermSlice>> slicesByDocument = slicesByDocument(slices);

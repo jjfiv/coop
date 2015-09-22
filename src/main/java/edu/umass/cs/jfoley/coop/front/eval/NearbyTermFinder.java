@@ -12,6 +12,7 @@ import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -57,6 +58,16 @@ public class NearbyTermFinder {
     }
     return counts;
   }
+
+  public HashMap<Integer, List<TermSlice>> slicesByDocument(Iterable<TermSlice> slices) {
+    HashMap<Integer, List<TermSlice>> slicesByDocument = new HashMap<>();
+    Iterable<TermSlice> mergedSlices = IterableFns.lazyReduce(slices, mergeSlicesFn);
+    for (TermSlice slice : mergedSlices) {
+      slicesByDocument.computeIfAbsent(slice.document, (ignored) -> new ArrayList()).add(slice);
+    }
+    return slicesByDocument;
+  }
+
 
   public TIntIntHashMap termCounts(List<DocumentResult<Integer>> hits) throws IOException {
     return termCounts(pullSlicesForTermScoring(hitsToSlices(hits)));

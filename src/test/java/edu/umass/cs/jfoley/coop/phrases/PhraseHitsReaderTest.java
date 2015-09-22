@@ -164,8 +164,10 @@ public class PhraseHitsReaderTest {
       ExtractNames234.CorpusTagger tagger = new ExtractNames234.CorpusTagger(det, index.getCorpus());
 
       try (PhraseHitsWriter writer = new PhraseHitsWriter(tmpdir, "foo")) {
-        tagger.tag(null, (phraseId, doc,start,size,terms) ->
-            writer.onPhraseHit(phraseId, doc, start, size, IntList.clone(terms, start, size)));
+        tagger.tag(null, (phraseId, doc,start,size,terms) -> {
+            System.err.println(doc);
+            writer.onPhraseHit(phraseId, doc, start, size, IntList.clone(terms, start, size));
+        });
       }
       try (
           PhraseHitsReader reader = new PhraseHitsReader(index, tmpdir, "foo")) {
