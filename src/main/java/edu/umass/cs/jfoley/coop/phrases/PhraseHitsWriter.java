@@ -50,6 +50,7 @@ public class PhraseHitsWriter implements Closeable {
   }
 
   public void onPhraseHit(int id, int docId, int start, int size, IntList slice) {
+    System.out.println("onPhraseHit("+id+","+docId+","+start+","+size+", "+slice+")");
     if(id == -1) {
       // internal vocabulary ids:
       id = MapFns.getOrInsert(vocab, slice);
@@ -77,6 +78,7 @@ public class PhraseHitsWriter implements Closeable {
       for (Pair<Integer, IntList> item : docs) {
         int phraseId = item.left;
         IntList words = item.right;
+        System.out.println("Vocab.write: "+phraseId+" "+words);
         phraseVocabWriter.put(phraseId, words);
         for (int j = 0; j < words.size(); j++) {
           // word, doc, pos

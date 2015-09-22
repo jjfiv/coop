@@ -132,4 +132,85 @@ public class PhraseHitsReaderTest {
     }
   }
 
+  @Test
+  public void testLoadAndRead2() throws IOException {
+    try (TemporaryDirectory tmpdir = new TemporaryDirectory();
+         IntCoopIndex index = toyIndex(tmpdir)) {
+
+      List<Pair<Integer, List<String>>> phrasesToTag = new ArrayList<>();
+
+      int allGoodMen = 77;
+      int party = 78;
+      int quickBrownFox = 79;
+      int lazyDog = 80;
+      int dog = 90;
+
+      Set<Pair<Integer,List<String>>> phrasesThatWillBeFound = new HashSet<>();
+      phrasesThatWillBeFound.addAll(Arrays.asList(
+          Pair.of(party, Collections.singletonList("party")),
+          Pair.of(dog, Collections.singletonList("dog")),
+          Pair.of(lazyDog, Arrays.asList("lazy", "dog")),
+          Pair.of(allGoodMen, Arrays.asList("all", "good", "men")),
+          Pair.of(quickBrownFox, Arrays.asList("quick", "brown", "fox"))
+      ));
+      phrasesToTag.add(Pair.of(144, Arrays.asList("i just met a girl named maria".split("\\s+"))));
+      phrasesToTag.addAll(phrasesThatWillBeFound);
+
+      PhraseDetector det = new PhraseDetector(4);
+      for (Pair<Integer, List<String>> pair : phrasesToTag) {
+        det.addPattern(index.translateFromTerms(pair.right), pair.left);
+      }
+
+      ExtractNames234.CorpusTagger tagger = new ExtractNames234.CorpusTagger(det, index.getCorpus());
+
+      try (PhraseHitsWriter writer = new PhraseHitsWriter(tmpdir, "foo")) {
+        tagger.tag(null, (phraseId, doc,start,size,terms) ->
+            writer.onPhraseHit(phraseId, doc, start, size, IntList.clone(terms, start, size)));
+      }
+      try (
+          PhraseHitsReader reader = new PhraseHitsReader(index, tmpdir, "foo")) {
+        HashSet<Pair<Integer,List<String>>> phrasesFound = new HashSet<>();
+        for (Pair<Integer, IntList> pr : reader.vocab.items()) {
+          int id = pr.left;
+          IntList words = pr.right;
+          phrasesFound.add(Pair.of(id, index.translateToTerms(words)));
+          //System.out.println(reader.documentsByPhrase.get(id).toMap());
+        }
+        assertEquals(phrasesThatWillBeFound, phrasesFound);
+
+        //System.out.println("phraseHits in 0: " + reader.docHits.get(0));
+        //System.out.println("phraseHits in 1: " + reader.docHits.get(1));
+        //System.out.println("phraseHits in 2: " + reader.docHits.get(2));
+
+        TransformFn<String,Integer> lookup = (str) -> {
+          try {
+            IntList phrase = index.translateFromTerms(Arrays.asList(str.split("\\s+")));
+            return reader.vocab.getReverse(phrase);
+          } catch (IOException e) { throw new RuntimeException(e); }
+        };
+
+        assertEquals(allGoodMen, lookup.transform("all good men").intValue());
+        assertEquals(party, lookup.transform("party").intValue());
+        assertEquals(quickBrownFox, lookup.transform("quick brown fox").intValue());
+        assertEquals(lazyDog, lookup.transform("lazy dog").intValue());
+        assertEquals(dog, lookup.transform("dog").intValue());
+
+        assertEquals((List) Arrays.asList(new PhraseHit(5, 3, allGoodMen), new PhraseHit(12, 1, party)), reader.docHits.get(0));
+        assertEquals((List) Arrays.asList(new PhraseHit(1, 3, quickBrownFox), new PhraseHit(7, 2, lazyDog), new PhraseHit(8, 1, dog)), reader.docHits.get(1));
+        assertEquals((List) Arrays.asList(new PhraseHit(1, 1, dog), new PhraseHit(8, 1, party)), reader.docHits.get(2));
+
+        assertEquals((Map) ChaiMap.create(
+            Pair.of(1, Collections.singletonList(8)),
+            Pair.of(2, Collections.singletonList(1))), Objects.requireNonNull(reader.documentsByPhrase.get(dog)).toMap());
+        assertEquals((Map) ChaiMap.create(
+            Pair.of(0, Collections.singletonList(12)),
+            Pair.of(2, Collections.singletonList(8))), Objects.requireNonNull(reader.documentsByPhrase.get(party)).toMap());
+
+        assertEquals((Map) ChaiMap.create(
+            Pair.of(lazyDog, Collections.singletonList(1)),
+            Pair.of(dog, Collections.singletonList(0))), Objects.requireNonNull(reader.phrasesByTerm.get(index.getTermId("dog"))).toMap());
+      }
+
+    }
+  }
 }
