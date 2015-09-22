@@ -25,13 +25,17 @@ import java.util.List;
  * @author jfoley
  */
 public class FindPhrase extends CoopIndexServerFn {
-  private final IntCoopIndex dbpedia;
-  private final PhraseDetector dbpediaFinder;
+  private IntCoopIndex dbpedia;
+  private PhraseDetector dbpediaFinder;
 
   protected FindPhrase(CoopIndex index) throws IOException {
     super(index);
+    this.dbpedia = null;
+    this.dbpediaFinder = null;
     this.dbpedia = new IntCoopIndex(new Directory("dbpedia.ints"));
-    this.dbpediaFinder = dbpedia.loadPhraseDetector(20, (IntCoopIndex) index);
+    if(!indexedEntities) {
+      this.dbpediaFinder = dbpedia.loadPhraseDetector(20, (IntCoopIndex) index);
+    }
   }
 
   @Override
@@ -161,6 +165,10 @@ public class FindPhrase extends CoopIndexServerFn {
             IntList eterms;
             if(vocab.size() == 0) {
               eterms = index.getEntitiesIndex().getPhraseVocab().getForward(eid);
+              IntList eterms2 = vocab.get(eid);
+              if(!eterms.equals(eterms2)) {
+                System.err.println("# different match than defined: "+eterms+" "+eterms2);
+              }
             } else {
               eterms = vocab.get(eid);
             }
@@ -170,7 +178,13 @@ public class FindPhrase extends CoopIndexServerFn {
             e.printStackTrace();
           }
 
-          pmiEntities.add(new PMITerm<>(eid, 1, queryFrequency, frequency, collectionLength));
+          int cf = 1;
+          cf = freq.get(eid);
+          if(cf == freq.getNoEntryValue()) {
+            cf = 1;
+          }
+
+          pmiEntities.add(new PMITerm<>(eid, cf, queryFrequency, frequency, collectionLength));
         }
         return true;
       });
@@ -209,5 +223,5 @@ public class FindPhrase extends CoopIndexServerFn {
     return output;
   }
 
-  public static final boolean indexedEntities = false;
+  public static boolean indexedEntities = false;
 }

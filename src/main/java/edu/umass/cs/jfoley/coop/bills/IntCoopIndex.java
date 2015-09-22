@@ -96,8 +96,8 @@ public class IntCoopIndex implements CoopIndex {
       this.positionsIndex = new TermPositionsIndex(vocab, positions, getTokenizer());
     }
 
-    if(baseDir.child("entities.positions.keys").exists()) {
-      entities = new PhraseHitsReader(this, baseDir, "entities");
+    if(baseDir.child("dbpedia.positions.keys").exists()) {
+      entities = new PhraseHitsReader(this, baseDir, "dbpedia");
       entitiesIndex = new PhrasePositionsIndex(entities, vocab, entities.getPhraseVocab(), entities.getDocumentsByPhrase());
     }
   }
@@ -250,6 +250,12 @@ public class IntCoopIndex implements CoopIndex {
     return vocab;
   }
 
+  public static String parseDBPediaTitle(String input) {
+    String base = StrUtil.takeBefore(input.replace('_', ' '), '(');
+    // make "el ni&ntilde;o" -> "el nino"
+    return StrUtil.collapseSpecialMarks(base.trim());
+  }
+
   public PhraseDetector loadPhraseDetector(int N, IntCoopIndex target) throws IOException {
     TagTokenizer tokenizer = new TagTokenizer();
     StringPooler.disable();
@@ -271,8 +277,7 @@ public class IntCoopIndex implements CoopIndex {
       String name = pair.right;
 
       docNameIndex++;
-      // make "el ni&ntilde;o" -> "el nino"
-      String text = StrUtil.collapseSpecialMarks(name.replace('_', ' '));
+      String text = parseDBPediaTitle(name);
       List<String> query = tokenizer.tokenize(text).terms;
       int size = query.size();
       if(size == 0 || size > N) continue;

@@ -43,6 +43,9 @@ public class NearbyEntityFinder extends NearbyTermFinder {
     HashMap<Integer, List<TermSlice>> slicesByDocument = slicesByDocument(slices);
     TIntIntHashMap ecounts = new TIntIntHashMap();
 
+    System.out.println(slicesByDocument);
+    TIntIntHashMap sizeFreqs = new TIntIntHashMap();
+
     for (Pair<Integer, PhraseHitList> pair : documentHits.getInBulk(new IntList(slicesByDocument.keySet()))) {
       int doc = pair.getKey();
       PhraseHitList hits = pair.getValue();

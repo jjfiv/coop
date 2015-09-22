@@ -2,6 +2,8 @@ package edu.umass.cs.jfoley.coop.front;
 
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
@@ -17,7 +19,6 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -28,23 +29,28 @@ public class TermPositionsIndex {
   final IdMaps.Reader<String> vocab;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
   private final CoopTokenizer tokenizer;
-  HashMap<Integer, KeyMetadata<?>> pmeta;
+  LoadingCache<Integer, KeyMetadata<?>> pmeta;
 
   public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer) throws IOException {
     this.vocab = vocab;
     this.positions = positions;
     this.tokenizer = tokenizer;
-    long start = System.currentTimeMillis();
-    pmeta = new HashMap<>();
-    for (Pair<Integer, PostingMover<PositionsList>> kv : this.positions.items()) {
-      pmeta.put(kv.getKey(), kv.getValue().getMetadata());
-    }
-    long end = System.currentTimeMillis();
-    System.out.println("Caching metadata: " + (end - start) + "ms.");
+    pmeta = Caffeine.newBuilder().maximumSize(1_000_000).build((id) -> {
+      try {
+        PostingMover<PositionsList> mover = positions.get(id);
+        if(mover == null) return null;
+        return mover.getMetadata();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    //System.out.println("Caching metadata: " + (end - start) + "ms.");
   }
 
   public PostingMover<PositionsList> getPositionsMover(String queryTerm) throws IOException {
-    return getPositionsMover(vocab.getReverse(queryTerm));
+    Integer id = vocab.getReverse(queryTerm);
+    if(id == null) return null;
+    return getPositionsMover(id);
   }
 
   public PostingMover<PositionsList> getPositionsMover(int termId) throws IOException {
@@ -119,7 +125,9 @@ public class TermPositionsIndex {
   }
 
   public int translateFromTerm(String term) throws IOException {
-    return vocab.getReverse(term);
+    Integer x = vocab.getReverse(term);
+    if(x == null) return -1;
+    return x;
   }
 
   public String translateToTerm(int termId) throws IOException {

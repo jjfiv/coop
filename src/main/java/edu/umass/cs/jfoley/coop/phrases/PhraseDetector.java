@@ -31,7 +31,8 @@ public class PhraseDetector {
   public void addPattern(List<Integer> data, int id) {
     int n = data.size()-1;
     if(n < 0 || n >= N) return;
-    matchingBySize.get(n).put(data, id);
+    // use the first matching if duplicate patterns exist:
+    matchingBySize.get(n).putIfAbsent(data, id);
   }
 
   public Integer getMatch(List<Integer> query) {
