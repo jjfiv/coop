@@ -93,7 +93,7 @@ public class IntCoopIndex implements CoopIndex {
 
     if(baseDir.child(positionsFileName+".keys").exists()) {
       this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, positionsFileName);
-      this.positionsIndex = new TermPositionsIndex(vocab, positions, getTokenizer());
+      this.positionsIndex = new TermPositionsIndex(vocab, positions, getTokenizer(), getCorpus());
     }
 
     if(baseDir.child("dbpedia.positions.keys").exists()) {

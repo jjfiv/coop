@@ -12,6 +12,7 @@ import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.KeyMetadata;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
+import edu.umass.cs.jfoley.coop.bills.IntVocabBuilder;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -32,12 +33,14 @@ public class TermPositionsIndex {
   final IdMaps.Reader<String> vocab;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
   private final CoopTokenizer tokenizer;
+  private final IntVocabBuilder.IntVocabReader corpus;
   LoadingCache<Integer, KeyMetadata<?>> pmeta;
 
-  public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer) throws IOException {
+  public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer, IntVocabBuilder.IntVocabReader corpus) throws IOException {
     this.vocab = vocab;
     this.positions = positions;
     this.tokenizer = tokenizer;
+    this.corpus = corpus;
     long cacheSize = 1_000_000;
     pmeta = Caffeine.newBuilder().maximumSize(cacheSize).build((id) -> {
       try {
@@ -182,5 +185,9 @@ public class TermPositionsIndex {
       terms.add(translator.get(termId));
     }
     return terms;
+  }
+
+  public int getLength(int doc) throws IOException {
+    return corpus.getLength(doc);
   }
 }
