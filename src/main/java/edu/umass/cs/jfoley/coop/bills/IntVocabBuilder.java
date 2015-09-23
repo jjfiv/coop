@@ -225,12 +225,12 @@ public class IntVocabBuilder {
         System.err.println("Length[+2]="+getLength(document+2));
         throw new RuntimeException("getSlice("+document+" "+position+" "+width+": dl: "+docLength+" "+length+" "+docRange.left+" "+docRange.right+")");
       }
-      IntList output = new IntList(length);
+      int data[] = new int[length];
       ByteBuffer bbuf = corpusReader.read(start, length*4);
       for (int i = 0; i < length; i++) {
-        output.push(bbuf.getInt(i * 4));
+        data[i] = bbuf.getInt(i*4);
       }
-      return output;
+      return new IntList(data);
     }
 
     public void setTermTranslationTable(MemoryVocab targetVocabulary) throws IOException {

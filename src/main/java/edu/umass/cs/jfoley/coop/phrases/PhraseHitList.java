@@ -14,6 +14,10 @@ public class PhraseHitList extends AChaiList<PhraseHit> {
     this(200); // mean
   }
 
+  public PhraseHitList(IntList raw) {
+    memData = raw;
+  }
+
   @Override
   public int size() {
     return memData.size() / 3;
