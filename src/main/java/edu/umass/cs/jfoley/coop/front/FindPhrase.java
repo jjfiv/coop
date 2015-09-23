@@ -5,14 +5,13 @@ import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.io.Directory;
+import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
-import edu.umass.cs.ciir.waltz.postings.extents.Span;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.eval.*;
 import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
-import edu.umass.cs.jfoley.coop.phrases.PhraseHit;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
@@ -23,7 +22,6 @@ import org.lemurproject.galago.utility.Parameters;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -134,51 +132,40 @@ public class FindPhrase extends CoopIndexServerFn {
     }
 
     if(findEntities) {
+      long start, end;
+
       TIntIntHashMap ecounts;
       long startEntites = System.currentTimeMillis();
       TIntObjectHashMap<IntList> vocab = new TIntObjectHashMap<>();
-      if(indexedEntities) {
-        IOMap<Integer, PhraseHitList> documentHits = index.getEntitiesIndex().getPhraseHits().getDocumentHits();
-        HashMap<Integer, List<TermSlice>> slicesByDocument = termFinder.slicesByDocument(termFinder.hitsToSlices(hits));
-        ecounts = new TIntIntHashMap();
 
-        for (Pair<Integer, PhraseHitList> pair : documentHits.getInBulk(new IntList(slicesByDocument.keySet()))) {
-          int doc = pair.getKey();
-          PhraseHitList dochits = pair.getValue();
+      IOMap<Integer, PhraseHitList> documentHits = index.getEntitiesIndex().getPhraseHits().getDocumentHits();
+      HashMap<Integer, List<TermSlice>> slicesByDocument = termFinder.slicesByDocument(termFinder.hitsToSlices(hits));
+      ecounts = new TIntIntHashMap();
 
-          List<TermSlice> localSlices = slicesByDocument.get(doc);
-          for (TermSlice slice : localSlices) {
-            int start = slice.start;
-            int size = slice.size();
-            Span query = new Span(start, start + size);
-            int q_end = start + size;
-            //System.err.printf("q:[%d,%d)\n", query.begin, query.end);
-            System.err.println("# dochits@"+doc+"[-1]="+ListFns.getLast(dochits));
-            for (PhraseHit dochit : dochits) {
-              int cstart = dochit.start();
-              int cend = dochit.end();
+      start = System.currentTimeMillis();
+      List<Pair<Integer, PhraseHitList>> inBulk = documentHits.getInBulk(new IntList(slicesByDocument.keySet()));
+      end = System.currentTimeMillis();
 
-              if (query.overlaps(cstart, cend)) {
-                ecounts.adjustOrPutValue(dochit.id(), 1, 1);
+      System.err.println("Data pull: "+(end-start)+"ms. for "+slicesByDocument.size()+" documents.");
+      StreamingStats intersectTimes = new StreamingStats();
 
-                for (Pair<TermSlice, IntList> pairs : this.index.pullTermSlices(Arrays.asList(new TermSlice(doc, dochit.start(), dochit.end())))) {
-                  vocab.put(dochit.id(), pairs.right);
-                }
-              }
-            }
+      for (Pair<Integer, PhraseHitList> pair : inBulk) {
+        int doc = pair.getKey();
+        PhraseHitList dochits = pair.getValue();
+
+        List<TermSlice> localSlices = slicesByDocument.get(doc);
+        for (TermSlice slice : localSlices) {
+          start = System.nanoTime();
+          IntList eids = dochits.find(slice.start, slice.size());
+          end = System.nanoTime();
+          intersectTimes.push((end-start) / 1e6);
+          for (int eid : eids) {
+            ecounts.adjustOrPutValue(eid, 1, 1);
           }
         }
-      } else {
-        ecounts = new TIntIntHashMap();
-        for (Pair<TermSlice, IntList> pair : termFinder.pullSlicesForTermScoring(termFinder.hitsToSlices(hits))) {
-          IntList data = pair.right;
-          int[] doc = data.asArray();
-          dbpediaFinder.match(doc, (phraseId, position, size) -> {
-            vocab.putIfAbsent(phraseId, IntList.clone(doc, position, size));
-            ecounts.adjustOrPutValue(phraseId, 1, 1);
-          });
-        }
       }
+
+      System.err.println("# PhraseHitList.find time stats: "+intersectTimes);
 
       long stopEntities = System.currentTimeMillis();
       long millisForScoring = (stopEntities - startEntites);
@@ -186,32 +173,15 @@ public class FindPhrase extends CoopIndexServerFn {
           ((double) millisForScoring / (double) hits.size()),
           ecounts.size());
 
-      long start = System.currentTimeMillis();
+      start = System.currentTimeMillis();
       TIntIntHashMap freq = index.getEntitiesIndex().getCollectionFrequencies(new IntList(ecounts.keys()));
-      long end = System.currentTimeMillis();
+      end = System.currentTimeMillis();
       System.err.println("Pull efrequencies: " + (end - start) + "ms.");
 
       TopKHeap<PMITerm<Integer>> pmiEntities = new TopKHeap<>(numEntities);
       double collectionLength = index.getCollectionLength();
       ecounts.forEachEntry((eid, frequency) -> {
         if (frequency >= minEntityFrequency) {
-          try {
-            IntList eterms;
-            if(vocab.size() == 0) {
-              eterms = index.getEntitiesIndex().getPhraseVocab().getForward(eid);
-              IntList eterms2 = vocab.get(eid);
-              if(!eterms.equals(eterms2)) {
-                System.err.println("# different match than defined: "+eterms+" "+eterms2);
-              }
-            } else {
-              eterms = vocab.get(eid);
-            }
-            List<String> sterms = index.translateToTerms(eterms);
-            System.out.println(StrUtil.join(sterms, " ") + ": freq: " + frequency);
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-
           int cf = 1;
           cf = freq.get(eid);
           if(cf == freq.getNoEntryValue()) {

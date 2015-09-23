@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.front;
 
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
+import ciir.jfoley.chai.collections.util.IterableFns;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import edu.umass.cs.ciir.waltz.IdMaps;
@@ -87,6 +88,21 @@ public class TermPositionsIndex {
     System.out.println("query: "+queryIds);
     System.out.println("unique: "+repr.getUniqueTerms());
     System.out.println("mapping: "+phrase.termIdMapping);
+
+    if(queryIds.size() == 0) {
+      return output;
+    }
+    if(queryIds.size() == 1) {
+      PostingMover<PositionsList> only = IterableFns.first(repr.getMovers(this));
+      for(only.start(); !only.isDone(); only.next()) {
+        int doc = only.currentKey();
+        PositionsList positions = only.getPosting(doc);
+        for (int i = 0; i < positions.size(); i++) {
+          output.add(new DocumentResult<>(doc, positions.getPosition(i)));
+        }
+      }
+      return output;
+    }
 
     ArrayList<PostingMover<PositionsList>> iters = repr.getMovers(this);
     AllOfMover<?> andMover = new AllOfMover<>(iters);

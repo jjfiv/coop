@@ -18,8 +18,8 @@ public class IntCorpusPIndex {
     Parameters argp = Arguments.parse(args);
     //Directory input = Directory.Read(argp.get("input", "dbpedia.ints"));
     //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
-    Directory input = Directory.Read(argp.get("input", "robust.ints"));
-    Directory output = Directory.Read(argp.get("input", "robust.ints"));
+    Directory input = Directory.Read(argp.get("input", "robust-small.ints"));
+    Directory output = Directory.Read(argp.get("input", "robust-small.ints"));
 
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);

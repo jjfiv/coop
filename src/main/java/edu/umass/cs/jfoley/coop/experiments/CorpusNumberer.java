@@ -112,7 +112,7 @@ public class CorpusNumberer {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory output = new Directory(argp.get("output", "robust.ints"));
+    Directory output = new Directory(argp.get("output", "robust-small.ints"));
     List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/robust04raw")), argp);
     //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
     //List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/dbpedia.trectext")), argp);
@@ -136,6 +136,9 @@ public class CorpusNumberer {
 
         long st, et;
         while (true) {
+          if(writer.nextDocId > 50000) {
+            break;
+          }
           st = System.nanoTime();
           Document doc = parser.nextDocument();
           et = System.nanoTime();
@@ -156,6 +159,7 @@ public class CorpusNumberer {
           tokenizer.tokenize(doc);
           et = System.nanoTime();
           tokenizationTime.push((et -st) / 1e9);
+
 
           if(msg.ready()) {
             System.out.println(msg.estimate(writer.nextDocId, 5000000));
