@@ -301,7 +301,7 @@ public class IntCoopIndex implements CoopIndex {
 
       if(msg.ready()) {
         System.err.println(text);
-        System.err.println(getDocument(pair.left));
+        //System.err.println(getDocument(phraseId));
         System.err.println(query);
         System.err.println(qIds);
         System.err.println(msg.estimate(docNameIndex, count));

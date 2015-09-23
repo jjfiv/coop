@@ -1,14 +1,17 @@
 package edu.umass.cs.jfoley.coop.phrases;
 
-import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.TemporaryFile;
+import edu.umass.cs.ciir.waltz.coders.Coder;
+import edu.umass.cs.ciir.waltz.coders.kinds.compress.BZipCoder;
+import edu.umass.cs.ciir.waltz.coders.kinds.compress.GZipCoder;
+import edu.umass.cs.ciir.waltz.coders.kinds.compress.LZFCoder;
 import org.junit.Test;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -33,7 +36,7 @@ public class PhraseHitListTest {
 
   @Test
   public void testSerialize() throws IOException {
-    int N = 70000;
+    int N = 15000;
     Random rand = new Random(13);
     PhraseHitList x = new PhraseHitList(N);
 
@@ -49,7 +52,7 @@ public class PhraseHitListTest {
     end = System.currentTimeMillis();
     System.out.println("# Random init time: "+(end-start)+"ms.");
 
-    PhraseHitListCoder coder = new PhraseHitListCoder();
+    Coder<PhraseHitList> coder = new PhraseHitListCoder();
 
     try (TemporaryFile tmp = new TemporaryFile(".bin")) {
       try (OutputStream out = IO.openOutputStream(tmp.get())) {
@@ -57,6 +60,7 @@ public class PhraseHitListTest {
         coder.write(out, x);
       }
       end = System.currentTimeMillis();
+      System.err.println("size: "+Files.size(tmp.get().toPath()));
       System.out.println("# Write time: "+(end-start)+"ms.");
       try (InputStream in = IO.openInputStream(tmp.get())) {
         start = System.currentTimeMillis();
@@ -67,14 +71,36 @@ public class PhraseHitListTest {
       }
     }
 
-    try (TemporaryFile tmp = new TemporaryFile(".bin.lzf")) {
+    coder = new GZipCoder<>(new PhraseHitListCoder());
+
+    try (TemporaryFile tmp = new TemporaryFile(".bin")) {
       try (OutputStream out = IO.openOutputStream(tmp.get())) {
         start = System.currentTimeMillis();
         coder.write(out, x);
       }
+      System.err.println("size: "+Files.size(tmp.get().toPath()));
+      end = System.currentTimeMillis();
+      System.out.println("# GZip Write time: "+(end-start)+"ms.");
+      try (InputStream in = IO.openInputStream(tmp.get())) {
+        start = System.currentTimeMillis();
+        PhraseHitList y = coder.read(in);
+        end = System.currentTimeMillis();
+        assertEquals(x, y);
+        System.out.println("# GZip Read time: " + (end - start) + "ms.");
+      }
+    }
+
+    coder = new LZFCoder<>(new PhraseHitListCoder());
+
+    try (TemporaryFile tmp = new TemporaryFile(".bin")) {
+      try (OutputStream out = IO.openOutputStream(tmp.get())) {
+        start = System.currentTimeMillis();
+        coder.write(out, x);
+      }
+      System.err.println("size: "+Files.size(tmp.get().toPath()));
       end = System.currentTimeMillis();
       System.out.println("# LZF Write time: "+(end-start)+"ms.");
-      try (InputStream in = new BufferedInputStream(IO.openInputStream(tmp.get()))) {
+      try (InputStream in = IO.openInputStream(tmp.get())) {
         start = System.currentTimeMillis();
         PhraseHitList y = coder.read(in);
         end = System.currentTimeMillis();
@@ -83,27 +109,24 @@ public class PhraseHitListTest {
       }
     }
 
-    try (TemporaryFile tmp = new TemporaryFile(".bin.lzf")) {
-      start = System.currentTimeMillis();
+    coder = new BZipCoder<>(new PhraseHitListCoder());
+
+    try (TemporaryFile tmp = new TemporaryFile(".bin")) {
       try (OutputStream out = IO.openOutputStream(tmp.get())) {
-        IntList raw = x.memData;
-        out.write(raw.encode());
-      }
-      end = System.currentTimeMillis();
-      System.out.println("# Raw-LZF Write time: "+(end-start)+"ms.");
-
-      try (InputStream in = new BufferedInputStream(IO.openInputStream(tmp.get()))) {
         start = System.currentTimeMillis();
-        IntList raw = IntList.decode(in);
-        PhraseHitList y = new PhraseHitList(raw);
+        coder.write(out, x);
+      }
+      System.err.println("size: "+Files.size(tmp.get().toPath()));
+      end = System.currentTimeMillis();
+      System.out.println("# BZip2 Write time: "+(end-start)+"ms.");
+      try (InputStream in = IO.openInputStream(tmp.get())) {
+        start = System.currentTimeMillis();
+        PhraseHitList y = coder.read(in);
         end = System.currentTimeMillis();
-
         assertEquals(x, y);
-        System.out.println("# Raw-LZF Read time: " + (end - start) + "ms.");
+        System.out.println("# BZip2 Read time: " + (end - start) + "ms.");
       }
     }
-
-    System.out.println("# Done with testing.");
 
   }
 

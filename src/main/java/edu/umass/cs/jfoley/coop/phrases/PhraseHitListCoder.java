@@ -3,10 +3,9 @@ package edu.umass.cs.jfoley.coop.phrases;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.StreamFns;
 import edu.umass.cs.ciir.waltz.coders.Coder;
+import edu.umass.cs.ciir.waltz.coders.CoderException;
 import edu.umass.cs.ciir.waltz.coders.data.ByteBuilder;
 import edu.umass.cs.ciir.waltz.coders.data.DataChunk;
-import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.coders.streams.StaticStream;
 
 import javax.annotation.Nonnull;
@@ -41,35 +40,17 @@ public class PhraseHitListCoder extends Coder<PhraseHitList> {
 
   @Override
   public void write(OutputStream out, PhraseHitList obj) {
-    IntList data = obj.memData;
-
-    VarUInt.instance.writePrim(out, obj.size());
-
-    for (int i = 0; i < data.size(); i += 3) {
-      int start = data.getQuick(i);
-      int size = data.getQuick(i + 1);
-      int id = data.getQuick(i + 2);
-
-      VarUInt.instance.writePrim(out, start);
-      VarUInt.instance.writePrim(out, size);
-      FixedSize.ints.write(out, id);
+    try {
+      out.write(obj.memData.encode());
+    } catch (IOException e) {
+      throw new CoderException(e, this.getClass());
     }
   }
 
   @Nonnull
   @Override
   public PhraseHitList readImpl(InputStream inputStream) throws IOException {
-    int count = VarUInt.instance.readPrim(inputStream);
-    PhraseHitList out = new PhraseHitList(count);
-    for (int i = 0; i < count; i++) {
-      //System.err.println("read["+i+"]: "+delta);
-      int start = VarUInt.instance.readPrim(inputStream);
-      int size = VarUInt.instance.readPrim(inputStream);
-      int id = FixedSize.ints.read(inputStream);
-      //System.err.println("read["+i+"]: "+new PhraseHit(delta, size, id));
-      out.add(start, size, id);
-    }
-    return out;
+    return new PhraseHitList(IntList.decode(inputStream));
   }
 
   /** Reading of something that can be read again. */
