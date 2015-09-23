@@ -159,7 +159,7 @@ class TermSearchResults extends React.Component {
         let pmiResults = _(termResults)
             .sortBy((x) => -x.pmi)
             .map((x, idx) => {
-                let alt = strjoin(x.docs) || JSON.stringify(x);
+                let alt = JSON.stringify(x);
                 //return <pre key={idx}>{JSON.stringify(x)}</pre>;
                 return <tr title={alt} key={idx}>
                     <td onClick={(evt) => setFilter(x.docs)}>{x.term}</td>

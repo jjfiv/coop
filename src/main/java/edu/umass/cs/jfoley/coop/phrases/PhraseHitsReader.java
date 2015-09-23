@@ -4,6 +4,7 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
 import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
+import edu.umass.cs.ciir.waltz.coders.kinds.IntListCoder;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
@@ -16,7 +17,9 @@ import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import gnu.trove.set.hash.TIntHashSet;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -34,15 +37,21 @@ public class PhraseHitsReader implements Closeable {
   final IOMap<Integer, PostingMover<PositionsList>> phrasesByTerm;
 
   final TermPositionsIndex phrasesByTermIndex;
+  private IOMap<Integer, IntList> ambiguousMap;
 
   public PhraseHitsReader(IntCoopIndex index, Directory input, String baseName) throws IOException {
     this.baseDir = input;
     this.baseName = baseName;
     this.index = index;
-    docHits = GalagoIO.openIOMap(input, baseName+".dochits", FixedSize.ints, new PhraseHitListCoder());
+    docHits = GalagoIO.openIOMap(input, baseName + ".dochits", FixedSize.ints, new PhraseHitListCoder());
     vocab = GalagoIO.openIdMapsReader(input.childPath(baseName + ".vocab"), FixedSize.ints, new ZeroTerminatedIds());
     documentsByPhrase = PhraseHitsWriter.cfg.openReader(input, baseName + ".positions");
     phrasesByTerm = PhraseHitsWriter.cfg.openReader(input, baseName + ".index");
+
+    File ambigIndexFile = input.child(baseName+".ambiguous");
+    if(ambigIndexFile.exists()) {
+      ambiguousMap = GalagoIO.openIOMap(FixedSize.ints, IntListCoder.instance, ambigIndexFile.getPath());
+    }
 
     phrasesByTermIndex = new TermPositionsIndex(index.getTermVocabulary(), phrasesByTerm, index.getTokenizer());
     //documentsByPhraseIndex = new CoopIndex.PositionsIndex<>(vocab, documentsByPhrase);
@@ -82,6 +91,11 @@ public class PhraseHitsReader implements Closeable {
 
   public IOMap<Integer, PhraseHitList> getDocumentHits() {
     return docHits;
+  }
+
+  @Nullable
+  public IOMap<Integer, IntList> getAmbiguousPhrases() {
+    return ambiguousMap;
   }
 
   public IOMap<Integer, PostingMover<PositionsList>> getDocumentsByPhrase() {

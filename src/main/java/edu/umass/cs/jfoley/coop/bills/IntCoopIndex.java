@@ -41,7 +41,7 @@ import java.util.List;
  */
 public class IntCoopIndex implements CoopIndex {
   public static final String positionsFileName = "positions.waltz";
-  final Directory baseDir;
+  public final Directory baseDir;
   final IntVocabBuilder.IntVocabReader corpus;
   final IdMaps.Reader<String> names;
   final IdMaps.Reader<String> vocab;
@@ -309,5 +309,9 @@ public class IntCoopIndex implements CoopIndex {
       }
     }
     return detector;
+  }
+
+  public IdMaps.Reader<String> getNames() {
+    return names;
   }
 }

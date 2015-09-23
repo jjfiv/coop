@@ -21,6 +21,8 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Part of an index that represents a mapping between a single term and positions:
@@ -36,16 +38,31 @@ public class TermPositionsIndex {
     this.vocab = vocab;
     this.positions = positions;
     this.tokenizer = tokenizer;
-    pmeta = Caffeine.newBuilder().maximumSize(1_000_000).build((id) -> {
+    long cacheSize = 1_000_000;
+    pmeta = Caffeine.newBuilder().maximumSize(cacheSize).build((id) -> {
       try {
         PostingMover<PositionsList> mover = positions.get(id);
-        if(mover == null) return null;
+        if (mover == null) return null;
         return mover.getMetadata();
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     });
-    //System.out.println("Caching metadata: " + (end - start) + "ms.");
+
+    ForkJoinPool.commonPool().execute(() -> {
+      long start = System.currentTimeMillis();
+      try {
+        for (Pair<Integer, PostingMover<PositionsList>> item : positions.items()) {
+          // Put as many items in the cache as will fit:
+          if(pmeta.estimatedSize() == cacheSize) return;
+          pmeta.put(item.getKey(), Objects.requireNonNull(Objects.requireNonNull(item.getValue()).getMetadata()));
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      long end = System.currentTimeMillis();
+      System.out.println("Metadata bg-thread cache-warmup: " + (end - start) + "ms.");
+    });
   }
 
   public PostingMover<PositionsList> getPositionsMover(String queryTerm) throws IOException {

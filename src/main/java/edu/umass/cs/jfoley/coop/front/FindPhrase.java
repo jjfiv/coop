@@ -11,7 +11,6 @@ import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.eval.*;
-import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
@@ -30,16 +29,14 @@ import java.util.List;
  */
 public class FindPhrase extends CoopIndexServerFn {
   private IntCoopIndex dbpedia;
-  private PhraseDetector dbpediaFinder;
 
   protected FindPhrase(CoopIndex index) throws IOException {
     super(index);
     this.dbpedia = null;
-    this.dbpediaFinder = null;
     this.dbpedia = new IntCoopIndex(new Directory("dbpedia.ints"));
-    if(!indexedEntities) {
-      this.dbpediaFinder = dbpedia.loadPhraseDetector(20, (IntCoopIndex) index);
-    }
+    //if(!indexedEntities) {
+      //this.dbpediaFinder = dbpedia.loadPhraseDetector(20, (IntCoopIndex) index);
+    //}
   }
 
   @Override
@@ -136,7 +133,6 @@ public class FindPhrase extends CoopIndexServerFn {
 
       TIntIntHashMap ecounts;
       long startEntites = System.currentTimeMillis();
-      TIntObjectHashMap<IntList> vocab = new TIntObjectHashMap<>();
 
       IOMap<Integer, PhraseHitList> documentHits = index.getEntitiesIndex().getPhraseHits().getDocumentHits();
       HashMap<Integer, List<TermSlice>> slicesByDocument = termFinder.slicesByDocument(termFinder.hitsToSlices(hits));
@@ -184,7 +180,7 @@ public class FindPhrase extends CoopIndexServerFn {
         if (frequency >= minEntityFrequency) {
           int cf = 1;
           cf = freq.get(eid);
-          if(cf == freq.getNoEntryValue()) {
+          if (cf == freq.getNoEntryValue()) {
             cf = 1;
           }
 
@@ -193,20 +189,26 @@ public class FindPhrase extends CoopIndexServerFn {
         return true;
       });
 
+      IOMap<Integer, IntList> ambiguous = index.getEntitiesIndex().getPhraseHits().getAmbiguousPhrases();
       List<Parameters> entities = new ArrayList<>();
       for (PMITerm<Integer> pmiEntity : pmiEntities.getUnsortedList()) {
         int eid = pmiEntity.term;
-        IntList eterms;
-        if(vocab.size() == 0) {
-          eterms = index.getEntitiesIndex().getPhraseVocab().getForward(eid);
-        } else {
-          eterms = vocab.get(eid);
-        }
+        IntList eterms = index.getEntitiesIndex().getPhraseVocab().getForward(eid);
         Parameters ep = pmiEntity.toJSON();
         List<String> sterms = index.translateToTerms(eterms);
         ep.put("term", StrUtil.join(sterms));
         ep.put("eId", eid);
-        ep.put("doc", dbpedia.getDocument(eid).toJSON());
+
+        IntList ids = null;
+        if(ambiguous != null) {
+          ids = ambiguous.get(eid);
+        }
+        if(ids == null) {
+          ids = new IntList();
+          ids.push(eid);
+          ep.put("ids", ids);
+        }
+        ep.put("docs", ListFns.map(ids, (x) -> dbpedia.getDocument(x).toJSON()));
         ep.put("terms", sterms);
         ep.put("termIds", eterms);
         entities.add(ep);
@@ -229,5 +231,4 @@ public class FindPhrase extends CoopIndexServerFn {
     return output;
   }
 
-  public static boolean indexedEntities = true;
 }
