@@ -62,6 +62,9 @@ public class FindPhrase extends CoopIndexServerFn {
       case "EvaluatePhrase":
         hitFinder = new EvaluatePhraseMethod(p, output, termIndex);
         break;
+      case "EvaluateBagOfWords":
+        hitFinder = new EvaluateBagOfWordsMethod(p, output, termIndex);
+        break;
       case "LookupSingleTerm":
         hitFinder = new LookupSingleTermMethod(p, output, termIndex);
         break;

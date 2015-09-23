@@ -14,6 +14,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
             minTermFrequency: parseInt(urlP.minTermFrequency) || 10,
             numEntities: parseInt(urlP.numEntities) || 30,
             minEntityFrequency: parseInt(urlP.minEntityFrequency) || 4,
+            method: urlP.method || "EvaluatePhrase",
             query: urlP.query || "",
             count: parseInt(urlP.count) || 200
         };
@@ -34,6 +35,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
         request.query = this.state.query;
         request.numTerms = this.state.numTerms;
         request.minTermFrequency = this.state.minTermFrequency;
+        request.method = this.state.method;
         if(this.state.pullSlices || this.state.pullSlices || this.state.findEntities) {
             request.pullSlices = true;
             request.leftWidth = this.state.leftWidth;
@@ -159,6 +161,10 @@ class TermSearchResults extends React.Component {
         let pmiResults = _(termResults)
             .sortBy((x) => -x.pmi)
             .map((x, idx) => {
+                let display = x.term;
+                if(x.ids) {
+                    display = x.term+" ("+_.size(x.ids)+")";
+                }
                 let alt = JSON.stringify(x);
                 //return <pre key={idx}>{JSON.stringify(x)}</pre>;
                 return <tr title={alt} key={idx}>
