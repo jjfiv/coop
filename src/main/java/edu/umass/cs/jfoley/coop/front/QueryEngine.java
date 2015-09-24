@@ -11,6 +11,8 @@ import edu.umass.cs.ciir.waltz.io.postings.ArrayPosList;
 import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanIterator;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
+import edu.umass.cs.ciir.waltz.sys.KeyMetadata;
+import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -79,8 +81,13 @@ public class QueryEngine {
   }
   public static class IndexedPositionsNode implements QCNode<PositionsList>, MoverNode {
     public final PostingMover<PositionsList> iter;
+    private final int cf;
+
     public IndexedPositionsNode(PostingMover<PositionsList> iter) {
       this.iter = iter;
+      KeyMetadata<?> m = iter.getMetadata();
+      assert(m instanceof PositionsCountMetadata);
+      this.cf = ((PositionsCountMetadata) m).totalCount;
     }
 
     @Override
@@ -104,6 +111,9 @@ public class QueryEngine {
       }
       return null;
     }
+
+    @Override
+    public int getCollectionFrequency() { return cf; }
 
     @Override
     public List<Mover> getChildMovers() {
@@ -132,6 +142,24 @@ public class QueryEngine {
       }
 
       return new ArrayPosList(OrderedWindow.findIter(posIters, 1));
+    }
+  }
+
+  public static class CountPNode extends QCApplySingleNode<Integer, PositionsList> {
+    public CountPNode(@Nonnull QCNode<PositionsList> child) {
+      super(child);
+    }
+
+    @Override
+    public Class<Integer> getResultClass() {
+      return Integer.class;
+    }
+
+    @Nullable
+    @Override
+    public Integer calculate(QueryEvaluationContext ctx, int document) {
+      PositionsList pl = child.calculate(ctx, document);
+      return pl != null ? pl.size() : 0;
     }
   }
 
@@ -175,6 +203,7 @@ public class QueryEngine {
     public boolean hasChildren() {
       return true;
     }
+    @Override public int getCollectionFrequency() { return child.getCollectionFrequency(); }
   }
   public static class AbstractSynonymNode extends QCApplyManyNode<PositionsList, PositionsList> {
     public AbstractSynonymNode(List<QCNode<PositionsList>> children) {
@@ -200,6 +229,7 @@ public class QueryEngine {
       if(hits.isEmpty()) return null;
       return hits;
     }
+
   }
 
   public static class BigramCountNode extends QCApplyManyNode<Integer, PositionsList> implements CountableNode {
@@ -221,8 +251,7 @@ public class QueryEngine {
 
     @Override
     public int getCollectionFrequency() {
-      // TODO; calculate stats
-      return 0;
+      throw new UnsupportedOperationException();
     }
   }
 
@@ -302,7 +331,9 @@ public class QueryEngine {
       double clen = ctx.getCollectionLength();
       int count = child.count(ctx, document);
       int cf = child.getCollectionFrequency();
-      return Math.log(lambda * (count / len) + (1-lambda) * (cf / clen));
+
+      double score = lambda * (count / len) + (1-lambda) * (cf / clen);
+      return Math.log(score);
     }
   }
 

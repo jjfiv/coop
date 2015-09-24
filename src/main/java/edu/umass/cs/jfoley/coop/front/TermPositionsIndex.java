@@ -29,7 +29,7 @@ import java.util.concurrent.ForkJoinPool;
  * Part of an index that represents a mapping between a single term and positions:
  * @author jfoley
  */
-public class TermPositionsIndex {
+public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
   final IdMaps.Reader<String> vocab;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
   private final CoopTokenizer tokenizer;
@@ -187,7 +187,20 @@ public class TermPositionsIndex {
     return terms;
   }
 
-  public int getLength(int doc) throws IOException {
-    return corpus.getLength(doc);
+  public int getLength(int doc) {
+    try {
+      return corpus.getLength(doc);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public double getCollectionLength() {
+    try {
+      return corpus.numberOfTermOccurrences();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
