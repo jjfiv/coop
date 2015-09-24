@@ -121,7 +121,10 @@ public class QueryEngineTest {
     GalagoCountIterator lengths = new GalagoCountIterator(new BlockPostingsMover<>(new ListBlockPostingsIterator<>(
         ListFns.fill(10, (x) -> new SimplePosting<>(x, 15)))));
 
-    NodeParameters jmParam = NodeParameters.create().set("lambda", 0.8).set("collectionLength", collectionLength).set("maximumCount", 1);
+    NodeParameters jmParam = NodeParameters.create()
+        .set("lambda", 0.8)
+        .set("collectionLength", collectionLength)
+        .set("maximumCount", 1);
     ScoreIterator galagoQL = new ScoreCombinationIterator(
         NodeParameters.create().set("norm", true),
         new ScoreIterator[] {

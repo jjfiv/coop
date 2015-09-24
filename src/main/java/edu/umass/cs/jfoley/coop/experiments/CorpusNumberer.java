@@ -112,8 +112,8 @@ public class CorpusNumberer {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory output = new Directory(argp.get("output", "robust-small.ints"));
-    List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/robust04raw")), argp);
+    Directory output = new Directory(argp.get("output", "inex-books.ints"));
+    List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "inex_txt")), argp);
     //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
     //List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/dbpedia.trectext")), argp);
 
@@ -159,7 +159,7 @@ public class CorpusNumberer {
 
 
           if(msg.ready()) {
-            System.out.println(msg.estimate(writer.nextDocId, 5000000));
+            System.out.println(msg.estimate(writer.nextDocId, 50000));
             System.out.println("# "+doc.name+" "+writer.nextDocId);
             System.out.println("\t skipped     : "+skipped);
             System.out.println("\t parse     : "+parsingTime);
