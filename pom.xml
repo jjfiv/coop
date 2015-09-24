@@ -80,6 +80,13 @@
     </dependency>
 
     <dependency>
+      <groupId>jfoley.waltz</groupId>
+      <artifactId>waltz-galago-compat</artifactId>
+      <version>${waltzVersion}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>edu.umass.cs.ciir.jfoley</groupId>
       <artifactId>chai-core</artifactId>
       <version>${chaiVersion}</version>

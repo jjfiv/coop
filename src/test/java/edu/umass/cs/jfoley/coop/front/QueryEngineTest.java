@@ -3,14 +3,26 @@ package edu.umass.cs.jfoley.coop.front;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.util.ListFns;
+import edu.umass.cs.ciir.waltz.compat.galago.iters.GalagoCountIterator;
+import edu.umass.cs.ciir.waltz.dociter.ListBlockPostingsIterator;
+import edu.umass.cs.ciir.waltz.dociter.movement.BlockPostingsMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.IdSetMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
+import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
+import edu.umass.cs.ciir.waltz.postings.SimplePosting;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import org.junit.Test;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
+import org.lemurproject.galago.core.retrieval.iterator.ScoreCombinationIterator;
+import org.lemurproject.galago.core.retrieval.iterator.ScoreIterator;
+import org.lemurproject.galago.core.retrieval.iterator.scoring.JelinekMercerScoringIterator;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
+import org.lemurproject.galago.core.retrieval.query.NodeParameters;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
@@ -88,10 +100,15 @@ public class QueryEngineTest {
       return cf;
     }
 
+    public PostingMover<Integer> asMover() {
+      return new BlockPostingsMover<>(new ListBlockPostingsIterator<>(ListFns.lazyMap(postings, (pair) -> new SimplePosting<>(pair.left, pair.right))));
+    }
   }
 
   @Test
-  public void testQueryLikelihood() {
+  public void testQueryLikelihood() throws IOException {
+    final int docLength = 15;
+    final int collectionLength = 1000;
 
     // expect: 2,4,1,6,bgs
     List<Pair<Integer, Integer>> aPostings = Arrays.asList(Pair.of(1, 5), Pair.of(2, 1), Pair.of(4, 3));
@@ -100,6 +117,38 @@ public class QueryEngineTest {
     FakeCountsNode aCounts = new FakeCountsNode(aPostings);
     FakeCountsNode bCounts = new FakeCountsNode(bPostings);
 
+    GalagoCountIterator iter = new GalagoCountIterator(aCounts.asMover());
+    GalagoCountIterator lengths = new GalagoCountIterator(new BlockPostingsMover<>(new ListBlockPostingsIterator<>(
+        ListFns.fill(10, (x) -> new SimplePosting<>(x, 15)))));
+
+    NodeParameters jmParam = NodeParameters.create().set("lambda", 0.8).set("collectionLength", collectionLength).set("maximumCount", 1);
+    ScoreIterator galagoQL = new ScoreCombinationIterator(
+        NodeParameters.create().set("norm", true),
+        new ScoreIterator[] {
+            new JelinekMercerScoringIterator(
+                jmParam.clone().set("nodeFrequency", aCounts.getCollectionFrequency()),
+                lengths,
+                new GalagoCountIterator(aCounts.asMover())
+            ),
+            new JelinekMercerScoringIterator(
+                jmParam.clone().set("nodeFrequency", bCounts.getCollectionFrequency()),
+                lengths,
+                new GalagoCountIterator(bCounts.asMover())
+            )
+        }
+    );
+
+    Function<Integer, Double> scoreWithGalago = (docId) -> {
+      ScoringContext ctx = new ScoringContext(docId);
+      try {
+        galagoQL.reset();
+        galagoQL.syncTo(docId);
+        return galagoQL.score(ctx);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    };
+
     QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(Arrays.asList(
         new QueryEngine.LinearSmoothingNode(aCounts),
         new QueryEngine.LinearSmoothingNode(bCounts)));
@@ -107,15 +156,8 @@ public class QueryEngineTest {
     assertEquals(QueryEngine.ChildMovingLogic.OR, ql.calculateMovingLogic());
 
     QueryEngine.QueryEvaluationContext fakeIndex = new QueryEngine.QueryEvaluationContext() {
-      @Override
-      public int getLength(int document) {
-        return 15;
-      }
-
-      @Override
-      public double getCollectionLength() {
-        return 1000;
-      }
+      @Override public int getLength(int document) { return docLength; }
+      @Override public double getCollectionLength() { return collectionLength; }
     };
     double backgroundScore = ql.score(fakeIndex, 0);
     assertEquals(backgroundScore, ql.score(fakeIndex, 7), 0.00001);
@@ -123,7 +165,11 @@ public class QueryEngineTest {
     ArrayList<ScoredDocument> sdoc = new ArrayList<>();
 
     for (int i = 0; i < 7; i++) {
-      sdoc.add(new ScoredDocument(i, ql.score(fakeIndex, i)));
+      double newScore = ql.score(fakeIndex, i);
+      double gScore = scoreWithGalago.apply(i);
+      //System.out.println("["+i+"] neo="+newScore+" galago="+gScore);
+      assertEquals(gScore, newScore, 0.001);
+      sdoc.add(new ScoredDocument(i, newScore));
     }
     Collections.sort(sdoc, new ScoredDocument.ScoredDocumentComparator().reversed());
     assertEquals(2, sdoc.get(0).document);
@@ -152,7 +198,6 @@ public class QueryEngineTest {
 
     List<ScoredDocument> results = new ArrayList<>(best.getSorted());
     assertEquals(3, results.size());
-    System.err.println(best.getSorted());
     assertEquals(2, results.get(0).document);
     assertEquals(4, results.get(1).document);
     assertEquals(1, results.get(2).document);
