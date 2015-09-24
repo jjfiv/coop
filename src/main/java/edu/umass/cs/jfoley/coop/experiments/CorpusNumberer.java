@@ -136,9 +136,6 @@ public class CorpusNumberer {
 
         long st, et;
         while (true) {
-          if(writer.nextDocId > 50000) {
-            break;
-          }
           st = System.nanoTime();
           Document doc = parser.nextDocument();
           et = System.nanoTime();
