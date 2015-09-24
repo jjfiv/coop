@@ -226,7 +226,16 @@ public class IntCoopIndex implements CoopIndex {
 
   @Override
   public Parameters getMetadata() {
-    return Parameters.create();
+    try {
+      return Parameters.parseArray(
+          "uniqueWords", vocab.size(),
+          "documentCount", names.size(),
+          "tokenizer", getTokenizer().getClass(),
+          "collectionLength", getCollectionLength()
+          );
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

@@ -18,8 +18,8 @@ public class IntCorpusPIndex {
     Parameters argp = Arguments.parse(args);
     //Directory input = Directory.Read(argp.get("input", "dbpedia.ints"));
     //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
-    Directory input = Directory.Read(argp.get("input", "inex-books.ints"));
-    Directory output = Directory.Read(argp.get("input", "inex-books.ints"));
+    Directory input = Directory.Read(argp.get("input", "inex-sentences.ints"));
+    Directory output = Directory.Read(argp.get("input", "inex-sentences.ints"));
 
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);

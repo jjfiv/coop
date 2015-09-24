@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 public class ExtractNames {
   public static void main(String[] args) throws IOException {
-    IntCoopIndex target = new IntCoopIndex(new Directory("inex-books.ints"));
+    IntCoopIndex target = new IntCoopIndex(new Directory("inex-sentences.ints"));
     IntCoopIndex index = new IntCoopIndex(new Directory("dbpedia.ints"));
 
     int N = 20;
