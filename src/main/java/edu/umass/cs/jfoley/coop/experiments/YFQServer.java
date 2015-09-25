@@ -7,6 +7,7 @@ import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.conll.server.ServerErr;
 import edu.umass.cs.jfoley.coop.conll.server.ServerFn;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.util.WordLists;
 import org.lemurproject.galago.tupleflow.web.WebHandler;
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +33,9 @@ import java.util.logging.Logger;
 public class YFQServer implements Closeable, WebHandler {
   static Logger logger = Logger.getLogger("YFQServer");
   private List<YearFact> facts;
+  TIntObjectHashMap<YearFact> factById;
+  private AtomicInteger nextFactId = new AtomicInteger(1);
+
   private final Directory dbDir;
   private AtomicBoolean dirty = new AtomicBoolean(false);
   private AtomicBoolean running = new AtomicBoolean(true);
@@ -175,12 +180,14 @@ public class YFQServer implements Closeable, WebHandler {
     final String user;
     final long time;
     final String query;
+    public long deleted;
 
     public UserSubmittedQuery(int id, String user, long time, String query) {
       this.id = id;
       this.user = user;
       this.time = time;
       this.query = query;
+      this.deleted = 0;
     }
 
     @Nonnull
@@ -189,13 +196,14 @@ public class YFQServer implements Closeable, WebHandler {
           "id", id,
           "user", user,
           "time", time,
-          "query", query
+          "query", query,
+          "deleted", deleted
       );
     }
 
     @Nonnull
     public static UserSubmittedQuery parseJSON(Parameters input) {
-      return new UserSubmittedQuery(input.getInt("id"), input.getString("user"), input.getLong("time"), input.getString("query"));
+      return new UserSubmittedQuery(input.getInt("id"), input.get("user", "jfoley"), input.getLong("time"), input.getString("query"));
     }
   }
 
@@ -237,6 +245,7 @@ public class YFQServer implements Closeable, WebHandler {
   public YFQServer(Parameters argp) throws IOException {
     this.dbDir = new Directory(argp.get("save", "db.saves"));
 
+    dbDir.ls(System.err);
     String resumeFile = argp.get("resume", shutdownFileName);
     htmlDir = Directory.Read(argp.get("html", "coop/yfq_query_writer"));
 
@@ -252,6 +261,24 @@ public class YFQServer implements Closeable, WebHandler {
       return p;
     });
     apiMethods.put("db", p -> saveToJSON());
+    apiMethods.put("rand", p -> {
+      Random rand = new Random();
+      int index = rand.nextInt(facts.size());
+      return facts.get(index).asJSON();
+    });
+    apiMethods.put("suggestQuery", p -> {
+      int factId = p.getInt("factId");
+      UserSubmittedQuery q = new UserSubmittedQuery(
+          nextFactId.incrementAndGet(), p.getString("user"), System.currentTimeMillis(), p.getString("query"));
+      submitQuery(factId, q);
+      return q.asJSON();
+    });
+    apiMethods.put("deleteQuery", p -> {
+      int factId = p.getInt("factId");
+      int queryId = p.getInt("queryId");
+      return Parameters.parseArray("deleted", deleteQuery(factId, queryId));
+    });
+    apiMethods.put("fact", p -> factById.get(p.getInt("id")).asJSON());
 
     // bootstrap! / import!
     if(!dbDir.child(resumeFile).exists()) {
@@ -299,6 +326,24 @@ public class YFQServer implements Closeable, WebHandler {
     });
   }
 
+  private synchronized boolean deleteQuery(int factId, int queryId) {
+    logger.info("deleteQuery: "+factId+" "+queryId);
+    boolean change = false;
+    for (UserSubmittedQuery query : factById.get(factId).queries) {
+      if(query.id == queryId) {
+        query.deleted = System.currentTimeMillis();
+        change = true;
+      }
+    }
+    return change;
+    //return factById.get(factId).queries((q) -> q.id == queryId);
+  }
+
+  private synchronized void submitQuery(int factId, UserSubmittedQuery q) {
+    logger.info("submitQuery: "+factId+" "+q.asJSON());
+    factById.get(factId).queries.add(q);
+  }
+
   private void saveForShutdown() {
     try {
       save(this.dbDir.child(shutdownFileName));
@@ -324,11 +369,20 @@ public class YFQServer implements Closeable, WebHandler {
     try {
       ArrayList<YearFact> newFacts = new ArrayList<>();
       Parameters db = Parameters.parseStream(IO.openInputStream(fileName));
+      TIntObjectHashMap<YearFact> byId = new TIntObjectHashMap<>();
+      int maxId = 1;
       for (Parameters yfjson : db.getList("facts", Parameters.class)) {
-        newFacts.add(YearFact.parseJSON(yfjson));
+        YearFact yf = YearFact.parseJSON(yfjson);
+        newFacts.add(yf);
+        byId.put(yf.id, yf);
+        for (UserSubmittedQuery query : yf.queries) {
+          maxId = Math.max(maxId, query.id);
+        }
       }
       synchronized (this) {
         facts = newFacts;
+        factById = byId;
+        nextFactId.set(maxId);
       }
     } catch (Exception e) {
       logger.log(Level.WARNING, "Loading of "+fileName+" failed!");
@@ -340,6 +394,7 @@ public class YFQServer implements Closeable, WebHandler {
     try (YFQServer server = new YFQServer(argp)) {
       logger.info("Loaded: " + server.facts.size() + " facts!");
       WebServer ws = WebServer.start(argp, server);
+      server.webServer = ws;
       ws.join();
     }
   }
@@ -366,7 +421,7 @@ public class YFQServer implements Closeable, WebHandler {
       try {
         File backupFile = dbDir.child("db" + timestamp + ".json.gz");
         save(backupFile);
-        File old = null;
+        File old;
         synchronized (this) {
           old = backupFiles.replace(backupFile);
         }
