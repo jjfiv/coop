@@ -109,7 +109,8 @@ public class DJVUPageParser {
       }
       return output;
     } catch (SAXException | ParserConfigurationException e) {
-      throw new IOException(e);
+      log.log(Level.WARNING, "Parse-Error: "+name, e);
+      return output;
     }
   }
 
