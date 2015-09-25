@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.experiments;
 
 import ciir.jfoley.chai.IntMath;
+import ciir.jfoley.chai.collections.maps.StringIntHashMap;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.time.Debouncer;
@@ -45,6 +46,7 @@ public class CorpusNumberer {
     // reserve zero just in case
     int nextTermId = 1;
     TObjectIntHashMap<String> memVocab;
+    StringIntHashMap fastVocab;
 
     public IntCorpusWriter(Directory output) throws IOException {
       corpusWriter = new FileSink(output.child("intCorpus"));
@@ -61,6 +63,7 @@ public class CorpusNumberer {
       );
 
       memVocab = new TObjectIntHashMap<>();
+      fastVocab = new StringIntHashMap(32);
     }
 
     public void process(Document gdoc) throws IOException {
@@ -89,16 +92,26 @@ public class CorpusNumberer {
 
     public int getTermId(String term) throws IOException {
 
-      int tid = memVocab.get(term);
-      // allocate new term:
-      if(tid == memVocab.getNoEntryValue()) {
-        tid = nextTermId++;
+      if(fastVocab != null) {
+        return fastVocab.getOrAssign(term, (id) -> {
+          try {
+            vocabulary.put(id, term);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
+      } else {
+        int tid = memVocab.get(term);
+        // allocate new term:
+        if (tid == memVocab.getNoEntryValue()) {
+          tid = nextTermId++;
 
-        // add to memory and disk vocab:
-        memVocab.put(term, tid);
-        vocabulary.put(tid, term);
+          // add to memory and disk vocab:
+          memVocab.put(term, tid);
+          vocabulary.put(tid, term);
+        }
+        return tid;
       }
-      return tid;
     }
 
     @Override
@@ -112,8 +125,8 @@ public class CorpusNumberer {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory output = new Directory(argp.get("output", "robust-small.ints"));
-    List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/robust04raw")), argp);
+    Directory output = new Directory(argp.get("output", "latimes.ints"));
+    List<DocumentSplit> documentSplits = DocumentSource.processFile(new File(argp.get("input", "/media/jfoley/flash/raw/robust04/data/latimes.dat.gz")), argp);
     //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
     //List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/dbpedia.trectext")), argp);
 
@@ -159,7 +172,7 @@ public class CorpusNumberer {
 
 
           if(msg.ready()) {
-            System.out.println(msg.estimate(writer.nextDocId, 5000000));
+            System.out.println(msg.estimate(writer.nextDocId, 128000));
             System.out.println("# "+doc.name+" "+writer.nextDocId);
             System.out.println("\t skipped     : "+skipped);
             System.out.println("\t parse     : "+parsingTime);
