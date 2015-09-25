@@ -95,8 +95,8 @@ public class IntCorpusSDMIndex {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory input = Directory.Read(argp.get("input", "/mnt/scratch/jfoley/int-corpora/robust.ints"));
-    Directory output = new Directory(argp.get("output", "test2.out"));
+    Directory input = Directory.Read(argp.get("input", "robust.ints"));
+    Directory output = new Directory(argp.get("output", "robust.ints"));
 
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);

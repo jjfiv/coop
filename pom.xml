@@ -80,6 +80,19 @@
     </dependency>
 
     <dependency>
+      <groupId>jfoley.waltz</groupId>
+      <artifactId>waltz-galago-compat</artifactId>
+      <version>${waltzVersion}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.8.3</version>
+    </dependency>
+
+    <dependency>
       <groupId>edu.umass.cs.ciir.jfoley</groupId>
       <artifactId>chai-core</artifactId>
       <version>${chaiVersion}</version>

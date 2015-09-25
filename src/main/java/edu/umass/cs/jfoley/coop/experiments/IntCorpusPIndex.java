@@ -18,12 +18,13 @@ public class IntCorpusPIndex {
     Parameters argp = Arguments.parse(args);
     //Directory input = Directory.Read(argp.get("input", "dbpedia.ints"));
     //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
-    Directory input = Directory.Read(argp.get("input", "robust-small.ints"));
-    Directory output = Directory.Read(argp.get("input", "robust-small.ints"));
+    Directory input = Directory.Read(argp.get("input", "inex-sentences.ints"));
+    Directory output = Directory.Read(argp.get("input", "inex-sentences.ints"));
 
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);
 
+    int emptyDocuments = 0;
     try (IntVocabBuilder.IntVocabReader reader = new IntVocabBuilder.IntVocabReader(input);
         IntCorpusPositionIndexer indexer = new IntCorpusPositionIndexer(output)) {
       int numDocuments = reader.numberOfDocuments();
@@ -33,7 +34,7 @@ public class IntCorpusPIndex {
       for (int i = 0; i < numDocuments; i++) {
         int[] terms = reader.getDocument(i);
         if(terms.length == 0) {
-          System.err.println("Empty-doc: "+i);
+          emptyDocuments++;
           continue;
         }
         indexer.add(i, terms);

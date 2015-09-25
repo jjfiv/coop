@@ -23,6 +23,7 @@ public abstract class FindHitsMethod {
     ArrayList<DocumentResult<Integer>> hits = compute();
     long endTime = System.currentTimeMillis();
     int queryFrequency = hits.size();
+    System.err.println("Found Hits in "+(endTime-startTime)+"ms.");
     output.put("queryFrequency", queryFrequency);
     output.put("queryTime", (endTime - startTime));
     return hits;

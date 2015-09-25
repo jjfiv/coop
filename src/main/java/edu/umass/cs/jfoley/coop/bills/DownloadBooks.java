@@ -5,6 +5,7 @@ import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.io.ShardedTextWriter;
 import ciir.jfoley.chai.time.Debouncer;
+import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,8 +17,8 @@ import java.util.ArrayList;
  * @author jfoley.
  */
 public class DownloadBooks {
-  public static String urlForInternetArchiveText(String id) {
-    return "https://archive.org/download/"+id+"/"+id+"_djvu.txt";
+  public static String urlForInternetArchiveText(String id, String kind) {
+    return "https://archive.org/download/"+id+"/"+id+"_djvu."+kind;
   }
 
   public static String TREC(String name, String text) {
@@ -30,19 +31,21 @@ public class DownloadBooks {
   }
 
   public static void main(String[] args) throws URISyntaxException, IOException {
+    Parameters argp = Parameters.parseArgs(args);
     ArrayList<String> ids = new ArrayList<>();
 
-    try(LinesIterable lines = LinesIterable.fromFile("book-ids.txt")) {
+    try(LinesIterable lines = LinesIterable.fromFile(argp.get("input", "book-ids.txt"))) {
       for (String line : lines) {
         ids.add(line.trim());
       }
     }
+    String kind = argp.get("kind", "txt");
 
     Debouncer msg = new Debouncer(10000);
-    try (ShardedTextWriter trectext = new ShardedTextWriter(new Directory("inex_txt"), "inex", "trectext.gz", 2000)) {
+    try (ShardedTextWriter trectext = new ShardedTextWriter(new Directory(argp.get("output", "inex_txt")), "books", "trectext.gz", 2000)) {
       for (int i = 0; i < ids.size(); i++) {
         String id = ids.get(i);
-        URI url = new URI(urlForInternetArchiveText(id));
+        URI url = new URI(urlForInternetArchiveText(id, kind));
         try (InputStream stream = url.toURL().openStream()) {
           String body = IO.slurp(stream);
           System.err.println(id + " "+ msg.estimate(i, ids.size()));
