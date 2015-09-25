@@ -99,7 +99,6 @@ public class IntCorpusSDMIndex {
     Directory output = new Directory(argp.get("output", "robust.ints"));
 
     long startTime = System.currentTimeMillis();
-    Debouncer msg = new Debouncer(5000);
 
     PostingsConfig<Integer, Integer> countIndexCfg = new PostingsConfig<>(
         FixedSize.ints, VarUInt.instance, Comparing.defaultComparator(), new CountMetadata()
@@ -108,28 +107,78 @@ public class IntCorpusSDMIndex {
         FixedSize.longs, VarUInt.instance, Comparing.defaultComparator(), new CountMetadata()
     );
 
-    try (IntVocabBuilder.IntVocabReader reader = new IntVocabBuilder.IntVocabReader(input);
-         PIndexWriter<Integer, Integer> unigramWriter = countIndexCfg.getWriter(output, "unigram");
-         PIndexWriter<Long, Integer> bigramWriter = bigramIndexCfg.getWriter(output, "bigram");
-         PIndexWriter<Long, Integer> ubigramWriter = bigramIndexCfg.getWriter(output, "ubigram")
-    ) {
-      int numDocuments = reader.numberOfDocuments();
-      AtomicLong globalPosition = new AtomicLong();
-      long numTerms = reader.numberOfTermOccurrences();
+
+    IntVocabBuilder.IntVocabReader reader = new IntVocabBuilder.IntVocabReader(input);
+    int numDocuments = reader.numberOfDocuments();
+    AtomicLong globalPosition = new AtomicLong();
+    long numTerms = reader.numberOfTermOccurrences();
+
+    Debouncer msg_u = new Debouncer(5000);
+    try (PIndexWriter<Integer, Integer> unigramWriter = countIndexCfg.getWriter(output, "unigram")) {
 
       for (final int docId : IntRange.exclusive(0, numDocuments)) {
-        int[] terms  = reader.getDocument(docId);
+        int[] terms = reader.getDocument(docId);
         TIntIntHashMap unigrams = new TIntIntHashMap(terms.length);
-        TLongIntHashMap bigrams = new TLongIntHashMap(terms.length * 2);
-        TLongIntHashMap ubigrams = new TLongIntHashMap(terms.length * 20);
 
-        final int width = 8;
         for (int i = 0; i < terms.length; i++) {
           int term_i = terms[i];
           unigrams.adjustOrPutValue(term_i, 1, 1);
-          if (i + 1 < terms.length) {
-            bigrams.adjustOrPutValue(Bigram.toLong(term_i, terms[i + 1]), 1, 1);
+        }
 
+        unigrams.forEachEntry((id, count) -> {
+          unigramWriter.add(id, docId, count);
+          return true;
+        });
+
+        globalPosition.addAndGet(terms.length);
+
+        if (msg_u.ready()) {
+          long pos = globalPosition.get();
+          System.out.println("#u Progress: " + pos + " / " + numTerms);
+          System.out.println(msg_u.estimate(pos, numTerms));
+          System.out.println();
+        }
+
+      }
+
+      Debouncer msg_od1 = new Debouncer(5000);
+      globalPosition.set(0);
+      try (PIndexWriter<Long, Integer> bigramWriter = bigramIndexCfg.getWriter(output, "bigram")) {
+        for (final int docId : IntRange.exclusive(0, numDocuments)) {
+          int[] terms = reader.getDocument(docId);
+          TLongIntHashMap bigrams = new TLongIntHashMap(terms.length * 2);
+
+          for (int i = 0; i < terms.length - 1; i++) {
+            bigrams.adjustOrPutValue(Bigram.toLong(terms[i], terms[i + 1]), 1, 1);
+          }
+
+          bigrams.forEachEntry((big, count) -> {
+            bigramWriter.add(big, docId, count);
+            return true;
+          });
+
+          globalPosition.addAndGet(terms.length);
+
+          if (msg_od1.ready()) {
+            long pos = globalPosition.get();
+            System.out.println("#od1 Progress: " + pos + " / " + numTerms);
+            System.out.println(msg_od1.estimate(pos, numTerms));
+            System.out.println();
+          }
+        }
+      }
+
+      Debouncer msg_uw8 = new Debouncer(5000);
+      globalPosition.set(0);
+      try (PIndexWriter<Long, Integer> ubigramWriter = bigramIndexCfg.getWriter(output, "ubigram")
+      ) {
+        for (final int docId : IntRange.exclusive(0, numDocuments)) {
+          int[] terms = reader.getDocument(docId);
+          TLongIntHashMap ubigrams = new TLongIntHashMap(terms.length * 20);
+
+          final int width = 8;
+          for (int i = 0; i < terms.length; i++) {
+            int term_i = terms[i];
             // ubigrams:
             int windowSize = Math.min(width, terms.length - i);
             for (int j = 1; j < windowSize; j++) {
@@ -142,52 +191,43 @@ public class IntCorpusSDMIndex {
               }
             }
           }
-        }
 
+          ubigrams.forEachEntry((ubig, count) -> {
+            ubigramWriter.add(ubig, docId, count);
+            return true;
+          });
 
-        unigrams.forEachEntry((id, count) -> {
-          unigramWriter.add(id, docId, count);
-          return true;
-        });
-        bigrams.forEachEntry((big, count) -> {
-          bigramWriter.add(big, docId, count);
-          return true;
-        });
-        ubigrams.forEachEntry((ubig, count) -> {
-          ubigramWriter.add(ubig, docId, count);
-          return true;
-        });
+          globalPosition.addAndGet(terms.length);
 
-        globalPosition.addAndGet(terms.length);
-
-        if (msg.ready()) {
-          long pos = globalPosition.get();
-          System.out.println("Progress: " + pos + " / " + numTerms);
-          System.out.println(msg.estimate(pos, numTerms));
-          System.out.println();
+          if (msg_uw8.ready()) {
+            long pos = globalPosition.get();
+            System.out.println("#uw8 Progress: " + pos + " / " + numTerms);
+            System.out.println(msg_uw8.estimate(pos, numTerms));
+            System.out.println();
+          }
         }
       }
+      long endTime = System.currentTimeMillis();
+
+      System.out.println("Total Time: " + (endTime - startTime));
+      // Progress: 249670890 / 252359881
+      // 1,414,862.5 items/s  1.9 seconds left, 98.9% complete.
+      // Total Time: 242472
+
+      // bills
+      // Progress: 324483348 / 334913031
+      // 2,179,993.7 items/s  4.8 seconds left, 96.9% complete.
+      // Total Time: 181479
+
+      // bills.count index:
+      // Progress: 275946653 / 334913031
+      // 26,903,251.7 items/s  2.2 seconds left, 82.4% complete.
+      // Total Time: 23503
+
+      // bills.unigram+bigram index: (long trick)
+      // 3.6m items/s
+      // Total Time: 164742
+
     }
-    long endTime = System.currentTimeMillis();
-
-    System.out.println("Total Time: "+(endTime - startTime));
-    // Progress: 249670890 / 252359881
-    // 1,414,862.5 items/s  1.9 seconds left, 98.9% complete.
-    // Total Time: 242472
-
-    // bills
-    // Progress: 324483348 / 334913031
-    // 2,179,993.7 items/s  4.8 seconds left, 96.9% complete.
-    // Total Time: 181479
-
-    // bills.count index:
-    // Progress: 275946653 / 334913031
-    // 26,903,251.7 items/s  2.2 seconds left, 82.4% complete.
-    // Total Time: 23503
-
-    // bills.unigram+bigram index: (long trick)
-    // 3.6m items/s
-    // Total Time: 164742
-
   }
 }

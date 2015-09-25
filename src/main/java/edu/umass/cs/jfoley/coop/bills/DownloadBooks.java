@@ -1,17 +1,15 @@
 package edu.umass.cs.jfoley.coop.bills;
 
-import ciir.jfoley.chai.io.Directory;
-import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
-import ciir.jfoley.chai.io.ShardedTextWriter;
+import ciir.jfoley.chai.io.archive.ZipWriter;
 import ciir.jfoley.chai.time.Debouncer;
+import edu.umass.cs.jfoley.coop.util.HTTP;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author jfoley.
@@ -39,27 +37,33 @@ public class DownloadBooks {
         ids.add(line.trim());
       }
     }
-    String kind = argp.get("kind", "txt");
 
-    Debouncer msg = new Debouncer(10000);
-    try (ShardedTextWriter trectext = new ShardedTextWriter(new Directory(argp.get("output", "inex_txt")), "books", "trectext.gz", 2000)) {
-      for (int i = 0; i < ids.size(); i++) {
-        String id = ids.get(i);
-        URI url = new URI(urlForInternetArchiveText(id, kind));
-        try (InputStream stream = url.toURL().openStream()) {
-          String body = IO.slurp(stream);
-          System.err.println(id + " "+ msg.estimate(i, ids.size()));
-          trectext.process(TREC(id, body));
+    Debouncer msg = new Debouncer(1000);
+    AtomicInteger count = new AtomicInteger(0);
+    try (ZipWriter writer = new ZipWriter(argp.get("output", "inex-djvu.zip"))) {
+      ids.parallelStream().unordered().forEach((id) -> {
+        try {
+          HTTP.Response response = HTTP.get(urlForInternetArchiveText(id, "xml"));
+          if (response.status == 200) {
+            synchronized (writer) {
+              writer.writeUTF8(id + ".xml", response.body);
+            }
+          }
         } catch (IOException e) {
           System.err.println(id);
           e.printStackTrace(System.err);
         }
-      }
+
+        // stats:
+        int total = count.incrementAndGet();
+        if (msg.ready()) {
+          synchronized (System.err) {
+            System.err.println(id + " " +total+"/"+ids.size()+" "+ msg.estimate(total, ids.size()));
+          }
+        }
+      });
     } catch (IOException e) {
       e.printStackTrace();
     }
-
-
-
   }
 }
