@@ -138,6 +138,8 @@ public class IntVocabBuilder {
     public InputStream docNamesReader;
     public InputStream termsReader;
 
+    int[] lengths;
+
     public int numTerms;
     public TIntIntHashMap termTranslationTable = null;
 
@@ -153,6 +155,18 @@ public class IntVocabBuilder {
         termsReader = IO.openInputStream(terms);
         numTerms = FixedSize.ints.read(termsReader);
       }
+      // lengths-array.
+      lengths = new int[numberOfDocuments()];
+      int ND = numberOfDocuments();
+      long NT = numberOfTermOccurrences();
+      InputStream stream = docOffsetReader.stream();
+      long prev = FixedSize.longs.read(stream);
+      for (int i = 1; i < ND; i++) {
+        long here = FixedSize.longs.read(stream);
+        lengths[i-1] = (int) (here - prev);
+        prev = here;
+      }
+      lengths[ND-1] = (int) (NT - prev);
     }
 
     public long numberOfTermOccurrences() throws IOException {
@@ -202,8 +216,7 @@ public class IntVocabBuilder {
       return corpusReader.readInt(start + position * 4);
     }
     public int getLength(int document) throws IOException {
-      Pair<Long,Long> docRange = getDocumentRange(document);
-      return IntMath.fromLong((docRange.right - docRange.left) / 4L);
+      return lengths[document];
     }
     public IntList getSlice(int document, int position, int width) throws IOException {
       Pair<Long,Long> docRange = getDocumentRange(document);

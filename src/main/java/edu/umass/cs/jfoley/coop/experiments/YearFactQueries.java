@@ -7,6 +7,7 @@ import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.random.ReservoirSampler;
 import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.QueryEngine;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
@@ -145,6 +146,7 @@ public class YearFactQueries {
           continue;
         }
         termIds.push(term);
+        if(termIds.size() >= 10) break;
       }
 
 
@@ -166,21 +168,27 @@ public class YearFactQueries {
 
         QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(pnodes);
 
-        TopKHeap<ScoredDocument> topK = new TopKHeap<>(10, new ScoredDocument.ScoredDocumentComparator());
         long start = System.currentTimeMillis();
-        QueryEngine.createMover(ql).execute((doc) -> {
-          double score = ql.score(tpi, doc);
-          if (!Double.isNaN(score)) {
-            topK.offer(new ScoredDocument(doc, score));
-          }
-        });
+        TopKHeap<ScoredDocument> topK = new TopKHeap<>(10, new ScoredDocument.ScoredDocumentComparator());
+        Mover m = QueryEngine.createMover(ql);
+        ql.setup(tpi);
+        for (int i = 0; i < 1; i++) {
+          topK.clear();
+          m.execute((doc) -> {
+            double score = ql.score(tpi, doc);
+            if (!Double.isNaN(score)) {
+              topK.offer(new ScoredDocument(doc, score));
+            }
+          });
+          m.reset();
+        }
         long end = System.currentTimeMillis();
 
         queryTimeStats.push(end-start);
         System.err.println("# scoring in "+(end-start)+"ms.");
         for (ScoredDocument scoredDocument : topK.getSorted()) {
           String name = index.getNames().getForward((int) scoredDocument.document);
-          System.err.println(name+"\t"+scoredDocument.score);
+          System.err.println("\t"+name+"\t"+scoredDocument.score);
         }
       }
     }

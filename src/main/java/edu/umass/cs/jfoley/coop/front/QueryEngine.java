@@ -313,22 +313,24 @@ public class QueryEngine {
   }
 
   public static class CombineNode extends QCApplyManyNode<Double, Double> {
+    private final int NC;
     final double[] weights;
     public CombineNode(List<QCNode<Double>> children) {
       this(children, ListFns.fill(children.size(), ignored -> 1.0), true);
     }
     public CombineNode(List<QCNode<Double>> children, List<Double> weights, boolean norm) {
       super(ChildMovingLogic.AND, children);
-      assert(weights.size() == children.size());
-      this.weights = new double[weights.size()];
+      this.NC = children.size();
+      assert(weights.size() == NC);
+      this.weights = new double[NC];
       double sum = 0;
-      for (int i = 0; i < weights.size(); i++) {
+      for (int i = 0; i < NC; i++) {
         double w = weights.get(i);
         this.weights[i] = w;
         sum += w;
       }
       if(norm) {
-        for (int i = 0; i < this.weights.length; i++) {
+        for (int i = 0; i < NC; i++) {
           this.weights[i] /= sum;
         }
       }
@@ -342,10 +344,14 @@ public class QueryEngine {
     @Nullable
     @Override
     public Double calculate(QueryEvaluationContext ctx, int document) {
+      return score(ctx, document);
+    }
+
+    @Override
+    public final double score(QueryEvaluationContext ctx, int document) {
       double sum = 0;
-      for (int i = 0; i < children.size(); i++) {
-        Double score = children.get(i).calculate(ctx, document);
-        assert (score != null);
+      for (int i = 0; i < NC; i++) {
+        double score = children.get(i).score(ctx, document);
         sum += weights[i] * score;
       }
       return sum;
@@ -355,6 +361,7 @@ public class QueryEngine {
   /** These guys make movement OR rather than AND, since they sanely reply to everything... */
   public static class LinearSmoothingNode extends QCApplySingleNode<Double, Integer> {
     private final double lambda;
+    private double bgScore;
 
     public LinearSmoothingNode(@Nonnull QCNode<Integer> child) {
       this(child, 0.8);
@@ -362,6 +369,7 @@ public class QueryEngine {
     public LinearSmoothingNode(@Nonnull QCNode<Integer> child, double lambda) {
       super(child);
       this.lambda = lambda;
+      this.bgScore = Double.NaN;
     }
 
     @Override
@@ -374,16 +382,25 @@ public class QueryEngine {
       return Double.class;
     }
 
+    @Override
+    public void setup(QueryEvaluationContext ctx) {
+      double clen = ctx.getCollectionLength();
+      int cf = child.getCollectionFrequency();
+      this.bgScore = (1.0-lambda) * (cf / clen);
+    }
+
     @Nullable
     @Override
-    public Double calculate(QueryEvaluationContext ctx, int document) {
-      double len = ctx.getLength(document);
-      double clen = ctx.getCollectionLength();
-      int count = child.count(ctx, document);
-      int cf = child.getCollectionFrequency();
+    public final Double calculate(QueryEvaluationContext ctx, int document) {
+      return score(ctx, document);
+    }
 
-      double score = lambda * (count / len) + (1-lambda) * (cf / clen);
-      return Math.log(score);
+    @Override
+    public final double score(QueryEvaluationContext ctx, int document) {
+      double len = ctx.getLength(document);
+      int count = child.count(ctx, document);
+
+      return Math.log(bgScore + lambda * (count / len));
     }
   }
 
@@ -461,9 +478,9 @@ public class QueryEngine {
     /**
      * This call is only valid if this is a QCNode&lt;Double&gt;
      */
-    default Double score(QueryEvaluationContext ctx, int document) {
+    default double score(QueryEvaluationContext ctx, int document) {
       assert(getResultClass() == Double.class);
-      return (Double) calculate(ctx, document);
+      return Objects.requireNonNull((Double) calculate(ctx, document));
     }
 
 
@@ -472,6 +489,14 @@ public class QueryEngine {
      * @return collection frequency; number of times it occurs in a collection.
      */
     default int getCollectionFrequency() { return -1; }
+
+    /**
+     * By default, propagate down the tree.
+     * @param ctx
+     */
+    default void setup(QueryEvaluationContext ctx) {
+      for (QCNode<?> qcNode : children()) { qcNode.setup(ctx); }
+    }
   }
 
   @Nonnull

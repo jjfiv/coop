@@ -36,6 +36,8 @@ public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
   private final CoopTokenizer tokenizer;
   private final IntVocabBuilder.IntVocabReader corpus;
   private final IOMap<Integer, PostingMover<Integer>> counts;
+  private final int collectionLength;
+  private final int numberOfDocuments;
   LoadingCache<Integer, KeyMetadata<?>> pmeta;
 
   public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<Integer>> counts, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer, IntVocabBuilder.IntVocabReader corpus) throws IOException {
@@ -44,6 +46,8 @@ public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
     this.positions = positions;
     this.tokenizer = tokenizer;
     this.corpus = corpus;
+    this.numberOfDocuments = corpus.numberOfDocuments();
+    this.collectionLength = corpus.numberOfDocuments();
     long cacheSize = 1_000_000;
     pmeta = Caffeine.newBuilder().maximumSize(cacheSize).build((id) -> {
       try {
@@ -200,11 +204,7 @@ public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
 
   @Override
   public double getCollectionLength() {
-    try {
-      return corpus.numberOfTermOccurrences();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return collectionLength;
   }
 
   @Override
