@@ -46,10 +46,32 @@ class UserInterface extends React.Component {
         } else {
             return <div>
                 <div className="loggedInMessage">Logged in as user <strong>{user}</strong>.
-                    <Button label="Logout" onClick={(evt) => this.logout()} /> </div>
+                    <Button label="Logout" onClick={(evt) => this.logout()} />
+                    {admin() ? <Button label="Save!" onClick={(evt) => postJSON("/api/save")} />  : null}
+                </div>
                 <QueryWriter />
                 </div>;
         }
+    }
+}
+
+class RecommendedJudgments extends React.Component {
+    render() {
+        let getText = (x) => {
+            return x.users[globalUser] || "Fact #"+x.factId;
+        };
+        let render = (x) => {
+            let id = x.factId;
+            console.log(id);
+            return <a className={"recommended"} key={id} href={"/?id="+id}>{getText(x)}</a>
+        };
+
+        return <FilterableList
+            getItemText={x => render(x)}
+            items={this.props.judged}
+            getItemText={getText}
+            keyFn={x => x.factId}
+            renderItem={render} />;
     }
 }
 
@@ -57,8 +79,8 @@ class QueryWriter extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            history: [],
-            rand: null
+            rand: null,
+            judged: []
         }
     }
     componentDidMount() {
@@ -70,6 +92,10 @@ class QueryWriter extends React.Component {
             // random:
             this.requestNew();
         }
+        this.refreshJudged();
+    }
+    refreshJudged() {
+        postJSON("/api/judged", {}, (what) => this.setState({judged: what.judged}));
     }
     requestNew() {
         if(this.state.rand != null) {
@@ -89,16 +115,18 @@ class QueryWriter extends React.Component {
         let fact = this.state.rand;
         let current;
         if(fact) {
-            current = <FactRenderer refresh={(fact) => { this.setFact(fact) }} fact={fact} />;
+            current = <FactRenderer refresh={(fact) => { this.setFact(fact) }} nextRandom={() => this.requestNew()} fact={fact} />;
         } else {
             current = <i>Waiting for the server...</i>;
         }
 
         return <div>
-            <Button label={"Next Fact"} onClick={(evt) => this.requestNew()} />
+            <div>
+                <div>Already-Edited Facts: <Button label="Refresh" onClick={(evt) => this.refreshJudged()} /></div>
+                <RecommendedJudgments judged={this.state.judged}  />
+            </div>
             {current}
         </div>
-
     }
 }
 
@@ -112,8 +140,15 @@ function pushFront(arr, item) {
     return new_arr;
 }
 
+function admin() {
+    return globalUser == "jfoley";
+}
+function showEntity(e) {
+    return e.user == "WIKI-YEAR-FACTS" || showQuery(e);
+}
+
 function showQuery(q) {
-    if(globalUser == "jfoley") {
+    if(admin()) {
         return true;
     } else {
         return q.user == globalUser && !q.deleted;
@@ -126,8 +161,6 @@ class QuerySuggestions extends React.Component {
         this.state = {
             text: "",
             fact: props.fact,
-            interval: null,
-            refreshing:false,
         }
     }
     componentWillReceiveProps(props) {
@@ -138,20 +171,6 @@ class QuerySuggestions extends React.Component {
     }
     refresh(fact) {
         this.setState({fact:fact, refreshing:false})
-    }
-    requestRefresh() {
-        this.setState({refreshing:true});
-        postJSON("/api/fact", {id: this.props.fact.id}, (fact) => this.refresh(fact))
-    }
-    componentDidMount() {
-        // setup auto-refresh...
-        this.setState({interval: setInterval(() => this.requestRefresh(), 5000)})
-    }
-    componentWillUnmount() {
-        if(this.state.interval) {
-            window.clearInterval(this.state.interval);
-            this.setState({interval:null});
-        }
     }
     submit() {
         let text = this.state.text.trim();
@@ -167,7 +186,7 @@ class QuerySuggestions extends React.Component {
     render() {
         let fact = this.state.fact;
         let queries = _(fact.queries).filter(showQuery).map(q => {
-            if(globalUser === "jfoley") {
+            if(admin()) {
                 var classes = ["querySuggest"];
                 if(q.deleted) {
                     classes.push("deleted");
@@ -198,10 +217,6 @@ class TimeDisplay extends React.Component {
         let dt = new Date(this.props.time);
         return <span>{dt.toLocaleString()}</span>;
     }
-}
-
-function showEntity(e) {
-    return e.user == "WIKI-YEAR-FACTS" || showQuery(e);
 }
 
 function showUserName(userName) {
@@ -284,13 +299,14 @@ class FactRenderer extends React.Component {
         }).value();
 
         return <div>
-            <hr />
-            <div>Fact ID: #<i>{fact.id}</i></div>
-            <div className="indent">In <strong>{fact.year}</strong>, <span dangerouslySetInnerHTML={{__html: fact.html}} /></div>
-            <hr />
+            <div className="fact-display">
+                <Button label={"Next Random Fact"} onClick={(evt) => this.props.nextRandom()} />
+                {(admin() ? <div>Fact ID: #<i>{fact.id}</i></div> : null)}
+                <div className="indent">In <strong>{fact.year}</strong>, <span dangerouslySetInnerHTML={{__html: fact.html}} /></div>
+            </div>
             <table className={"factRendererTable"} border={1}>
-            <tr><th>Queries</th><th>Entities</th></tr>
-            <tr><td>{qs}</td><td>{entities}</td></tr></table>
+                <tr><th>Queries</th><th>Entities</th></tr>
+                <tr><td>{qs}</td><td>{entities}</td></tr></table>
         </div>
     }
 }

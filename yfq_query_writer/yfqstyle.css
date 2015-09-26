@@ -132,3 +132,21 @@ label.rel {
     margin: 2pt;
     background-color: #eee;
 }
+
+.recommended {
+    display: inline-block;
+    padding: 4pt;
+}
+
+.FilterableList {
+    border: 2px solid #eef;
+    margin: 2px;
+    padding: 2px;
+}
+
+.fact-display {
+    border: 3pt solid #ddd;
+    text-align: center;
+    padding: 10pt;
+    margin: 30pt;
+}

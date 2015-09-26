@@ -83,13 +83,12 @@ public class YFQServer implements Closeable, WebHandler {
       PrintWriter out = response.getWriter();
       long start = System.currentTimeMillis();
       Parameters json = apiFn.handleRequest(req);
+      if(json == null) {
+        json = Parameters.create();
+      }
       long end = System.currentTimeMillis();
       json.put("time", end-start);
-      if(json == null) {
-        out.println("{}");
-      } else {
-        out.println(json.toString());
-      }
+      out.println(json.toString());
       out.close();
 
       response.setStatus(200);
@@ -316,6 +315,7 @@ public class YFQServer implements Closeable, WebHandler {
       return facts.get(index).asJSON();
     });
     apiMethods.put("suggestQuery", p -> {
+      logger.info(p.toString());
       int factId = p.getInt("factId");
       UserSubmittedQuery q = new UserSubmittedQuery(
           nextFactId.incrementAndGet(), p.getString("user"), System.currentTimeMillis(), p.getString("query"));
@@ -336,8 +336,9 @@ public class YFQServer implements Closeable, WebHandler {
           p.getInt("relevance"));
       return addJudgment(factId, entity, rel);
     });
+    apiMethods.put("save", p -> { saveAnyway(); return null; });
     apiMethods.put("fact", p -> factById.get(p.getInt("id")).asJSON());
-
+    apiMethods.put("judged", p -> judgedMapping());
   }
 
   public YFQServer(Parameters argp) throws IOException {
@@ -444,6 +445,24 @@ public class YFQServer implements Closeable, WebHandler {
     return yearFact.asJSON();
   }
 
+  private synchronized Parameters judgedMapping() {
+    List<Parameters> judgedFacts = new ArrayList<>();
+    for (YearFact fact : facts) {
+      if(fact.queries.isEmpty()) {
+        continue;
+      }
+      Parameters summary = Parameters.create();
+      HashMap<String, String> userQueryMap = new HashMap<>();
+      for (UserSubmittedQuery usq : fact.queries) {
+        userQueryMap.put(usq.user, usq.query);
+      }
+      summary.put("users", Parameters.wrap(userQueryMap));
+      summary.put("factId", fact.id);
+      judgedFacts.add(summary);
+    }
+    return Parameters.parseArray("judged", judgedFacts);
+  }
+
   private synchronized Parameters deleteQuery(int factId, int queryId) {
     logger.info("deleteQuery: "+factId+" "+queryId);
     boolean change = false;
@@ -461,10 +480,10 @@ public class YFQServer implements Closeable, WebHandler {
   }
 
   private synchronized Parameters submitQuery(int factId, UserSubmittedQuery q) {
-    logger.info("submitQuery: "+factId+" "+q.asJSON());
+    logger.info("submitQuery: " + factId + " " + q.asJSON());
     YearFact fact = factById.get(factId);
     fact.queries.add(q);
-    dirty.lazySet(true);
+    dirty.set(true);
     return fact.asJSON();
   }
 
@@ -535,29 +554,33 @@ public class YFQServer implements Closeable, WebHandler {
       logger.log(Level.WARNING, e.getMessage(), e);
     }
     logger.info("Saving for shutdown...");
-    saveForShutdown();
+    saveAnyway();
     logger.info("Saving for shutdown...DONE.");
+  }
+
+  public void saveAnyway() {
+    long timestamp = System.currentTimeMillis();
+    try {
+      File backupFile = dbDir.child("db" + timestamp + ".json.gz");
+      logger.info("Saving "+backupFile);
+      save(backupFile);
+      File old;
+      synchronized (this) {
+        old = backupFiles.replace(backupFile);
+      }
+      if(old != null) {
+        if(!old.delete()) {
+          logger.log(Level.WARNING, "Couldn't delete old backup: " + old);
+        }
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Couldn't save timestamp :(", e);
+    }
   }
 
   public void saveIfDirty() {
     if(dirty.compareAndSet(true, false)) {
-      long timestamp = System.currentTimeMillis();
-      try {
-        File backupFile = dbDir.child("db" + timestamp + ".json.gz");
-        logger.info("Saving "+backupFile);
-        save(backupFile);
-        File old;
-        synchronized (this) {
-          old = backupFiles.replace(backupFile);
-        }
-        if(old != null) {
-          if(!old.delete()) {
-            logger.log(Level.WARNING, "Couldn't delete old backup: " + old);
-          }
-        }
-      } catch (Exception e) {
-        logger.log(Level.WARNING, "Couldn't save timestamp :(", e);
-      }
+      saveAnyway();
     }
   }
 }

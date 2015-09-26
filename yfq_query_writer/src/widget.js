@@ -201,6 +201,7 @@ class FilterableList extends React.Component {
                            pageSize={this.state.pageSize}
                            items={matchingItems}
                            renderItem={this.props.renderItem}
+                           keyFn={this.props.keyFn || this.props.getItemText}
                            updatePage={(index => this.setState({page: index})
             )} />
             </div>;
