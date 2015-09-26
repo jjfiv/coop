@@ -21,6 +21,7 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
@@ -34,10 +35,12 @@ public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
   final IOMap<Integer, PostingMover<PositionsList>> positions;
   private final CoopTokenizer tokenizer;
   private final IntVocabBuilder.IntVocabReader corpus;
+  private final IOMap<Integer, PostingMover<Integer>> counts;
   LoadingCache<Integer, KeyMetadata<?>> pmeta;
 
-  public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer, IntVocabBuilder.IntVocabReader corpus) throws IOException {
+  public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<Integer>> counts, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer, IntVocabBuilder.IntVocabReader corpus) throws IOException {
     this.vocab = vocab;
+    this.counts = counts;
     this.positions = positions;
     this.tokenizer = tokenizer;
     this.corpus = corpus;
@@ -202,5 +205,41 @@ public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public QueryEngine.QCNode<Integer> getUnigram(int lhs) throws IOException {
+    if(counts != null) {
+      PostingMover<Integer> mover = this.counts.get(lhs);
+      if(mover == null) return null;
+      return new QueryEngine.IndexedCountsNode(mover);
+    }
+    PostingMover<PositionsList> mover = this.positions.get(lhs);
+    if(mover == null) return null;
+    return new QueryEngine.CountPNode(new QueryEngine.IndexedPositionsNode(mover));
+  }
+
+  @Override
+  public QueryEngine.QCNode<Integer> getBigram(int lhs, int rhs) throws IOException {
+    PostingMover<PositionsList> lhsM = this.getPositionsMover(lhs);
+    if(lhsM == null) return null;
+    PostingMover<PositionsList> rhsM = this.getPositionsMover(rhs);
+    if(rhsM == null) return null;
+    return new QueryEngine.CountPNode(new QueryEngine.AbstractPhraseNode(
+        Arrays.asList(
+            new QueryEngine.IndexedPositionsNode(lhsM),
+            new QueryEngine.IndexedPositionsNode(rhsM))));
+  }
+
+  @Override
+  public QueryEngine.QCNode<Integer> getUBigram(int lhs, int rhs) throws IOException {
+    PostingMover<PositionsList> lhsM = this.getPositionsMover(lhs);
+    if(lhsM == null) return null;
+    PostingMover<PositionsList> rhsM = this.getPositionsMover(rhs);
+    if(rhsM == null) return null;
+    return new QueryEngine.CountPNode(new QueryEngine.UnorderedWindowNode(
+        Arrays.asList(
+            new QueryEngine.IndexedPositionsNode(lhsM),
+            new QueryEngine.IndexedPositionsNode(rhsM)), 8));
   }
 }

@@ -5,15 +5,14 @@ import ciir.jfoley.chai.collections.util.Comparing;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.fn.GenerateFn;
 import ciir.jfoley.chai.io.Directory;
-import edu.umass.cs.ciir.waltz.coders.kinds.DeltaIntListCoder;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
-import edu.umass.cs.ciir.waltz.coders.kinds.VarUInt;
 import edu.umass.cs.ciir.waltz.io.postings.ArrayPosList;
 import edu.umass.cs.ciir.waltz.io.postings.PositionsListCoder;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.PostingsConfig;
 import edu.umass.cs.ciir.waltz.sys.positions.PIndexWriter;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
+import edu.umass.cs.jfoley.coop.experiments.IndexedSDMQuery;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -26,6 +25,7 @@ import java.util.Map;
 public class IntCorpusPositionIndexer implements Closeable {
   private final PostingsConfig<Integer, PositionsList> cfg;
   private final PIndexWriter<Integer, PositionsList> writer;
+  PIndexWriter<Integer, Integer> countsWriter;
 
   public IntCorpusPositionIndexer(Directory input) throws IOException {
     cfg = new PostingsConfig<>(
@@ -34,8 +34,7 @@ public class IntCorpusPositionIndexer implements Closeable {
         Comparing.defaultComparator(),
         new PositionsCountMetadata()
     );
-    cfg.blockSize = 128;
-    cfg.docsCoder = new DeltaIntListCoder(VarUInt.instance, VarUInt.instance);
+    this.countsWriter = IndexedSDMQuery.SDMPartReaders.countIndexCfg.getWriter(input, "counts");
     this.writer = cfg.getWriter(input, IntCoopIndex.positionsFileName);
   }
 
@@ -57,11 +56,13 @@ public class IntCorpusPositionIndexer implements Closeable {
     }
     for (Map.Entry<Integer, IntList> kv : withinDocPositions.entrySet()) {
       writer.add(kv.getKey(), documentId, new ArrayPosList(kv.getValue()));
+      countsWriter.add(kv.getKey(), documentId, kv.getValue().size());
     }
   }
 
   @Override
   public void close() throws IOException {
+    countsWriter.close();
     writer.close();
   }
 }

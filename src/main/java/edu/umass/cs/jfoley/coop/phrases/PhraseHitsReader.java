@@ -53,7 +53,7 @@ public class PhraseHitsReader implements Closeable {
       ambiguousMap = GalagoIO.openIOMap(FixedSize.ints, IntListCoder.instance, ambigIndexFile.getPath());
     }
 
-    phrasesByTermIndex = new TermPositionsIndex(index.getTermVocabulary(), phrasesByTerm, index.getTokenizer(), index.getCorpus());
+    phrasesByTermIndex = new TermPositionsIndex(index.getTermVocabulary(), null, phrasesByTerm, index.getTokenizer(), index.getCorpus());
     //documentsByPhraseIndex = new CoopIndex.PositionsIndex<>(vocab, documentsByPhrase);
 
     TIntHashSet wordToEntity = new TIntHashSet();

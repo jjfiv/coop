@@ -240,6 +240,11 @@ public class YFQServer implements Closeable, WebHandler {
       fact.queries.addAll(ListFns.map(queries, UserSubmittedQuery::parseJSON));
       return fact;
     }
+
+    public ArrayList<UserSubmittedQuery> getQueries() { return queries; }
+    public String getHtml() { return html; }
+    public int getYear() { return year; }
+    public int getId() { return id; }
   }
 
   public YFQServer(Parameters argp) throws IOException {
@@ -271,6 +276,7 @@ public class YFQServer implements Closeable, WebHandler {
       UserSubmittedQuery q = new UserSubmittedQuery(
           nextFactId.incrementAndGet(), p.getString("user"), System.currentTimeMillis(), p.getString("query"));
       submitQuery(factId, q);
+      dirty.lazySet(true);
       return q.asJSON();
     });
     apiMethods.put("deleteQuery", p -> {
@@ -334,6 +340,9 @@ public class YFQServer implements Closeable, WebHandler {
         query.deleted = System.currentTimeMillis();
         change = true;
       }
+    }
+    if(change) {
+      dirty.lazySet(true);
     }
     return change;
     //return factById.get(factId).queries((q) -> q.id == queryId);

@@ -9,9 +9,11 @@ import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.io.postings.ArrayPosList;
 import edu.umass.cs.ciir.waltz.phrase.OrderedWindow;
+import edu.umass.cs.ciir.waltz.phrase.UnorderedWindow;
 import edu.umass.cs.ciir.waltz.postings.extents.SpanIterator;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.KeyMetadata;
+import edu.umass.cs.ciir.waltz.sys.counts.CountMetadata;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsCountMetadata;
 
 import javax.annotation.Nonnull;
@@ -118,6 +120,54 @@ public class QueryEngine {
     @Override
     public List<Mover> getChildMovers() {
       return Collections.singletonList(iter);
+    }
+  }
+
+  public static class IndexedCountsNode implements QCNode<Integer>, MoverNode {
+    final PostingMover<Integer> countsMover;
+    private final int cf;
+
+    public IndexedCountsNode(PostingMover<Integer> countsMover) {
+      this.countsMover = countsMover;
+      assert countsMover.getMetadata() != null;
+      this.cf = ((CountMetadata) countsMover.getMetadata()).totalCount;
+    }
+
+    @Override
+    public Collection<Mover> getChildMovers() {
+      return Collections.singletonList(countsMover);
+    }
+
+    @Override
+    public Class<Integer> getResultClass() { return Integer.class; }
+
+    @Override
+    public ChildMovingLogic getMovingLogic() {
+      return ChildMovingLogic.NA;
+    }
+
+    @Override
+    public Collection<? extends QCNode<?>> children() {
+      return Collections.emptyList();
+    }
+
+    @Nullable
+    @Override
+    public Integer calculate(QueryEvaluationContext ctx, int document) {
+      return count(ctx, document);
+    }
+
+    @Override
+    public int count(QueryEvaluationContext ctx, int document) {
+      if(countsMover.matches(document)) {
+        return countsMover.getPosting(document);
+      }
+      return 0;
+    }
+
+    @Override
+    public int getCollectionFrequency() {
+      return cf;
     }
   }
 
@@ -340,6 +390,10 @@ public class QueryEngine {
   public interface QueryEvaluationContext {
     int getLength(int document);
     double getCollectionLength();
+
+    QCNode<Integer> getUnigram(int lhs) throws IOException;
+    QCNode<Integer> getBigram(int lhs, int rhs) throws IOException;
+    QCNode<Integer> getUBigram(int lhs, int rhs) throws IOException;
   }
 
   public enum ChildMovingLogic { AND, OR, NA}
@@ -454,4 +508,23 @@ public class QueryEngine {
     }
   }
 
+  public static class UnorderedWindowNode extends QCApplyManyNode<PositionsList, PositionsList> implements QCNode<PositionsList> {
+    public UnorderedWindowNode(List<QCNode<PositionsList>> children, int i) {
+      super(ChildMovingLogic.AND, children);
+    }
+
+    @Override public Class<PositionsList> getResultClass() { return PositionsList.class; }
+
+    @Nullable
+    @Override
+    public PositionsList calculate(QueryEvaluationContext ctx, int document) {
+      ArrayList<SpanIterator> posIters = new ArrayList<>(children.size());
+      for (QCNode<PositionsList> iter : children) {
+        PositionsList pl = iter.calculate(ctx, document);
+        if(pl == null) return null;
+        posIters.add(pl.getSpanIterator());
+      }
+      return new ArrayPosList(UnorderedWindow.findIter(posIters, 1));
+    }
+  }
 }

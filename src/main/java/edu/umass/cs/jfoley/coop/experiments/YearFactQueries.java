@@ -2,13 +2,11 @@ package edu.umass.cs.jfoley.coop.experiments;
 
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
-import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
+import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.random.ReservoirSampler;
 import ciir.jfoley.chai.string.StrUtil;
-import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
-import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.QueryEngine;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
@@ -114,7 +112,7 @@ public class YearFactQueries {
   }
 
   public static void main(String[] args) throws IOException {
-    IntCoopIndex index = new IntCoopIndex(Directory.Read("inex-sentences.ints"));
+    IntCoopIndex index = new IntCoopIndex(Directory.Read("dbpedia.ints"));
     HashSet<String> stopwords = new HashSet<>(Objects.requireNonNull(WordLists.getWordList("inquery")));
     IntList stopInts = new IntList(index.translateFromTerms(new ArrayList<>(stopwords)));
 
@@ -136,6 +134,8 @@ public class YearFactQueries {
       }
     }
 
+    StreamingStats queryTimeStats = new StreamingStats();
+    StreamingStats querySizeStats = new StreamingStats();
     System.err.println("Found " + keep.size() + " queries from ECIR15");
     for (YearFactQuery yfq : random) {
       IntList termIds = new IntList();
@@ -147,37 +147,36 @@ public class YearFactQueries {
         termIds.push(term);
       }
 
+
       System.err.println(yfq);
       if(termIds.isEmpty()) {
         System.err.println("EMPTY!");
       } else {
         System.err.println(termIds);
+        querySizeStats.push(termIds.size());
 
         TermPositionsIndex tpi = index.getPositionsIndex("lemmas");
 
-        List<PostingMover<PositionsList>> pmovers = new ArrayList<>();
-        List<QueryEngine.IndexedPositionsNode> pnodes = new ArrayList<>();
+        List<QueryEngine.QCNode<Double>> pnodes = new ArrayList<>();
         for (Integer termId : termIds) {
-          PostingMover<PositionsList> mover = tpi.getPositionsMover(termId);
-          assert(mover != null);
-          pmovers.add(mover);
-          pnodes.add(new QueryEngine.IndexedPositionsNode(mover));
+          QueryEngine.QCNode<Integer> node = tpi.getUnigram(termId);
+          assert(node != null);
+          pnodes.add(new QueryEngine.LinearSmoothingNode(node));
         }
 
-        QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(
-            ListFns.map(pnodes, (term) ->
-                new QueryEngine.LinearSmoothingNode(new QueryEngine.CountPNode(term))));
+        QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(pnodes);
 
         TopKHeap<ScoredDocument> topK = new TopKHeap<>(10, new ScoredDocument.ScoredDocumentComparator());
         long start = System.currentTimeMillis();
         QueryEngine.createMover(ql).execute((doc) -> {
           double score = ql.score(tpi, doc);
-          if(!Double.isNaN(score)) {
+          if (!Double.isNaN(score)) {
             topK.offer(new ScoredDocument(doc, score));
           }
         });
         long end = System.currentTimeMillis();
 
+        queryTimeStats.push(end-start);
         System.err.println("# scoring in "+(end-start)+"ms.");
         for (ScoredDocument scoredDocument : topK.getSorted()) {
           String name = index.getNames().getForward((int) scoredDocument.document);

@@ -161,6 +161,9 @@ public class QueryEngineTest {
     QueryEngine.QueryEvaluationContext fakeIndex = new QueryEngine.QueryEvaluationContext() {
       @Override public int getLength(int document) { return docLength; }
       @Override public double getCollectionLength() { return collectionLength; }
+      @Override public QueryEngine.QCNode<Integer> getUnigram(int lhs) throws IOException { return null; }
+      @Override public QueryEngine.QCNode<Integer> getBigram(int lhs, int rhs) throws IOException { return null; }
+      @Override public QueryEngine.QCNode<Integer> getUBigram(int lhs, int rhs) throws IOException { return null; }
     };
     double backgroundScore = ql.score(fakeIndex, 0);
     assertEquals(backgroundScore, ql.score(fakeIndex, 7), 0.00001);

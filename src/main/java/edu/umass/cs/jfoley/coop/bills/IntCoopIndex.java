@@ -17,6 +17,7 @@ import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsIndexFile;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
+import edu.umass.cs.jfoley.coop.experiments.IndexedSDMQuery;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.front.PhrasePositionsIndex;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
@@ -45,6 +46,7 @@ public class IntCoopIndex implements CoopIndex {
   final IntVocabBuilder.IntVocabReader corpus;
   final IdMaps.Reader<String> names;
   final IdMaps.Reader<String> vocab;
+  IOMap<Integer, PostingMover<Integer>> counts;
   IOMap<Integer, PostingMover<PositionsList>> positions;
 
   PhraseHitsReader entities;
@@ -91,9 +93,13 @@ public class IntCoopIndex implements CoopIndex {
     this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8);
     this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8);
 
+    if(baseDir.child("counts.keys").exists()) {
+      this.counts = IndexedSDMQuery.SDMPartReaders.countIndexCfg.openReader(baseDir, "counts");
+    }
+
     if(baseDir.child(positionsFileName+".keys").exists()) {
       this.positions = PositionsIndexFile.openReader(FixedSize.ints, baseDir, positionsFileName);
-      this.positionsIndex = new TermPositionsIndex(vocab, positions, getTokenizer(), getCorpus());
+      this.positionsIndex = new TermPositionsIndex(vocab, counts, positions, getTokenizer(), getCorpus());
     }
 
     if(baseDir.child("dbpedia.positions.keys").exists()) {

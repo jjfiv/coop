@@ -16,10 +16,10 @@ public class IntCorpusPIndex {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    //Directory input = Directory.Read(argp.get("input", "dbpedia.ints"));
-    //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
-    Directory input = Directory.Read(argp.get("input", "inex-sentences.ints"));
-    Directory output = Directory.Read(argp.get("input", "inex-sentences.ints"));
+    //String path = argp.get("input", "/mnt/scratch/jfoley/inex-page-djvu.ints");
+    String path = argp.get("input", "dbpedia.ints");
+    Directory input = Directory.Read(path);
+    Directory output = Directory.Read(argp.get("output", path));
 
     long startTime = System.currentTimeMillis();
     Debouncer msg = new Debouncer(5000);
@@ -41,7 +41,7 @@ public class IntCorpusPIndex {
         globalPosition += terms.length;
 
         if (msg.ready()) {
-          System.out.println("Progress: " + globalPosition + " / " + numTerms);
+          System.out.println("Progress: " + globalPosition + " / " + numTerms+" empty: "+emptyDocuments);
           System.out.println(msg.estimate(globalPosition, numTerms));
           System.out.println();
         }
