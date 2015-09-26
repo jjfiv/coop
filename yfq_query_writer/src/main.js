@@ -62,7 +62,6 @@ class RecommendedJudgments extends React.Component {
         };
         let render = (x) => {
             let id = x.factId;
-            console.log(id);
             return <a className={"recommended"} key={id} href={"/?id="+id}>{getText(x)}</a>
         };
 
@@ -107,7 +106,6 @@ class QueryWriter extends React.Component {
         });
     }
     setFact(fact) {
-        console.log("QueryWriter.setFact", fact);
         this.setState({rand:fact});
         pushURLParams({id:fact.id});
     }
@@ -279,7 +277,6 @@ class FactRenderer extends React.Component {
         )
     }
     refresh(fact) {
-        console.log("refresh", fact);
         this.props.refresh(fact);
     }
     render() {
