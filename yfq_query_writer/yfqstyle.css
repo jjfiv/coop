@@ -119,3 +119,16 @@ li { margin-bottom: 8pt; }
 .deletedAt {
     background-color: #eee;
 }
+
+.factRendererTable {
+
+}
+.factRendererTable td {
+    vertical-align:top;
+}
+
+label.rel {
+    padding: 2pt;
+    margin: 2pt;
+    background-color: #eee;
+}

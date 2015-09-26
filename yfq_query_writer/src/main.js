@@ -80,17 +80,23 @@ class QueryWriter extends React.Component {
             pushURLParams({id:rand.id});
         });
     }
+    setFact(fact) {
+        console.log("QueryWriter.setFact", fact);
+        this.setState({rand:fact});
+        pushURLParams({id:fact.id});
+    }
     render() {
         let fact = this.state.rand;
         let current;
         if(fact) {
-            current = <FactRenderer fact={fact} />;
+            current = <FactRenderer refresh={(fact) => { this.setFact(fact) }} fact={fact} />;
         } else {
             current = <i>Waiting for the server...</i>;
         }
 
-        return <div>{current}
+        return <div>
             <Button label={"Next Fact"} onClick={(evt) => this.requestNew()} />
+            {current}
         </div>
 
     }
@@ -122,7 +128,6 @@ class QuerySuggestions extends React.Component {
             fact: props.fact,
             interval: null,
             refreshing:false,
-            queries: _.filter(props.fact.queries, showQuery)
         }
     }
     componentWillReceiveProps(props) {
@@ -132,7 +137,7 @@ class QuerySuggestions extends React.Component {
         this.refresh(props.fact);
     }
     refresh(fact) {
-        this.setState({fact:fact, refreshing:false,queries: _.filter(fact.queries, showQuery)})
+        this.setState({fact:fact, refreshing:false})
     }
     requestRefresh() {
         this.setState({refreshing:true});
@@ -154,17 +159,14 @@ class QuerySuggestions extends React.Component {
             return;
         }
         this.setState({text:""});
-        postJSON("/api/suggestQuery", {factId: this.props.fact.id, user: globalUser, query:text},
-            (response) => this.setState({queries: pushFront(this.state.queries, response)})
-        );
+        postJSON("/api/suggestQuery", {factId: this.props.fact.id, user: globalUser, query:text}, (fact) => this.refresh(fact));
     }
     deleteQuery(queryId) {
-        postJSON("/api/deleteQuery", {factId: this.props.fact.id, queryId});
-        requestRefresh();
+        postJSON("/api/deleteQuery", {factId: this.props.fact.id, queryId}, (fact) => this.refresh(fact));
     }
     render() {
-        let queries = _(this.state.queries).map(q => {
-            console.log(globalUser);
+        let fact = this.state.fact;
+        let queries = _(fact.queries).filter(showQuery).map(q => {
             if(globalUser === "jfoley") {
                 var classes = ["querySuggest"];
                 if(q.deleted) {
@@ -198,22 +200,97 @@ class TimeDisplay extends React.Component {
     }
 }
 
+function showEntity(e) {
+    return e.user == "WIKI-YEAR-FACTS" || showQuery(e);
+}
+
+function showUserName(userName) {
+    if(userName == globalUser) {
+        return "you";
+    } else {
+        return userName;
+    }
+}
+
+class RelevanceChoice extends React.Component {
+    render() {
+        let score = this.props.score;
+        let id = this.props.id;
+
+        let data = [
+                {desc: "Not Relevant", score: 0},
+                {desc: "Probably Not Relevant", score: 1},
+                {desc: "Maybe Relevant", score: 2},
+                {desc: "Probably Relevant", score: 3},
+                {desc: "Relevant", score: 4}
+            ];
+
+        let radios = _.map(data, (item) => {
+            return <label key={item.score} className={"rel"}><input type="radio" name="rel" checked={item.score == score} onChange={(evt) => {
+                this.props.onRating(id, item.score);
+            }}/>{item.desc}</label>
+        });
+
+        return <form>{radios}</form>;
+    }
+}
+
+class EntityRenderer extends React.Component {
+    render() {
+        let entity = this.props.entity;
+        let latest_judgment = _.first(_.sortBy(_.filter(entity.judgments, showEntity), (x) => -x.time));
+        let is_fake_judgment = latest_judgment.time == 0;
+        return <div>
+            <a href={"https://en.wikipedia.org/wiki/"+entity.name}>{entity.name}</a>
+            &nbsp;
+            {(is_fake_judgment) ? "(above)" : <span>{"Marked by "+showUserName(latest_judgment.user)+" at "}<TimeDisplay time={latest_judgment.time} /></span>}
+            &nbsp;
+            <RelevanceChoice score={is_fake_judgment ? 3 : latest_judgment.relevance} onRating={(id, score) => this.props.submitRating(id, 0, score)} id={entity.name} />
+            </div>
+    }
+}
+
 class FactRenderer extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            open: !this.props.history
-        }
+    submitRating(id, qId, score) {
+        postJSON("/api/judgeEntity", {
+            factId: this.props.fact.id,
+            queryId: qId,
+            user: globalUser,
+            relevance: score,
+            entity: id },
+            (succ) => {
+                this.refresh(succ);
+            }
+        )
+    }
+    refresh(fact) {
+        console.log("refresh", fact);
+        this.props.refresh(fact);
     }
     render() {
-        let editable = this.props.history;
+        let onNextFact = this.props.onNextFact;
         let fact = this.props.fact;
+
+        let qs = <QuerySuggestions key={"qs"+fact.id} fact={fact} />;
+        //let entities = <pre>{JSON.stringify(fact.entities, null, 2)}</pre>;
+
+        let entities = _(fact.entities).map((val, key) => {
+            let e = {
+                factId: fact.id,
+                name: key,
+                judgments: val
+            };
+            return <EntityRenderer key={key} entity={e} submitRating={(id, qid, score) => this.submitRating(id, qid, score)}/>;
+        }).value();
+
         return <div>
+            <hr />
             <div>Fact ID: #<i>{fact.id}</i></div>
             <div className="indent">In <strong>{fact.year}</strong>, <span dangerouslySetInnerHTML={{__html: fact.html}} /></div>
-            {editable ? <label key={"esq"+fact.id}>Suggest Queries
-            <input type="checkbox" checked={this.state.open} onChange={() => this.setState({open: !this.state.open})} /></label> : null}
-            {this.state.open ? <QuerySuggestions key={"qs"+fact.id} fact={fact} /> : null}
+            <hr />
+            <table className={"factRendererTable"} border={1}>
+            <tr><th>Queries</th><th>Entities</th></tr>
+            <tr><td>{qs}</td><td>{entities}</td></tr></table>
         </div>
     }
 }
