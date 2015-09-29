@@ -152,9 +152,10 @@ public class QueryEngineTest {
       }
     };
 
-    QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(Arrays.asList(
+    QueryEngine.CombineNode ql = new QueryEngine.CombineNode(Arrays.asList(
         new QueryEngine.LinearSmoothingNode(aCounts),
         new QueryEngine.LinearSmoothingNode(bCounts)));
+
 
     assertEquals(QueryEngine.ChildMovingLogic.OR, ql.calculateMovingLogic());
 
@@ -165,6 +166,7 @@ public class QueryEngineTest {
       @Override public QueryEngine.QCNode<Integer> getBigram(int lhs, int rhs) throws IOException { return null; }
       @Override public QueryEngine.QCNode<Integer> getUBigram(int lhs, int rhs) throws IOException { return null; }
     };
+    ql.setup(fakeIndex);
     double backgroundScore = ql.score(fakeIndex, 0);
     assertEquals(backgroundScore, ql.score(fakeIndex, 7), 0.00001);
 

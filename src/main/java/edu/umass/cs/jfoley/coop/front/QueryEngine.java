@@ -400,6 +400,8 @@ public class QueryEngine {
       double len = ctx.getLength(document);
       int count = child.count(ctx, document);
 
+      //System.err.println(Parameters.parseArray("len", len, "count", count, "bgScore", bgScore));
+
       return Math.log(bgScore + lambda * (count / len));
     }
   }
