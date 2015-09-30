@@ -28,14 +28,13 @@ public class GenerateNamesList {
       int docNameIndex = 0;
       for (Pair<Integer, String> pair : index.getNames().items()) {
         int phraseId = pair.left;
-        String name = pair.right.replace('_', ' ');
-        output.println(name);
         docNameIndex++;
-        String text = IntCoopIndex.parseDBPediaTitle(name);
+        String text = IntCoopIndex.parseDBPediaTitle(pair.right);
+        output.println(text);
         if (msg.ready()) {
           System.err.println(text);
           //System.err.println(getDocument(phraseId));
-          System.err.println(phraseId + " " + name);
+          System.err.println(phraseId + " " + pair.right);
           System.err.println(msg.estimate(docNameIndex, count));
         }
       }
