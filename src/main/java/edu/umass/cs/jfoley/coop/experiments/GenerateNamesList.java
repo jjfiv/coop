@@ -28,7 +28,7 @@ public class GenerateNamesList {
       int docNameIndex = 0;
       for (Pair<Integer, String> pair : index.getNames().items()) {
         int phraseId = pair.left;
-        String name = pair.right;
+        String name = pair.right.replace('_', ' ');
         output.println(name);
         docNameIndex++;
         String text = IntCoopIndex.parseDBPediaTitle(name);
