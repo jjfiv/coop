@@ -48,7 +48,11 @@ public class DJVUCorpusNumberer {
           List<DJVUPageParser.DJVUPage> pages = Collections.emptyList();
           try {
             pages = DJVUPageParser.parseDJVU(is.getInputStream(), is.getName());
-          } catch (IOException e) { e.printStackTrace(); }
+          } catch (IOException e) {
+            return pages;
+          } catch (OutOfMemoryError oom) {
+            return pages;
+          }
           long et = System.nanoTime();
           parsingTime.push((et - st) / 1e9);
 

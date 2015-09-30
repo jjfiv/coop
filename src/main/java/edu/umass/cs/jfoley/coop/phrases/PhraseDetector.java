@@ -79,5 +79,4 @@ public class PhraseDetector {
   public String toString() {
     return ListFns.map(matchingBySize, HashMap::size).toString();
   }
-
 }
