@@ -150,3 +150,8 @@ label.rel {
     padding: 10pt;
     margin: 30pt;
 }
+
+.pageImage {
+    width: 560px;
+    height: 824px;
+}

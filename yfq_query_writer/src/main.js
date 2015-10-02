@@ -11,6 +11,77 @@ class Main {
         Main.init();
         Main.render(<UserInterface />);
     }
+    static page() {
+        Main.init();
+        Main.render(<PageView />);
+    }
+}
+
+class PageView extends React.Component {
+    constructor(props) {
+        super(props);
+        let urlP = getURLParams();
+        this.state = {
+            id: parseInt(urlP.id) || 0
+        }
+    }
+    componentDidMount() {
+        this.loadPage(this.state.id, true);
+    }
+    loadPage(id, force) {
+        if(force || id != this.state.id) {
+            this.setState({id, data: null});
+            pushURLParams({id: id});
+            postJSON("/api/page", {id}, (data) => {
+                this.setState({data})
+            })
+        }
+    }
+    changePage(delta) {
+        let newId = Math.max(this.state.id + delta, 0);
+        this.loadPage(newId);
+    }
+    static pageImage(archiveId, pageNum) {
+        return "http://www.archive.org/download/" + encodeURIComponent(archiveId) + "/page/n" + pageNum + ".jpg";
+    }
+    static pageThumbnail(archiveId, pageNum) {
+        return "http://www.archive.org/download/" + encodeURIComponent(archiveId) + "/page/n" + pageNum + "_thumb.jpg";
+    }
+    render() {
+
+        let page = this.state.data;
+
+        let id = "???";
+        let pageNo = 0;
+
+        let pageContents;
+        if(!page) {
+            pageContents = <div>Loading...</div>;
+        } else {
+            name = page.name;
+            id = name.split(":")[0];
+            pageNo = parseInt(name.split(":")[1])+1;
+
+            let text = strjoin(page.terms);
+
+            //pageContents = <pre>{JSON.stringify({id, pageNo, text},null,2)}</pre>;
+            pageContents = text;
+        }
+
+        return <div>
+            <div>
+                <Button label="<<" onClick={e=> this.changePage(-1)} />
+                <b>{id}</b> pp. {pageNo}
+                <Button label=">>" onClick={e=> this.changePage(+1)} />
+            </div>
+            <table>
+                <tr>
+                    <td><img className={"pageImage"} src={PageView.pageImage(id, pageNo-1)} /></td>
+                    <td>{pageContents}</td>
+                </tr>
+            </table>
+        </div>;
+    }
 }
 
 class UserInterface extends React.Component {
@@ -301,9 +372,18 @@ class FactRenderer extends React.Component {
                 {(admin() ? <div>Fact ID: #<i>{fact.id}</i></div> : null)}
                 <div className="indent">In <strong>{fact.year}</strong>, <span dangerouslySetInnerHTML={{__html: fact.html}} /></div>
             </div>
-            <table className={"factRendererTable"} border={1}>
-                <tr><th>Queries</th><th>Entities</th></tr>
-                <tr><td>{qs}</td><td>{entities}</td></tr></table>
+            <table className={"factRendererTable"}>
+                <tr><th>Queries</th></tr>
+                <tr><td>{qs}</td></tr>
+            </table>
+            <table>
+                <tr><th>Entities</th></tr>
+                <tr><td>{entities}</td></tr>
+            </table>
+            <table>
+                <tr><th>Pages</th></tr>
+                <tr><td>{fact.pages}</td></tr>
+            </table>
         </div>
     }
 }

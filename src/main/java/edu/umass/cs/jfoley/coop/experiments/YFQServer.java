@@ -18,9 +18,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import org.lemurproject.galago.core.parse.Document;
 import org.lemurproject.galago.core.parse.Tag;
 import org.lemurproject.galago.core.parse.TagTokenizer;
-import org.lemurproject.galago.core.retrieval.LocalRetrieval;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
-import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.util.WordLists;
 import org.lemurproject.galago.tupleflow.web.WebHandler;
 import org.lemurproject.galago.tupleflow.web.WebServer;
@@ -48,7 +46,6 @@ public class YFQServer implements Closeable, WebHandler {
   TIntObjectHashMap<YearFact> factById;
   private AtomicInteger nextFactId = new AtomicInteger(1);
 
-  private LocalRetrieval pages = new LocalRetrieval("/mnt/scratch/jfoley/inex.pages.galago/");
   private IntCoopIndex pages2 = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/inex-page-djvu.ints"));
   private final Directory dbDir;
   private AtomicBoolean dirty = new AtomicBoolean(false);
@@ -346,42 +343,6 @@ public class YFQServer implements Closeable, WebHandler {
           p.getInt("relevance"));
       return addJudgment(factId, entity, rel);
     });
-    apiMethods.put("searchPages2", p -> {
-      String q = p.getString("query");
-      int num = p.get("n", 10);
-      if(q.isEmpty()) return Parameters.create();
-
-      List<Parameters> jsonPages = new ArrayList<>();
-
-      Parameters reqp = Parameters.create();
-      reqp.put("requested", num);
-
-      TagTokenizer tokenizer = new TagTokenizer();
-      List<String> terms = tokenizer.tokenize(q).terms;
-      if(terms.isEmpty()) return Parameters.create();
-
-      Node ql = new Node(p.get("operator", "combine"));
-      for (String term : terms) {
-        ql.addChild(Node.Text(term));
-      }
-
-      for (ScoredDocument scoredDocument : pages.transformAndExecuteQuery(ql, reqp).scoredDocuments) {
-        Document doc = pages.getDocument(scoredDocument.documentName, Document.DocumentComponents.All);
-        if(doc == null) continue;
-        Parameters jdoc = Parameters.create();
-        jdoc.put("score", scoredDocument.score);
-        jdoc.put("rank", scoredDocument.rank);
-        jdoc.put("name", scoredDocument.documentName);
-        //jdoc.put("text", doc.text);
-        jdoc.put("terms", doc.terms);
-        jsonPages.add(jdoc);
-      }
-
-      return Parameters.parseArray(
-          "queryTerms", terms,
-          "docs", jsonPages
-      );
-    });
     apiMethods.put("searchPages", p -> {
       TermPositionsIndex index = pages2.getPositionsIndex("lemmas");
 
@@ -441,6 +402,21 @@ public class YFQServer implements Closeable, WebHandler {
         String name = p.getString("name");
         Integer id = pages2.getNames().getReverse(name);
         if(id == null) {
+          return output;
+        }
+        output.put("id", id);
+        output.put("name", name);
+
+        if(id != -1) {
+          IntList page = new IntList(pages2.getCorpus().getDocument(id));
+          output.put("terms", pages2.translateToTerms(page));
+          output.put("termIds", page);
+        }
+        return output;
+      } else if(p.isLong("id")) {
+        int id = p.getInt("id");
+        String name = pages2.getNames().getForward(id);
+        if(name == null) {
           return output;
         }
         output.put("id", id);
@@ -658,7 +634,7 @@ public class YFQServer implements Closeable, WebHandler {
   @Override
   public void close() throws IOException {
     logger.info("Closing pages index...");
-    pages.close();
+    pages2.close();
     logger.info("Closing pages index...DONE");
 
     try {
