@@ -46,7 +46,8 @@ public class YFQServer implements Closeable, WebHandler {
   TIntObjectHashMap<YearFact> factById;
   private AtomicInteger nextFactId = new AtomicInteger(1);
 
-  private IntCoopIndex pages2 = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/inex-page-djvu.ints"));
+  private IntCoopIndex pages2;
+  private IntCoopIndex dbpedia;
   private final Directory dbDir;
   private AtomicBoolean dirty = new AtomicBoolean(false);
   private AtomicBoolean running = new AtomicBoolean(true);
@@ -304,6 +305,62 @@ public class YFQServer implements Closeable, WebHandler {
     public int getId() { return id; }
   }
 
+  public static Parameters searchQL(IntCoopIndex target, Parameters p) throws IOException {
+    TermPositionsIndex index = target.getPositionsIndex("lemmas");
+
+    String q = p.getString("query");
+    int num = p.get("n", 200);
+    if(q.isEmpty()) return Parameters.create();
+
+    List<Parameters> jsonPages = new ArrayList<>();
+
+    TagTokenizer tokenizer = new TagTokenizer();
+    List<String> terms = tokenizer.tokenize(q).terms;
+    if(terms.isEmpty()) return Parameters.create();
+
+    List<QueryEngine.QCNode<Double>> pnodes = new ArrayList<>();
+    IntList termIds = index.translateFromTerms(terms);
+    for (int termId : termIds) {
+      if(termId == -1) continue;
+      pnodes.add(new QueryEngine.LinearSmoothingNode(index.getUnigram(termId)));
+    }
+    if(pnodes.isEmpty()) {
+      return Parameters.create();
+    }
+    QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(pnodes);
+    Mover mover = QueryEngine.createMover(ql);
+
+    TopKHeap<ScoredDocument> sdocs = new TopKHeap<>(num, new ScoredDocument.ScoredDocumentComparator());
+    ql.setup(index);
+    for(mover.start(); !mover.isDone(); mover.next()) {
+      int id = mover.currentKey();
+      double score = Objects.requireNonNull(ql.calculate(index, id));
+      sdocs.add(new ScoredDocument(id, score));
+    }
+    boolean pullTerms = p.get("pullTerms", true);
+
+    List<ScoredDocument> sorted = sdocs.getSorted();
+    for (int i = 0; i < sorted.size(); i++) {
+      ScoredDocument scoredDocument = sorted.get(i);
+      if(scoredDocument == null) continue;
+      Parameters jdoc = Parameters.create();
+      int doc = (int) scoredDocument.document;
+      jdoc.put("score", scoredDocument.score);
+      jdoc.put("rank", i+1);
+      jdoc.put("name", target.getNames().getForward(doc));
+      if(pullTerms) {
+        jdoc.put("terms", target.translateToTerms(new IntList(target.getCorpus().getDocument(doc))));
+      }
+      jsonPages.add(jdoc);
+    }
+
+    return Parameters.parseArray(
+        "queryTerms", terms,
+        "queryIds", termIds,
+        "docs", jsonPages
+    );
+  }
+
   public void setupFunctions() {
     apiMethods.put("debug", (p) -> p);
     apiMethods.put("quit", (p) -> {
@@ -343,86 +400,36 @@ public class YFQServer implements Closeable, WebHandler {
           p.getInt("relevance"));
       return addJudgment(factId, entity, rel);
     });
-    apiMethods.put("searchPages", p -> {
-      TermPositionsIndex index = pages2.getPositionsIndex("lemmas");
-
-      String q = p.getString("query");
-      int num = p.get("n", 200);
-      if(q.isEmpty()) return Parameters.create();
-
-      List<Parameters> jsonPages = new ArrayList<>();
-
-      TagTokenizer tokenizer = new TagTokenizer();
-      List<String> terms = tokenizer.tokenize(q).terms;
-      if(terms.isEmpty()) return Parameters.create();
-
-      List<QueryEngine.QCNode<Double>> pnodes = new ArrayList<>();
-      IntList termIds = index.translateFromTerms(terms);
-      for (int termId : termIds) {
-        if(termId == -1) continue;
-        pnodes.add(new QueryEngine.LinearSmoothingNode(index.getUnigram(termId)));
-      }
-      if(pnodes.isEmpty()) {
-        return Parameters.create();
-      }
-      QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(pnodes);
-      Mover mover = QueryEngine.createMover(ql);
-
-      TopKHeap<ScoredDocument> sdocs = new TopKHeap<>(num, new ScoredDocument.ScoredDocumentComparator());
-      ql.setup(index);
-      for(mover.start(); !mover.isDone(); mover.next()) {
-        int id = mover.currentKey();
-        double score = Objects.requireNonNull(ql.calculate(index, id));
-        sdocs.add(new ScoredDocument(id, score));
-      }
-
-      List<ScoredDocument> sorted = sdocs.getSorted();
-      for (int i = 0; i < sorted.size(); i++) {
-        ScoredDocument scoredDocument = sorted.get(i);
-        if(scoredDocument == null) continue;
-        Parameters jdoc = Parameters.create();
-        int doc = (int) scoredDocument.document;
-        jdoc.put("score", scoredDocument.score);
-        jdoc.put("rank", i+1);
-        jdoc.put("name", pages2.getNames().getForward(doc));
-        jdoc.put("terms", pages2.translateToTerms(new IntList(pages2.getCorpus().getDocument(doc))));
-        jsonPages.add(jdoc);
-      }
-
-      return Parameters.parseArray(
-          "queryTerms", terms,
-          "queryIds", termIds,
-          "docs", jsonPages
-      );
-    });
+    apiMethods.put("searchPages", p -> searchQL(pages2, p));
+    apiMethods.put("searchEntities", p -> searchQL(dbpedia, p));
     apiMethods.put("page", p -> {
       Parameters output = Parameters.create();
 
-      if(p.isString("name")) {
+      if (p.isString("name")) {
         String name = p.getString("name");
         Integer id = pages2.getNames().getReverse(name);
-        if(id == null) {
+        if (id == null) {
           return output;
         }
         output.put("id", id);
         output.put("name", name);
 
-        if(id != -1) {
+        if (id != -1) {
           IntList page = new IntList(pages2.getCorpus().getDocument(id));
           output.put("terms", pages2.translateToTerms(page));
           output.put("termIds", page);
         }
         return output;
-      } else if(p.isLong("id")) {
+      } else if (p.isLong("id")) {
         int id = p.getInt("id");
         String name = pages2.getNames().getForward(id);
-        if(name == null) {
+        if (name == null) {
           return output;
         }
         output.put("id", id);
         output.put("name", name);
 
-        if(id != -1) {
+        if (id != -1) {
           IntList page = new IntList(pages2.getCorpus().getDocument(id));
           output.put("terms", pages2.translateToTerms(page));
           output.put("termIds", page);
@@ -436,7 +443,7 @@ public class YFQServer implements Closeable, WebHandler {
     apiMethods.put("judged", p -> judgedMapping());
   }
 
-  public YFQServer(Parameters argp) throws IOException {
+  public YFQServer(Parameters argp) throws Exception {
     this.dbDir = new Directory(argp.get("save", "coop/yfq.db.saves"));
     if(!argp.containsKey("port")) {
       argp.put("port", 1234);
@@ -533,6 +540,9 @@ public class YFQServer implements Closeable, WebHandler {
     saveOccasionally.start();
 
     assert(factById != null);
+
+    pages2 = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/inex-page-djvu.ints"));
+    dbpedia = new IntCoopIndex(Directory.Read("dbpedia.ints"));
   }
 
   private synchronized Parameters addJudgment(int factId, String entity, UserRelevanceJudgment rel) {
@@ -620,7 +630,7 @@ public class YFQServer implements Closeable, WebHandler {
     }
   }
 
-  public static void main(String[] args) throws IOException, WebServerException {
+  public static void main(String[] args) throws Exception {
     Parameters argp = Parameters.parseArgs(args);
     try (YFQServer server = new YFQServer(argp)) {
       logger.info("Loaded: " + server.facts.size() + " facts!");
@@ -635,6 +645,7 @@ public class YFQServer implements Closeable, WebHandler {
   public void close() throws IOException {
     logger.info("Closing pages index...");
     pages2.close();
+    dbpedia.close();
     logger.info("Closing pages index...DONE");
 
     try {
