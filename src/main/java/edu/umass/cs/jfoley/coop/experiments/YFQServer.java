@@ -386,7 +386,7 @@ public class YFQServer implements Closeable, WebHandler {
       TermPositionsIndex index = pages2.getPositionsIndex("lemmas");
 
       String q = p.getString("query");
-      int num = p.get("n", 10);
+      int num = p.get("n", 200);
       if(q.isEmpty()) return Parameters.create();
 
       List<Parameters> jsonPages = new ArrayList<>();
