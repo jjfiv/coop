@@ -379,6 +379,8 @@ class FactRenderer extends React.Component {
             <table>
                 <tr><th>Entities</th></tr>
                 <tr><td>{entities}</td></tr>
+                <tr><th>Entity Search</th></tr>
+                <tr><td><EntitySearch submitRating={(id, qid, score) => this.submitRating(id, qid, score)} /></td></tr>
             </table>
             <table>
                 <tr><th>Pages</th></tr>
@@ -388,3 +390,44 @@ class FactRenderer extends React.Component {
     }
 }
 
+class EntitySearch extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            text: "",
+        }
+    }
+    submitQuery() {
+        let q = this.state.text.trim();
+        if(_.isEmpty(q)) return;
+        console.log(q);
+        postJSON("/api/searchEntities", {query: q, pullTerms: false}, (succ) => {
+            this.setState({entities: succ.docs});
+        })
+    }
+    render() {
+        let getText = (x) => x.name;
+        let render = (x) => {
+            let id = x.name;
+            return <span key={id}>
+                    <a href={"http://en.wikipedia.org/"+id}>{id}</a>&nbsp;
+                    <a href={"http://dbpedia.org/page/"+id}>@Dbpedia</a>
+                    <RelevanceChoice score={-1} onRating={(id, score) => this.props.submitRating(id, 0, score)} id={x.name} />
+                </span>
+        };
+
+        return <div>
+            <div><input value={this.state.text}
+                        type="text"
+                        onKeyPress={(evt) => (evt.which == 13) ? this.submitQuery() : null }
+                        onChange={(evt) => this.setState({text: evt.target.value})} />
+                <Button label="Search" onClick={e=>this.submitQuery()} /></div>
+            <FilterableList
+                getItemText={render}
+                items={this.state.entities}
+                getItemText={getText}
+                keyFn={getText}
+                renderItem={render} />
+            </div>;
+    }
+}
