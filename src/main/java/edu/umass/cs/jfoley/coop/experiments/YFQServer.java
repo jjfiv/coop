@@ -1,17 +1,26 @@
 package edu.umass.cs.jfoley.coop.experiments;
 
+import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.FixedSlidingWindow;
+import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
+import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.conll.server.ServerErr;
 import edu.umass.cs.jfoley.coop.conll.server.ServerFn;
+import edu.umass.cs.jfoley.coop.front.QueryEngine;
+import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import org.lemurproject.galago.core.parse.Document;
 import org.lemurproject.galago.core.parse.Tag;
 import org.lemurproject.galago.core.parse.TagTokenizer;
+import org.lemurproject.galago.core.retrieval.LocalRetrieval;
+import org.lemurproject.galago.core.retrieval.ScoredDocument;
+import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.util.WordLists;
 import org.lemurproject.galago.tupleflow.web.WebHandler;
 import org.lemurproject.galago.tupleflow.web.WebServer;
@@ -39,6 +48,8 @@ public class YFQServer implements Closeable, WebHandler {
   TIntObjectHashMap<YearFact> factById;
   private AtomicInteger nextFactId = new AtomicInteger(1);
 
+  private LocalRetrieval pages = new LocalRetrieval("/mnt/scratch/jfoley/inex.pages.galago/");
+  private IntCoopIndex pages2 = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/inex-page-djvu.ints"));
   private final Directory dbDir;
   private AtomicBoolean dirty = new AtomicBoolean(false);
   private AtomicBoolean running = new AtomicBoolean(true);
@@ -47,7 +58,6 @@ public class YFQServer implements Closeable, WebHandler {
 
   WebServer webServer;
 
-  private static final String shutdownFileName = "shutdown.json.gz";
   FixedSlidingWindow<File> backupFiles = new FixedSlidingWindow<>(10);
   private Thread saveOccasionally;
 
@@ -336,6 +346,115 @@ public class YFQServer implements Closeable, WebHandler {
           p.getInt("relevance"));
       return addJudgment(factId, entity, rel);
     });
+    apiMethods.put("searchPages2", p -> {
+      String q = p.getString("query");
+      int num = p.get("n", 10);
+      if(q.isEmpty()) return Parameters.create();
+
+      List<Parameters> jsonPages = new ArrayList<>();
+
+      Parameters reqp = Parameters.create();
+      reqp.put("requested", num);
+
+      TagTokenizer tokenizer = new TagTokenizer();
+      List<String> terms = tokenizer.tokenize(q).terms;
+      if(terms.isEmpty()) return Parameters.create();
+
+      Node ql = new Node(p.get("operator", "combine"));
+      for (String term : terms) {
+        ql.addChild(Node.Text(term));
+      }
+
+      for (ScoredDocument scoredDocument : pages.transformAndExecuteQuery(ql, reqp).scoredDocuments) {
+        Document doc = pages.getDocument(scoredDocument.documentName, Document.DocumentComponents.All);
+        if(doc == null) continue;
+        Parameters jdoc = Parameters.create();
+        jdoc.put("score", scoredDocument.score);
+        jdoc.put("rank", scoredDocument.rank);
+        jdoc.put("name", scoredDocument.documentName);
+        //jdoc.put("text", doc.text);
+        jdoc.put("terms", doc.terms);
+        jsonPages.add(jdoc);
+      }
+
+      return Parameters.parseArray(
+          "queryTerms", terms,
+          "docs", jsonPages
+      );
+    });
+    apiMethods.put("searchPages", p -> {
+      TermPositionsIndex index = pages2.getPositionsIndex("lemmas");
+
+      String q = p.getString("query");
+      int num = p.get("n", 10);
+      if(q.isEmpty()) return Parameters.create();
+
+      List<Parameters> jsonPages = new ArrayList<>();
+
+      TagTokenizer tokenizer = new TagTokenizer();
+      List<String> terms = tokenizer.tokenize(q).terms;
+      if(terms.isEmpty()) return Parameters.create();
+
+      List<QueryEngine.QCNode<Double>> pnodes = new ArrayList<>();
+      IntList termIds = index.translateFromTerms(terms);
+      for (int termId : termIds) {
+        if(termId == -1) continue;
+        pnodes.add(new QueryEngine.LinearSmoothingNode(index.getUnigram(termId)));
+      }
+      if(pnodes.isEmpty()) {
+        return Parameters.create();
+      }
+      QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(pnodes);
+      Mover mover = QueryEngine.createMover(ql);
+
+      TopKHeap<ScoredDocument> sdocs = new TopKHeap<>(num, new ScoredDocument.ScoredDocumentComparator());
+      ql.setup(index);
+      for(mover.start(); !mover.isDone(); mover.next()) {
+        int id = mover.currentKey();
+        double score = Objects.requireNonNull(ql.calculate(index, id));
+        sdocs.add(new ScoredDocument(id, score));
+      }
+
+      List<ScoredDocument> sorted = sdocs.getSorted();
+      for (int i = 0; i < sorted.size(); i++) {
+        ScoredDocument scoredDocument = sorted.get(i);
+        if(scoredDocument == null) continue;
+        Parameters jdoc = Parameters.create();
+        int doc = (int) scoredDocument.document;
+        jdoc.put("score", scoredDocument.score);
+        jdoc.put("rank", i+1);
+        jdoc.put("name", pages2.getNames().getForward(doc));
+        jdoc.put("terms", pages2.translateToTerms(new IntList(pages2.getCorpus().getDocument(doc))));
+        jsonPages.add(jdoc);
+      }
+
+      return Parameters.parseArray(
+          "queryTerms", terms,
+          "queryIds", termIds,
+          "docs", jsonPages
+      );
+    });
+    apiMethods.put("page", p -> {
+      Parameters output = Parameters.create();
+
+      if(p.isString("name")) {
+        String name = p.getString("name");
+        Integer id = pages2.getNames().getReverse(name);
+        if(id == null) {
+          return output;
+        }
+        output.put("id", id);
+        output.put("name", name);
+
+        if(id != -1) {
+          IntList page = new IntList(pages2.getCorpus().getDocument(id));
+          output.put("terms", pages2.translateToTerms(page));
+          output.put("termIds", page);
+        }
+        return output;
+      }
+      throw new UnsupportedOperationException(p.toString());
+    });
     apiMethods.put("save", p -> { saveAnyway(); return null; });
     apiMethods.put("fact", p -> factById.get(p.getInt("id")).asJSON());
     apiMethods.put("judged", p -> judgedMapping());
@@ -414,6 +533,7 @@ public class YFQServer implements Closeable, WebHandler {
               String ent = StrUtil.takeAfter(url, "https://en.wikipedia.org/wiki/");
               yf.entities.put(ent, new ArrayList<>(Collections.singletonList(new UserRelevanceJudgment("WIKI-YEAR-FACTS", 0, 0, 1))));
             }
+            yf.entities.put(Integer.toString(year), new ArrayList<>(Collections.singletonList(new UserRelevanceJudgment("WIKI-YEAR-FACTS", 0, 0, 1))));
 
             factById.put(yf.id, yf);
             facts.add(yf);
@@ -487,14 +607,6 @@ public class YFQServer implements Closeable, WebHandler {
     return fact.asJSON();
   }
 
-  private void saveForShutdown() {
-    try {
-      save(this.dbDir.child(shutdownFileName));
-    } catch (IOException e) {
-      throw new RuntimeException("Couldn't save for shutdown!", e);
-    }
-  }
-
   synchronized Parameters saveToJSON() {
     Parameters db = Parameters.create();
     db.put("facts", ListFns.map(facts, YearFact::asJSON));
@@ -544,7 +656,11 @@ public class YFQServer implements Closeable, WebHandler {
 
 
   @Override
-  public void close() {
+  public void close() throws IOException {
+    logger.info("Closing pages index...");
+    pages.close();
+    logger.info("Closing pages index...DONE");
+
     try {
       logger.info("Shutting down background-thread...");
       running.set(false);
