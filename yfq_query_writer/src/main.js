@@ -389,12 +389,6 @@ class FactRenderer extends React.Component {
                 <tr><td>{qs}</td></tr>
             </table>
             <table>
-                <tr><th>Entities</th></tr>
-                <tr><td>{entities}</td></tr>
-                <tr><th>Entity Search</th></tr>
-                <tr><td><EntitySearch submitRating={(id, qid, score) => this.submitRating(id, qid, score)} /></td></tr>
-            </table>
-            <table>
                 <tr><th>Pages</th></tr>
                 <tr><td>{fact.pages}</td></tr>
                 <tr><th>PageSearch Search</th></tr>
