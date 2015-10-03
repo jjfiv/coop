@@ -36,15 +36,13 @@ th {
     background-color:#afa;
 }
 
-body, #top {
-  font-family: "Helvetica Neue",Arial,arial,sans-serif;
-  font-size: 12pt;
-  margin:0;
-  padding:0;
+h1 {
+    font-size: 24pt;
 }
-pre, code {
-    font-size: 11pt;
+p {
+    margin: 10pt;
 }
+
 a.active.nav {
   text-decoration: underline;
 }
@@ -93,7 +91,6 @@ textarea {
     margin: 4pt;
 }
 
-p { margin: 0; }
 
 li { margin-bottom: 8pt; }
 
@@ -156,24 +153,25 @@ label.rel {
     height: 824px;
 }
 
-.fact {
-    display: inline-block;
-    padding:4pt;
-}
-
-.summary.needsQueries.needsJudgments {
-    background-color: #fcc;
-}
-.summary.needsQueries {
-    background-color: #fcc;
-}
-/*.summary.needsJudgments {
-    background-color: #ccf;
-}*/
 .summary {
+    margin: 0;
+}
+.doneMyQueries {
     background-color: #cfc;
 }
-.summary.current, .summary.current.needsQueries, .summary.current.needsQueries.needsJudgments {
+.needsQueries.needsMyQueries {
+    background-color: #fcc;
+}
+.summary.needsMyQueries {
+    background-color: #ccf;
+}
+.needsMyQueries {
+    background-color: #ccf;
+}
+.needsQueries {
+    background-color: #fcc;
+}
+.current {
     background-color: #000;
 }
 

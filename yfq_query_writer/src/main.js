@@ -32,6 +32,17 @@ function showQuery(q) {
     }
 }
 
+let userPrompt = <span>
+    <h1>Instructions</h1>
+    <p>Imagine that you are browsing the internet, and you come across the following statement or fact. You read it, and maybe some of the associated pages, and discover that you want to know more. </p>
+    <p><strong>Please suggest 2-3 queries that you might submit to a search engine.</strong> The queries you suggest are saved automatically; so there is no submit button.</p>
+    <p>These facts are drawn from the Wikipedia year pages, like the one for <a href="http://en.wikipedia.org/wiki/2015">2015</a>. If you cannot determine what the fact is about for any reason, please do not suggest any queries.</p>
+    <p className="needsQueries">RED facts have no queries by any author.</p>
+    <p className="needsMyQueries">BLUE facts have queries by at least one author.</p>
+    <p className="doneMyQueries">GREEN facts have been completed by your user name.</p>
+    <p><strong>Thank you!</strong> You can <strong>refresh</strong> to get another random fact, or go for the red ones you haven't done yet.</p>
+</span>;
+
 
 class QuerySuggestionUI extends React.Component {
     constructor(props) {
@@ -70,28 +81,39 @@ class QuerySuggestionUI extends React.Component {
             return <div>Loading...</div>;
         }
 
+        let colorClassForFact = (fact) => {
+            // others
+            // in summary, even hide deleted from admin
+            let any_queries = _(fact.queries).filter(
+                    q => !q.deleted
+            ).value();
+            // mine
+            let my_queries = _(any_queries).filter(showQuery).value();
+            /*let judgments = _(fact.judgments).filter((judgment) => {
+             // keep only your own judgments:
+             return (judgment.time > 0) && (admin() || judgment.user == globalUser);
+             }).groupBy(j => j.item).value();*/
+
+            let needsMyQueries = _.isEmpty(my_queries);
+            let needsQueries = _.isEmpty(any_queries);
+            //let needsJudgments = _.isEmpty(judgments);
+
+            if(needsQueries) {
+                return "needsQueries";
+            } else if(needsMyQueries) {
+                return "needsMyQueries";
+            } else {
+                return "doneMyQueries";
+            }
+        };
+
         let summary = _(facts).map((fact, index) => {
             let current = index == activeIndex;
             let classes = ["summary"];
             if(current) {
                 classes.push("current");
-            }
-
-            // in summary, even hide deleted from admin
-            let queries = _(fact.queries).filter(showQuery).filter(q => !q.deleted).value();
-            let judgments = _(fact.judgments).filter((judgment) => {
-                // keep only your own judgments:
-                return (judgment.time > 0) && (admin() || judgment.user == globalUser);
-            }).groupBy(j => j.item).value();
-
-            let needsQueries = _.isEmpty(queries);
-            let needsJudgments = _.isEmpty(judgments);
-
-            if(needsQueries) {
-                classes.push("needsQueries");
-            }
-            if(needsJudgments) {
-                classes.push("needsJudgments");
+            } else {
+                classes.push(colorClassForFact(fact));
             }
 
             return <Button key={index} classes={classes} label={(index+1)} disabled={current} onClick={e=>this.setActive(index)} />
@@ -105,30 +127,34 @@ class QuerySuggestionUI extends React.Component {
                 if(q.deleted) {
                     classes.push("deleted");
                 }
-                return <div className={strjoin(classes)} key={q.id}>{q.query}
+                return <p className={strjoin(classes)} key={q.id}>{q.query}
                     <Button visible={!q.deleted} onClick={e=>this.deleteQuery(fact.id, q.id)} label={"Delete"}  />
-                </div>;
+                </p>;
             }).value();
 
             contents = <div>
-                <div>
-                    <strong>Fact #{activeIndex+1}:</strong> <SimpleFactRenderer fact={fact} />
-                </div>
-                <div>
+                <p className="fact">
+                    <strong className={colorClassForFact(fact)}>Fact #{activeIndex+1}:</strong> <SimpleFactRenderer fact={fact} />
+                </p>
+                <p>
                     <input className="querySuggestBox"
                            value={this.state.queryText}
                            onChange={evt => this.setState({queryText: evt.target.value})}
                            onKeyPress={(evt) => (evt.which == 13) ? this.suggestQuery(fact) : null }
                            type="text"/>
                     <Button label="Suggest Query" onClick={e=>this.suggestQuery(fact)} />
-                </div>
+                </p>
                 <div>{yourQueries}</div>
             </div>;
         }
 
         return <div>
+            <div>{userPrompt}</div>
+            <hr />
+            <h1>Available Facts</h1>
             {summary}
             <hr />
+            <h1>Current Fact</h1>
             {contents}
         </div>;
     }
