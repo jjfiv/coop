@@ -39,10 +39,9 @@ public class YFQServer implements Closeable, WebHandler {
   static Logger logger = Logger.getLogger("YFQServer");
   private List<YearFact> facts;
   TIntObjectHashMap<YearFact> factById;
-  private AtomicInteger nextFactId = new AtomicInteger(1);
+  private AtomicInteger nextQueryId = new AtomicInteger(1);
 
-  private IntCoopIndex pages2;
-  private IntCoopIndex dbpedia;
+  private IntCoopIndex pages;
   private final Directory dbDir;
   private AtomicBoolean dirty = new AtomicBoolean(false);
   private AtomicBoolean running = new AtomicBoolean(true);
@@ -380,23 +379,19 @@ public class YFQServer implements Closeable, WebHandler {
       }
       return p;
     });
-    apiMethods.put("db", p -> saveToJSON());
-    apiMethods.put("rand", p -> {
-      Random rand = new Random();
-      int index = rand.nextInt(facts.size());
-      return facts.get(index).asJSON();
-    });
     apiMethods.put("suggestQuery", p -> {
       logger.info(p.toString());
       int factId = p.getInt("factId");
       UserSubmittedQuery q = new UserSubmittedQuery(
-          nextFactId.incrementAndGet(), p.getString("user"), System.currentTimeMillis(), p.getString("query"));
-      return submitQuery(factId, q);
+          nextQueryId.incrementAndGet(), p.getString("user"), System.currentTimeMillis(), p.getString("query"));
+      submitQuery(factId, q);
+      return getFacts();
     });
     apiMethods.put("deleteQuery", p -> {
       int factId = p.getInt("factId");
       int queryId = p.getInt("queryId");
-      return deleteQuery(factId, queryId);
+      deleteQuery(factId, queryId);
+      return getFacts();
     });
     apiMethods.put("judgeItem", p -> {
       int factId = p.getInt("factId");
@@ -405,16 +400,16 @@ public class YFQServer implements Closeable, WebHandler {
           p.getString("user"),
           System.currentTimeMillis(),
           p.getInt("relevance"));
-      return addJudgment(factId, rel);
+      addJudgment(factId, rel);
+      return getFacts();
     });
-    apiMethods.put("searchPages", p -> searchQL(pages2, p));
-    apiMethods.put("searchEntities", p -> searchQL(dbpedia, p));
+    apiMethods.put("searchPages", p -> searchQL(pages, p));
     apiMethods.put("page", p -> {
       Parameters output = Parameters.create();
 
       if (p.isString("name")) {
         String name = p.getString("name");
-        Integer id = pages2.getNames().getReverse(name);
+        Integer id = pages.getNames().getReverse(name);
         if (id == null) {
           return output;
         }
@@ -422,14 +417,14 @@ public class YFQServer implements Closeable, WebHandler {
         output.put("name", name);
 
         if (id != -1) {
-          IntList page = new IntList(pages2.getCorpus().getDocument(id));
-          output.put("terms", pages2.translateToTerms(page));
+          IntList page = new IntList(pages.getCorpus().getDocument(id));
+          output.put("terms", pages.translateToTerms(page));
           output.put("termIds", page);
         }
         return output;
       } else if (p.isLong("id")) {
         int id = p.getInt("id");
-        String name = pages2.getNames().getForward(id);
+        String name = pages.getNames().getForward(id);
         if (name == null) {
           return output;
         }
@@ -437,8 +432,8 @@ public class YFQServer implements Closeable, WebHandler {
         output.put("name", name);
 
         if (id != -1) {
-          IntList page = new IntList(pages2.getCorpus().getDocument(id));
-          output.put("terms", pages2.translateToTerms(page));
+          IntList page = new IntList(pages.getCorpus().getDocument(id));
+          output.put("terms", pages.translateToTerms(page));
           output.put("termIds", page);
         }
         return output;
@@ -446,8 +441,11 @@ public class YFQServer implements Closeable, WebHandler {
       throw new UnsupportedOperationException(p.toString());
     });
     apiMethods.put("save", p -> { saveAnyway(); return null; });
-    apiMethods.put("fact", p -> factById.get(p.getInt("id")).asJSON());
-    apiMethods.put("facts", p -> Parameters.parseArray("facts", ListFns.map(facts, YearFact::asJSON)));
+    apiMethods.put("facts", p -> getFacts());
+  }
+
+  public synchronized Parameters getFacts() {
+    return Parameters.parseArray("facts", ListFns.map(facts, YearFact::asJSON));
   }
 
   public YFQServer(Parameters argp) throws Exception {
@@ -507,8 +505,7 @@ public class YFQServer implements Closeable, WebHandler {
 
     assert(factById != null);
 
-    pages2 = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/inex-page-djvu.ints"));
-    dbpedia = new IntCoopIndex(Directory.Read("dbpedia.ints"));
+    pages = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/inex-page-djvu.ints"));
   }
 
   private synchronized Parameters addJudgment(int factId, UserRelevanceJudgment rel) {
@@ -517,8 +514,8 @@ public class YFQServer implements Closeable, WebHandler {
     return yearFact.asJSON();
   }
 
-  private synchronized Parameters deleteQuery(int factId, int queryId) {
-    logger.info("deleteQuery: "+factId+" "+queryId);
+  private synchronized void deleteQuery(int factId, int queryId) {
+    logger.info("deleteQuery: factId="+factId+" queryId="+queryId);
     boolean change = false;
     YearFact fact = factById.get(factId);
     for (UserSubmittedQuery query : fact.queries) {
@@ -530,7 +527,6 @@ public class YFQServer implements Closeable, WebHandler {
     if(change) {
       dirty.lazySet(true);
     }
-    return fact.asJSON();
   }
 
   private synchronized Parameters submitQuery(int factId, UserSubmittedQuery q) {
@@ -541,14 +537,8 @@ public class YFQServer implements Closeable, WebHandler {
     return fact.asJSON();
   }
 
-  synchronized Parameters saveToJSON() {
-    Parameters db = Parameters.create();
-    db.put("facts", ListFns.map(facts, YearFact::asJSON));
-    return db;
-  }
-
   private void save(File fp) throws IOException {
-    Parameters db = saveToJSON();
+    Parameters db = getFacts();
     try (PrintWriter pw = IO.openPrintWriter(fp.getAbsolutePath())) {
       pw.println(db);
     }
@@ -571,7 +561,7 @@ public class YFQServer implements Closeable, WebHandler {
       synchronized (this) {
         facts = newFacts;
         factById = byId;
-        nextFactId.set(maxId);
+        nextQueryId.set(maxId);
       }
     } catch (Exception e) {
       logger.log(Level.WARNING, "Loading of "+fileName+" failed!");
@@ -592,8 +582,7 @@ public class YFQServer implements Closeable, WebHandler {
   @Override
   public void close() throws IOException {
     logger.info("Closing pages index...");
-    pages2.close();
-    dbpedia.close();
+    pages.close();
     logger.info("Closing pages index...DONE");
 
     try {

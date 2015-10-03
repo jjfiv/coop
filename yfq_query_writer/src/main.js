@@ -17,42 +17,127 @@ class Main {
     }
 }
 
+function admin() {
+    return globalUser == "jfoley";
+}
+function showEntity(e) {
+    return e.user == "WIKI-YEAR-FACTS" || showQuery(e);
+}
+
+function showQuery(q) {
+    if(admin()) {
+        return true;
+    } else {
+        return q.user == globalUser && !q.deleted;
+    }
+}
+
+
 class QuerySuggestionUI extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             facts: [],
-            activeFact: null,
+            activeFact: 0,
+            queryText: "",
         }
     }
     componentDidMount() {
-        this.refreshFacts();
+        postJSON("/api/facts", {}, (succ) => this.setState({
+            facts: succ.facts,
+            activeFact: ((Math.random() * _.size(succ.facts)) | 0)
+        }));
     }
     refreshFacts() {
         postJSON("/api/facts", {}, (succ) => this.setState({facts: succ.facts}));
     }
+    setActive(activeFact) {
+        this.setState({activeFact});
+    }
+    suggestQuery(fact) {
+        let query = this.state.queryText.trim();
+        if(_.isEmpty(query)) return;
+        postJSON("/api/suggestQuery", {factId: fact.id, user: globalUser, query}, succ => { this.setState({facts: succ.facts}) })
+    }
+    deleteQuery(factId, queryId) {
+        postJSON("/api/deleteQuery", {factId, queryId}, succ => { this.setState({facts: succ.facts}) })
+    }
     render() {
-        let getText = (x) => {
-            return strjoin(x.terms);
-        };
-        let render = (x) => {
-            let id = x.id;
-            return <SimpleFactRenderer key={id} fact={x} />;
-        };
+        let activeIndex = this.state.activeFact;
+        let facts = this.state.facts;
 
-        return <FilterableList
-            getItemText={x => render(x)}
-            items={this.props.judged}
-            getItemText={getText}
-            keyFn={x => x.factId}
-            renderItem={render} />;
+        if(!facts) {
+            return <div>Loading...</div>;
+        }
+
+        let summary = _(facts).map((fact, index) => {
+            let current = index == activeIndex;
+            let classes = ["summary"];
+            if(current) {
+                classes.push("current");
+            }
+
+            // in summary, even hide deleted from admin
+            let queries = _(fact.queries).filter(showQuery).filter(q => !q.deleted).value();
+            let judgments = _(fact.judgments).filter((judgment) => {
+                // keep only your own judgments:
+                return (judgment.time > 0) && (admin() || judgment.user == globalUser);
+            }).groupBy(j => j.item).value();
+
+            let needsQueries = _.isEmpty(queries);
+            let needsJudgments = _.isEmpty(judgments);
+
+            if(needsQueries) {
+                classes.push("needsQueries");
+            }
+            if(needsJudgments) {
+                classes.push("needsJudgments");
+            }
+
+            return <Button key={index} classes={classes} label={(index+1)} disabled={current} onClick={e=>this.setActive(index)} />
+        }).value();
+
+        let fact = facts[this.state.activeFact];
+        let contents = <div>Loading...</div>;
+        if(fact) {
+            let yourQueries = _(fact.queries).filter(showQuery).map((q) => {
+                let classes = ["queryView"];
+                if(q.deleted) {
+                    classes.push("deleted");
+                }
+                return <div className={strjoin(classes)} key={q.id}>{q.query}
+                    <Button visible={!q.deleted} onClick={e=>this.deleteQuery(fact.id, q.id)} label={"Delete"}  />
+                </div>;
+            }).value();
+
+            contents = <div>
+                <div>
+                    <strong>Fact #{activeIndex+1}:</strong> <SimpleFactRenderer fact={fact} />
+                </div>
+                <div>
+                    <input className="querySuggestBox"
+                           value={this.state.queryText}
+                           onChange={evt => this.setState({queryText: evt.target.value})}
+                           onKeyPress={(evt) => (evt.which == 13) ? this.suggestQuery(fact) : null }
+                           type="text"/>
+                    <Button label="Suggest Query" onClick={e=>this.suggestQuery(fact)} />
+                </div>
+                <div>{yourQueries}</div>
+            </div>;
+        }
+
+        return <div>
+            {summary}
+            <hr />
+            {contents}
+        </div>;
     }
 }
 
 class SimpleFactRenderer extends React.Component {
     render() {
         let fact = this.props.fact;
-        return <span>In <a href={"http://en.wikipedia.org/"+fact.year}>{fact.year}</a>, <span dangerouslySetInnerHTML={{__html: fact.html}} /></span>;
+        return <span>In <a href={"http://en.wikipedia.org/wiki/"+fact.year}>{fact.year}</a>, <span dangerouslySetInnerHTML={{__html: fact.html}} /></span>;
     }
 }
 
@@ -246,21 +331,6 @@ function pushFront(arr, item) {
         new_arr.push(arr[i]);
     }
     return new_arr;
-}
-
-function admin() {
-    return globalUser == "jfoley";
-}
-function showEntity(e) {
-    return e.user == "WIKI-YEAR-FACTS" || showQuery(e);
-}
-
-function showQuery(q) {
-    if(admin()) {
-        return true;
-    } else {
-        return q.user == globalUser && !q.deleted;
-    }
 }
 
 class QuerySuggestions extends React.Component {

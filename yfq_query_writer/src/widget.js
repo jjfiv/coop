@@ -5,6 +5,7 @@
 class Button extends React.Component{
     render() {
         var classes = [];
+        _.forEach(this.props.classes || [], x => classes.push(x));
         classes.push(this.props.visible ? "normal" : "hidden");
         return <input
             className={strjoin(classes)}
@@ -158,7 +159,6 @@ class FilterableList extends React.Component {
             filter: '',
             alpha: false,
             page: 0,
-            pageSize: 10 || this.props.maxValues
         }
     }
     render() {
@@ -186,7 +186,8 @@ class FilterableList extends React.Component {
         }
 
         return <div className={"FilterableList"}>
-            <Button label={"A->Z"} onClick={evt => this.setState({alpha: true, page: 0})} />
+            <Button disabled={!this.state.alpha} label={"Normal"} onClick={evt => this.setState({alpha: false, page: 0})} />
+            <Button disabled={this.state.alpha} label={"A->Z"} onClick={evt => this.setState({alpha: true, page: 0})} />
             <input type="text"
                    onChange={(evt) => this.setState({
                    filter: evt.target.value.toLowerCase(), page: 0
@@ -198,7 +199,7 @@ class FilterableList extends React.Component {
 
             {(matchCount !== total)?<span>{matchCount} of {total}</span>:<span/>}
             <PagedListView page={this.state.page}
-                           pageSize={this.state.pageSize}
+                           pageSize={this.props.pageSize || 10}
                            items={matchingItems}
                            renderItem={this.props.renderItem}
                            keyFn={this.props.keyFn || this.props.getItemText}
