@@ -40,7 +40,7 @@ let userPrompt = <span>
     <p className="needsQueries">RED facts have no queries by any author.</p>
     <p className="needsMyQueries">BLUE facts have queries by at least one author.</p>
     <p className="doneMyQueries">GREEN facts have been completed by your user name.</p>
-    <p><strong>Thank you!</strong> You can <strong>refresh</strong> to get another random fact, or go for the red ones you haven't done yet.</p>
+    <p><strong>Thank you!</strong> You can <strong>refresh</strong> to get another random fact, or click on the <span className="needsQueries">red</span> and <span className="needsMyQueries">blue</span> ones you haven't done yet.</p>
 </span>;
 
 
@@ -238,7 +238,7 @@ class UserInterface extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            user: window.localStorage.getItem("user"),
+            user: window.localStorage.getItem("user") || null,
             text: ""
         }
     }
@@ -253,16 +253,23 @@ class UserInterface extends React.Component {
     logout() {
         this.setState({text:globalUser, user:null});
         globalUser = null;
+        window.localStorage.clear();
     }
     render() {
+        let instructions = <div>
+            <p>We recommend using your email as a login id, but if you wish to be anonymous, you may choose something that does not reflect your name, as long as it is consistent.</p>
+        </div>;
         let user = this.state.user;
         if(user == null) {
-            return <div className="loginForm">Choose a user id:
-                <input value={this.state.text}
-                       onChange={(evt) => this.setState({text: evt.target.value})}
-                       onKeyPress={(evt) => (evt.which == 13) ? this.tryLogin() : null }
-                       type="text" />
-                <Button label="Login" onClick={(evt) => this.tryLogin()} />
+            return <div className="loginForm">{instructions}<hr />
+                <center>
+                    Choose a user id:
+                    <input className="loginBox" value={this.state.text}
+                           onChange={(evt) => this.setState({text: evt.target.value})}
+                           onKeyPress={(evt) => (evt.which == 13) ? this.tryLogin() : null }
+                           type="text" />
+                    <Button label="Login" onClick={(evt) => this.tryLogin()} />
+                </center>
             </div>
         } else {
             return <div>

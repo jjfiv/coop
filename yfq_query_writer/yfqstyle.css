@@ -96,10 +96,16 @@ li { margin-bottom: 8pt; }
 
 .loginForm {
     border: 1px solid #000;
-    background-color: #eee;
+    background-color: #fcfcfc;
     padding: 50pt;
     margin: 50pt;
-    text-align:center;
+}
+
+input[type="text"] {
+    color: #000;
+    font-size: 14pt;
+    line-height: 20pt;
+    height: 20pt;
 }
 
 .loggedInMessage {
@@ -175,6 +181,6 @@ label.rel {
     background-color: #000;
 }
 
-.querySuggestBox {
+input[type="text"].querySuggestBox {
     width: 300pt;
 }
