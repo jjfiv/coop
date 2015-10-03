@@ -4,7 +4,6 @@ import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.FixedSlidingWindow;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
-import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
@@ -15,17 +14,13 @@ import edu.umass.cs.jfoley.coop.conll.server.ServerFn;
 import edu.umass.cs.jfoley.coop.front.QueryEngine;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import org.lemurproject.galago.core.parse.Document;
-import org.lemurproject.galago.core.parse.Tag;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
-import org.lemurproject.galago.core.util.WordLists;
 import org.lemurproject.galago.tupleflow.web.WebHandler;
 import org.lemurproject.galago.tupleflow.web.WebServer;
 import org.lemurproject.galago.tupleflow.web.WebServerException;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.StreamUtil;
-import org.lemurproject.galago.utility.StringPooler;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -227,13 +222,13 @@ public class YFQServer implements Closeable, WebHandler {
   }
 
   public static class UserRelevanceJudgment {
+    final String item;
     final String user;
     final long time;
     final int relevance;
-    private final int queryId;
 
-    public UserRelevanceJudgment(String user, int queryId, long time, int relevance) {
-      this.queryId = queryId;
+    public UserRelevanceJudgment(String item, String user, long time, int relevance) {
+      this.item = item;
       this.user = user;
       this.time = time;
       this.relevance = relevance;
@@ -242,8 +237,8 @@ public class YFQServer implements Closeable, WebHandler {
     @Nonnull
     public Parameters asJSON() {
       Parameters p = Parameters.create();
+      p.put("item", item);
       p.put("user", user);
-      p.put("queryId", queryId);
       p.put("time", time);
       p.put("relevance", relevance);
       return p;
@@ -251,23 +246,25 @@ public class YFQServer implements Closeable, WebHandler {
 
     @Nonnull
     public static UserRelevanceJudgment parseJSON(Parameters input) {
-      return new UserRelevanceJudgment(input.getString("user"), input.getInt("queryId"), input.getLong("time"), input.getInt("relevance"));
+      return new UserRelevanceJudgment(input.getString("item"), input.getString("user"), input.getLong("time"), input.getInt("relevance"));
     }
   }
 
   public static class YearFact {
     private final int year;
     private final String html;
+    private final List<String> terms;
     private final int id;
     private final ArrayList<UserSubmittedQuery> queries;
-    private final Map<String,List<UserRelevanceJudgment>> entities;
+    private final List<UserRelevanceJudgment> judgments;
 
-    public YearFact(int id, int year, String fact) {
+    public YearFact(int id, int year, String fact, List<String> terms) {
       this.id = id;
       this.year = year;
       this.html = fact;
+      this.terms = terms;
       this.queries = new ArrayList<>();
-      this.entities = new HashMap<>();
+      this.judgments = new ArrayList<>();
     }
 
     @Nonnull
@@ -276,8 +273,9 @@ public class YFQServer implements Closeable, WebHandler {
           "id", id,
           "year", year,
           "html", html,
+          "terms", terms,
           "queries", ListFns.map(queries, UserSubmittedQuery::asJSON),
-          "entities", Parameters.wrap(MapFns.mapValues(entities, (js) -> ListFns.map(js, UserRelevanceJudgment::asJSON)))
+          "judgments", ListFns.map(judgments, UserRelevanceJudgment::asJSON)
       );
     }
 
@@ -286,16 +284,11 @@ public class YFQServer implements Closeable, WebHandler {
       YearFact fact = new YearFact(
           input.getInt("id"),
           input.getInt("year"),
-          input.getString("html"));
+          input.getString("html"),
+          input.getAsList("terms", String.class));
 
-      List<Parameters> queries = input.getAsList("queries", Parameters.class);
-      fact.queries.addAll(ListFns.map(queries, UserSubmittedQuery::parseJSON));
-
-      Parameters entities = input.getMap("entities");
-      for (String entity : entities.keySet()) {
-        fact.entities.put(entity, ListFns.map(entities.getAsList(entity, Parameters.class), UserRelevanceJudgment::parseJSON));
-      }
-
+      fact.queries.addAll(ListFns.map(input.getAsList("queries", Parameters.class), UserSubmittedQuery::parseJSON));
+      fact.judgments.addAll(ListFns.map(input.getAsList("judgments", Parameters.class), UserRelevanceJudgment::parseJSON));
       return fact;
     }
 
@@ -303,6 +296,21 @@ public class YFQServer implements Closeable, WebHandler {
     public String getHtml() { return html; }
     public int getYear() { return year; }
     public int getId() { return id; }
+
+    public void addJudgment(UserRelevanceJudgment judgment) {
+      judgments.add(judgment);
+    }
+
+    public boolean hasJudgment() {
+      for (UserRelevanceJudgment judgment : judgments) {
+        if(judgment.time > 0) return true;
+      }
+      return false;
+    }
+
+    public boolean hasQueries() {
+      return queries.size() > 0;
+    }
   }
 
   public static Parameters searchQL(IntCoopIndex target, Parameters p) throws IOException {
@@ -390,15 +398,14 @@ public class YFQServer implements Closeable, WebHandler {
       int queryId = p.getInt("queryId");
       return deleteQuery(factId, queryId);
     });
-    apiMethods.put("judgeEntity", p -> {
+    apiMethods.put("judgeItem", p -> {
       int factId = p.getInt("factId");
-      String entity = p.getString("entity");
       UserRelevanceJudgment rel = new UserRelevanceJudgment(
+          p.getString("item"),
           p.getString("user"),
-          p.getInt("queryId"),
           System.currentTimeMillis(),
           p.getInt("relevance"));
-      return addJudgment(factId, entity, rel);
+      return addJudgment(factId, rel);
     });
     apiMethods.put("searchPages", p -> searchQL(pages2, p));
     apiMethods.put("searchEntities", p -> searchQL(dbpedia, p));
@@ -440,11 +447,11 @@ public class YFQServer implements Closeable, WebHandler {
     });
     apiMethods.put("save", p -> { saveAnyway(); return null; });
     apiMethods.put("fact", p -> factById.get(p.getInt("id")).asJSON());
-    apiMethods.put("judged", p -> judgedMapping());
+    apiMethods.put("facts", p -> Parameters.parseArray("facts", ListFns.map(facts, YearFact::asJSON)));
   }
 
   public YFQServer(Parameters argp) throws Exception {
-    this.dbDir = new Directory(argp.get("save", "coop/yfq.db.saves"));
+    this.dbDir = new Directory(argp.get("save", "coop/sampled.db.saves"));
     if(!argp.containsKey("port")) {
       argp.put("port", 1234);
     }
@@ -481,48 +488,7 @@ public class YFQServer implements Closeable, WebHandler {
     // bootstrap! / import!
     if(!dbDir.child(resumeFile).exists()) {
       logger.info("Import first time.");
-      HashSet<String> stopwords = new HashSet<>(Objects.requireNonNull(WordLists.getWordList("inquery")));
-
-      Parameters json = Parameters.parseStream(IO.openInputStream("coop/data/ecir15.wiki-year-facts.json.gz"));
-      List<Parameters> factJSON = json.getAsList("data", Parameters.class);
-
-      // tag tokenizer:
-      TagTokenizer tok = new TagTokenizer();
-      tok.addField("a");
-      StringPooler.disable();
-
-      int id = 1;
-      facts = new ArrayList<>();
-      factById = new TIntObjectHashMap<>();
-      for (Parameters fact : factJSON) {
-        String yearStr = fact.getString("year");
-        if (yearStr.endsWith("BC")) continue;
-        int year = Integer.parseInt(yearStr);
-        if (year >= 1000 && year <= 1925) {
-          String html = fact.getString("fact");
-          boolean nonStopword = false;
-          Document doc = tok.tokenize(html);
-          for (String term : doc.terms) {
-            if(stopwords.contains(term)) continue;
-            nonStopword = true; break;
-          }
-
-          if(nonStopword) {
-            YearFact yf = new YearFact(id++, year, html);
-
-            for (Tag tag : doc.tags) {
-              String url = tag.attributes.get("href");
-              if(url == null) continue;
-              String ent = StrUtil.takeAfter(url, "https://en.wikipedia.org/wiki/");
-              yf.entities.put(ent, new ArrayList<>(Collections.singletonList(new UserRelevanceJudgment("WIKI-YEAR-FACTS", 0, 0, 1))));
-            }
-            yf.entities.put(Integer.toString(year), new ArrayList<>(Collections.singletonList(new UserRelevanceJudgment("WIKI-YEAR-FACTS", 0, 0, 1))));
-
-            factById.put(yf.id, yf);
-            facts.add(yf);
-          }
-        }
-      }
+      load(new File("coop/data/sampled-facts.json"));
       dirty.set(true);
     } else {
       logger.info("Resuming server.");
@@ -545,28 +511,10 @@ public class YFQServer implements Closeable, WebHandler {
     dbpedia = new IntCoopIndex(Directory.Read("dbpedia.ints"));
   }
 
-  private synchronized Parameters addJudgment(int factId, String entity, UserRelevanceJudgment rel) {
+  private synchronized Parameters addJudgment(int factId, UserRelevanceJudgment rel) {
     YearFact yearFact = factById.get(factId);
-    MapFns.extendListInMap(yearFact.entities, entity, rel);
+    yearFact.judgments.add(rel);
     return yearFact.asJSON();
-  }
-
-  private synchronized Parameters judgedMapping() {
-    List<Parameters> judgedFacts = new ArrayList<>();
-    for (YearFact fact : facts) {
-      if(fact.queries.isEmpty()) {
-        continue;
-      }
-      Parameters summary = Parameters.create();
-      HashMap<String, String> userQueryMap = new HashMap<>();
-      for (UserSubmittedQuery usq : fact.queries) {
-        userQueryMap.put(usq.user, usq.query);
-      }
-      summary.put("users", Parameters.wrap(userQueryMap));
-      summary.put("factId", fact.id);
-      judgedFacts.add(summary);
-    }
-    return Parameters.parseArray("judged", judgedFacts);
   }
 
   private synchronized Parameters deleteQuery(int factId, int queryId) {

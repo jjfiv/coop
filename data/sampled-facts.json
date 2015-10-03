@@ -1,0 +1,2673 @@
+{
+  "facts" : [ {
+      "html" : "July-December. July 15 - The <a href=\"https://en.wikipedia.org/wiki/Narragansett_(tribe)\">Narragansett tribe</a> signs a peace treaty with <a href=\"https://en.wikipedia.org/wiki/Connecticut\">Connecticut</a>.",
+      "id" : 10261,
+      "judgments" : [ {
+          "item" : "Narragansett_(tribe)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Connecticut",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1675",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "july" , "15" , "the" , "narragansett" , "tribe" , "signs" , "a" , "peace" , "treaty" , "with" , "connecticut"],
+      "year" : 1675
+    } , {
+      "html" : "January-March. March 1 - <a href=\"https://en.wikipedia.org/wiki/North_German_Confederation\">North German Confederation</a> issues 10<a href=\"https://en.wikipedia.org/wiki/groschen\">gr</a> and 30gr value stamps, printed on <a href=\"https://en.wikipedia.org/wiki/goldbeater's_skin\">goldbeater's skin</a>.",
+      "id" : 15598,
+      "judgments" : [ {
+          "item" : "North_German_Confederation",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "groschen",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "goldbeater",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1869",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "march" , "march" , "1" , "north" , "german" , "confederation" , "issues" , "10" , "gr" , "and" , "30gr" , "value" , "stamps" , "printed" , "on" , "goldbeaters" , "skin"],
+      "year" : 1869
+    } , {
+      "html" : "January-March. January 16 - A resolution is passed in the German Parliament, to condemn the <a href=\"https://en.wikipedia.org/wiki/Prussian_deportations\">Prussian deportations</a>, the politically motivated mass expulsion of ethnic Poles and Jews from <a href=\"https://en.wikipedia.org/wiki/Prussia\">Prussia</a>, initiated by <a href=\"https://en.wikipedia.org/wiki/Otto_von_Bismarck\">Otto von Bismarck</a>.",
+      "id" : 11051,
+      "judgments" : [ {
+          "item" : "Prussian_deportations",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Prussia",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Otto_von_Bismarck",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1886",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "march" , "january" , "16" , "a" , "resolution" , "is" , "passed" , "in" , "the" , "german" , "parliament" , "to" , "condemn" , "the" , "prussian" , "deportations" , "the" , "politically" , "motivated" , "mass" , "expulsion" , "of" , "ethnic" , "poles" , "and" , "jews" , "from" , "prussia" , "initiated" , "by" , "otto" , "von" , "bismarck"],
+      "year" : 1886
+    } , {
+      "html" : "The <a href=\"https://en.wikipedia.org/wiki/University_of_Mississippi\">University of Mississippi</a> is founded.",
+      "id" : 2735,
+      "judgments" : [ {
+          "item" : "University_of_Mississippi",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1848",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "the" , "university" , "of" , "mississippi" , "is" , "founded"],
+      "year" : 1848
+    } , {
+      "html" : "By area Europe. In the <a href=\"https://en.wikipedia.org/wiki/Peerage_of_England\">Peerage of England</a>, the title <a href=\"https://en.wikipedia.org/wiki/Baron_de_Ros\">Baron de Ros</a>, the oldest continuously held peerage title in England, is created by <a href=\"https://en.wikipedia.org/wiki/Hereditary_peer#Writs_of_summons\">writ of summons</a>.",
+      "id" : 10761,
+      "judgments" : [ {
+          "item" : "Peerage_of_England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Baron_de_Ros",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Hereditary_peer#Writs_of_summons",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1264",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "by" , "area" , "europe" , "in" , "the" , "peerage" , "of" , "england" , "the" , "title" , "baron" , "de" , "ros" , "the" , "oldest" , "continuously" , "held" , "peerage" , "title" , "in" , "england" , "is" , "created" , "by" , "writ" , "of" , "summons"],
+      "year" : 1264
+    } , {
+      "html" : "October-December. October 1 - <a href=\"https://en.wikipedia.org/wiki/Weather_Bureau\">Weather Bureau</a> (within <a href=\"https://en.wikipedia.org/wiki/United_States_Department_of_Agriculture\">Department of Agriculture</a>).",
+      "id" : 16123,
+      "judgments" : [ {
+          "item" : "Weather_Bureau",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "United_States_Department_of_Agriculture",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1890",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "october" , "december" , "october" , "1" , "weather" , "bureau" , "within" , "department" , "of" , "agriculture"],
+      "year" : 1890
+    } , {
+      "html" : "Asia. <a href=\"https://en.wikipedia.org/wiki/Pelusium\">Pelusium</a> is razed by <a href=\"https://en.wikipedia.org/wiki/Baldwin_I_of_Jerusalem\">Baldwin I of Jerusalem</a>.",
+      "id" : 14246,
+      "judgments" : [ {
+          "item" : "Pelusium",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Baldwin_I_of_Jerusalem",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1117",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "asia" , "pelusium" , "is" , "razed" , "by" , "baldwin" , "i" , "of" , "jerusalem"],
+      "year" : 1117
+    } , {
+      "html" : "January-March March 5. <a href=\"https://en.wikipedia.org/wiki/George_Westinghouse\">George Westinghouse</a> receives a <a href=\"https://en.wikipedia.org/wiki/United_States_patent\">United States patent</a> for the \"failsafe\" automatic <a href=\"https://en.wikipedia.org/wiki/railway_air_brake\">railway air brake</a>.",
+      "id" : 3257,
+      "judgments" : [ {
+          "item" : "George_Westinghouse",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "United_States_patent",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "railway_air_brake",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1872",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "march" , "march" , "5" , "george" , "westinghouse" , "receives" , "a" , "united" , "states" , "patent" , "for" , "the" , "failsafe" , "automatic" , "railway" , "air" , "brake"],
+      "year" : 1872
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Royal_Botanic_Gardens,_Kew\">Kew Gardens</a> established in <a href=\"https://en.wikipedia.org/wiki/England\">England</a> by Augusta of Saxe-Coburg, the mother of <a href=\"https://en.wikipedia.org/wiki/George_III_of_the_United_Kingdom\">George III</a>.",
+      "id" : 12019,
+      "judgments" : [ {
+          "item" : "Royal_Botanic_Gardens,_Kew",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "George_III_of_the_United_Kingdom",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1759",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "kew" , "gardens" , "established" , "in" , "england" , "by" , "augusta" , "of" , "saxe" , "coburg" , "the" , "mother" , "of" , "george" , "iii"],
+      "year" : 1759
+    } , {
+      "html" : "Europe. <a href=\"https://en.wikipedia.org/wiki/Lisbon\">Lisbon</a> becomes the capital of the <a href=\"https://en.wikipedia.org/wiki/Kingdom_of_Portugal\">Kingdom of Portugal</a>.",
+      "id" : 7308,
+      "judgments" : [ {
+          "item" : "Lisbon",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Kingdom_of_Portugal",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1255",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "europe" , "lisbon" , "becomes" , "the" , "capital" , "of" , "the" , "kingdom" , "of" , "portugal"],
+      "year" : 1255
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Alfred_Wegener\">Alfred Wegener</a> publishes his <a href=\"https://en.wikipedia.org/wiki/theory\">theory</a> of <a href=\"https://en.wikipedia.org/wiki/Pangaea\">Pangaea</a>.",
+      "id" : 15116,
+      "judgments" : [ {
+          "item" : "Alfred_Wegener",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "theory",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Pangaea",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1915",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "alfred" , "wegener" , "publishes" , "his" , "theory" , "of" , "pangaea"],
+      "year" : 1915
+    } , {
+      "html" : "July-December. July 26 - <a href=\"https://en.wikipedia.org/wiki/New_York\">New York</a> ratifies the <a href=\"https://en.wikipedia.org/wiki/United_States_Constitution\">United States Constitution</a> and becomes the eleventh <a href=\"https://en.wikipedia.org/wiki/U.S._state\">U.S. state</a>.",
+      "id" : 4236,
+      "judgments" : [ {
+          "item" : "New_York",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "United_States_Constitution",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "U.S._state",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1788",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "july" , "26" , "new" , "york" , "ratifies" , "the" , "united" , "states" , "constitution" , "and" , "becomes" , "the" , "eleventh" , "us" , "state"],
+      "year" : 1788
+    } , {
+      "html" : "September 16 - Thorstein Olafss\u00f8n marries Sigrid Bj\u00f8rnsdatter in <a href=\"https://en.wikipedia.org/wiki/Hvalsey_Church\">Hvalsey Church</a>, in the last recorded event of the <a href=\"https://en.wikipedia.org/wiki/Norsemen\">Norse</a> <a href=\"https://en.wikipedia.org/wiki/history_of_Greenland\">history of Greenland</a>.",
+      "id" : 16414,
+      "judgments" : [ {
+          "item" : "Hvalsey_Church",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Norsemen",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "history_of_Greenland",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1408",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "september" , "16" , "thorstein" , "olafss\u00f8n" , "marries" , "sigrid" , "bj\u00f8rnsdatter" , "in" , "hvalsey" , "church" , "in" , "the" , "last" , "recorded" , "event" , "of" , "the" , "norse" , "history" , "of" , "greenland"],
+      "year" : 1408
+    } , {
+      "html" : "October-December. October 6 - <a href=\"https://en.wikipedia.org/wiki/Rome\">Rome</a> becomes the capital of <a href=\"https://en.wikipedia.org/wiki/Unification_of_Italy\">unified</a> <a href=\"https://en.wikipedia.org/wiki/Italy\">Italy</a>.",
+      "id" : 14865,
+      "judgments" : [ {
+          "item" : "Rome",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Unification_of_Italy",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Italy",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1870",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "october" , "december" , "october" , "6" , "rome" , "becomes" , "the" , "capital" , "of" , "unified" , "italy"],
+      "year" : 1870
+    } , {
+      "html" : "July-December. September 14 - <a href=\"https://en.wikipedia.org/wiki/Flight_of_the_Earls\">Flight of the Earls</a>: <a href=\"https://en.wikipedia.org/wiki/Hugh_O'Neill,_2nd_Earl_of_Tyrone\">Hugh O'Neill, 2nd Earl of Tyrone</a>, and <a href=\"https://en.wikipedia.org/wiki/Rory_O'Donnell,_1st_Earl_of_Tyrconnell\">Rory O'Donnell, 1st Earl of Tyrconnell</a>, flee <a href=\"https://en.wikipedia.org/wiki/Gaelic_Ireland\">Ireland</a> for <a href=\"https://en.wikipedia.org/wiki/Spanish_Empire\">Spain</a> with ninety followers to avoid capture by the <a href=\"https://en.wikipedia.org/wiki/Kingdom_of_England\">English</a> crown, never to return.",
+      "id" : 12685,
+      "judgments" : [ {
+          "item" : "Flight_of_the_Earls",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Hugh_O",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Rory_O",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Gaelic_Ireland",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Spanish_Empire",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Kingdom_of_England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1607",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "september" , "14" , "flight" , "of" , "the" , "earls" , "hugh" , "oneill" , "2nd" , "earl" , "of" , "tyrone" , "and" , "rory" , "odonnell" , "1st" , "earl" , "of" , "tyrconnell" , "flee" , "ireland" , "for" , "spain" , "with" , "ninety" , "followers" , "to" , "avoid" , "capture" , "by" , "the" , "english" , "crown" , "never" , "to" , "return"],
+      "year" : 1607
+    } , {
+      "html" : "January-March. January 8 - <a href=\"https://en.wikipedia.org/wiki/American_Indian_Wars\">American Indian Wars</a> - <a href=\"https://en.wikipedia.org/wiki/Battle_of_Wolf_Mountain\">Battle of Wolf Mountain</a>: <a href=\"https://en.wikipedia.org/wiki/Crazy_Horse\">Crazy Horse</a> and his warriors fight their last battle with the <a href=\"https://en.wikipedia.org/wiki/United_States_Cavalry\">United States Cavalry</a> in <a href=\"https://en.wikipedia.org/wiki/Montana\">Montana</a>.",
+      "id" : 9135,
+      "judgments" : [ {
+          "item" : "American_Indian_Wars",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Battle_of_Wolf_Mountain",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Crazy_Horse",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "United_States_Cavalry",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Montana",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1877",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "march" , "january" , "8" , "american" , "indian" , "wars" , "battle" , "of" , "wolf" , "mountain" , "crazy" , "horse" , "and" , "his" , "warriors" , "fight" , "their" , "last" , "battle" , "with" , "the" , "united" , "states" , "cavalry" , "in" , "montana"],
+      "year" : 1877
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Edmund_Sutton\">Edmund Sutton</a>, English nobleman (b. <a href=\"https://en.wikipedia.org/wiki/1425\">1425</a>)",
+      "id" : 7660,
+      "judgments" : [ {
+          "item" : "Edmund_Sutton",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1425",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1483",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "edmund" , "sutton" , "english" , "nobleman" , "b" , "1425"],
+      "year" : 1483
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Robert_Boyle\">Robert Boyle</a> publishes Nova experimenta physico-mechanica, setting forth the <a href=\"https://en.wikipedia.org/wiki/Boyle's_law\">law bearing his name</a>.",
+      "id" : 10833,
+      "judgments" : [ {
+          "item" : "Robert_Boyle",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Boyle",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1662",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "robert" , "boyle" , "publishes" , "nova" , "experimenta" , "physico" , "mechanica" , "setting" , "forth" , "the" , "law" , "bearing" , "his" , "name"],
+      "year" : 1662
+    } , {
+      "html" : "March 18 - <a href=\"https://en.wikipedia.org/wiki/Jacques_de_Molay\">Jacques de Molay</a>, the 23rd and the last Grand Master of the <a href=\"https://en.wikipedia.org/wiki/Knights_Templar\">Knights Templar</a>, is burned at the stake.",
+      "id" : 3836,
+      "judgments" : [ {
+          "item" : "Jacques_de_Molay",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Knights_Templar",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1314",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "march" , "18" , "jacques" , "de" , "molay" , "the" , "23rd" , "and" , "the" , "last" , "grand" , "master" , "of" , "the" , "knights" , "templar" , "is" , "burned" , "at" , "the" , "stake"],
+      "year" : 1314
+    } , {
+      "html" : "January-June. June 21 - The <a href=\"https://en.wikipedia.org/wiki/Incident_at_Honn\u014d-ji\">Incident at Honn\u014d-ji</a> occurs in <a href=\"https://en.wikipedia.org/wiki/Kyoto\">Kyoto</a>, <a href=\"https://en.wikipedia.org/wiki/Japan\">Japan</a>.",
+      "id" : 2163,
+      "judgments" : [ {
+          "item" : "Incident_at_Honn\u014d-ji",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Kyoto",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Japan",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1582",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "june" , "june" , "21" , "the" , "incident" , "at" , "honn\u014d" , "ji" , "occurs" , "in" , "kyoto" , "japan"],
+      "year" : 1582
+    } , {
+      "html" : "From this year until <a href=\"https://en.wikipedia.org/wiki/1650\">1650</a>, sixteen million kilograms of <a href=\"https://en.wikipedia.org/wiki/silver\">silver</a> and 185,000 kilograms of <a href=\"https://en.wikipedia.org/wiki/gold\">gold</a> will enter the port of <a href=\"https://en.wikipedia.org/wiki/Seville\">Seville</a>.",
+      "id" : 11324,
+      "judgments" : [ {
+          "item" : "1650",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "silver",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "gold",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Seville",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1503",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "from" , "this" , "year" , "until" , "1650" , "sixteen" , "million" , "kilograms" , "of" , "silver" , "and" , "185" , "000" , "kilograms" , "of" , "gold" , "will" , "enter" , "the" , "port" , "of" , "seville"],
+      "year" : 1503
+    } , {
+      "html" : "July-December. October - <a href=\"https://en.wikipedia.org/wiki/William_Congreve\">William Congreve</a>'s comedy The Double-Dealer is first performed at the <a href=\"https://en.wikipedia.org/wiki/Theatre_Royal,_Drury_Lane\">Theatre Royal, Drury Lane</a>, <a href=\"https://en.wikipedia.org/wiki/London\">London</a>.",
+      "id" : 8986,
+      "judgments" : [ {
+          "item" : "William_Congreve",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Theatre_Royal,_Drury_Lane",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "London",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1693",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "october" , "william" , "congreve" , "s" , "comedy" , "the" , "double" , "dealer" , "is" , "first" , "performed" , "at" , "the" , "theatre" , "royal" , "drury" , "lane" , "london"],
+      "year" : 1693
+    } , {
+      "html" : "January-June. June 27 - <a href=\"https://en.wikipedia.org/wiki/Cyril_Lucaris\">Patriarch Cyril of Constantinople</a> is deposed for <a href=\"https://en.wikipedia.org/wiki/high_treason\">high treason</a> and <a href=\"https://en.wikipedia.org/wiki/strangled\">strangled</a> and thrown into the sea by <a href=\"https://en.wikipedia.org/wiki/Janissaries\">Janissaries</a> on <a href=\"https://en.wikipedia.org/wiki/Ottoman_Empire\">Ottoman</a> <a href=\"https://en.wikipedia.org/wiki/Sultan\">Sultan</a> <a href=\"https://en.wikipedia.org/wiki/Murad_IV\">Murad IV</a>'s command.",
+      "id" : 5847,
+      "judgments" : [ {
+          "item" : "Cyril_Lucaris",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "high_treason",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "strangled",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Janissaries",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Ottoman_Empire",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Sultan",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Murad_IV",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1638",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "june" , "june" , "27" , "patriarch" , "cyril" , "of" , "constantinople" , "is" , "deposed" , "for" , "high" , "treason" , "and" , "strangled" , "and" , "thrown" , "into" , "the" , "sea" , "by" , "janissaries" , "on" , "ottoman" , "sultan" , "murad" , "iv" , "s" , "command"],
+      "year" : 1638
+    } , {
+      "html" : "January-March. March 20 - At <a href=\"https://en.wikipedia.org/wiki/Sing_Sing\">Sing Sing</a> prison in <a href=\"https://en.wikipedia.org/wiki/Ossining_(town),_New_York\">Ossining, New York</a>, <a href=\"https://en.wikipedia.org/wiki/Martha_M._Place\">Martha M. Place</a> becomes the first woman executed in an <a href=\"https://en.wikipedia.org/wiki/electric_chair\">electric chair</a>.",
+      "id" : 4568,
+      "judgments" : [ {
+          "item" : "Sing_Sing",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Ossining_(town),_New_York",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Martha_M._Place",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "electric_chair",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1899",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "march" , "march" , "20" , "at" , "sing" , "sing" , "prison" , "in" , "ossining" , "new" , "york" , "martha" , "m" , "place" , "becomes" , "the" , "first" , "woman" , "executed" , "in" , "an" , "electric" , "chair"],
+      "year" : 1899
+    } , {
+      "html" : "August 15 - <a href=\"https://en.wikipedia.org/wiki/Michael_VIII_Palaeologus\">Michael VIII Palaeologus</a> is crowned <a href=\"https://en.wikipedia.org/wiki/Byzantine_emperor\">Byzantine emperor</a> in Constantinople.",
+      "id" : 10644,
+      "judgments" : [ {
+          "item" : "Michael_VIII_Palaeologus",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Byzantine_emperor",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1261",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "august" , "15" , "michael" , "viii" , "palaeologus" , "is" , "crowned" , "byzantine" , "emperor" , "in" , "constantinople"],
+      "year" : 1261
+    } , {
+      "html" : "Undated. King <a href=\"https://en.wikipedia.org/wiki/Francis_I_of_France\">Francis I of France</a> issues an ordinance that places the whole of <a href=\"https://en.wikipedia.org/wiki/France\">France</a> under the jurisdiction of the royal law courts and makes <a href=\"https://en.wikipedia.org/wiki/French_language\">French</a> the language of those courts.",
+      "id" : 5108,
+      "judgments" : [ {
+          "item" : "Francis_I_of_France",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "France",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "French_language",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1539",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "undated" , "king" , "francis" , "i" , "of" , "france" , "issues" , "an" , "ordinance" , "that" , "places" , "the" , "whole" , "of" , "france" , "under" , "the" , "jurisdiction" , "of" , "the" , "royal" , "law" , "courts" , "and" , "makes" , "french" , "the" , "language" , "of" , "those" , "courts"],
+      "year" : 1539
+    } , {
+      "html" : "July-December. August 8 - <a href=\"https://en.wikipedia.org/wiki/English_people\">English</a> explorer <a href=\"https://en.wikipedia.org/wiki/John_Davis_(English_explorer)\">John Davis</a> enters <a href=\"https://en.wikipedia.org/wiki/Cumberland_Sound\">Cumberland Sound</a> in <a href=\"https://en.wikipedia.org/wiki/Baffin_Island\">Baffin Island</a> in his quest for the <a href=\"https://en.wikipedia.org/wiki/Northwest_Passage\">Northwest Passage</a>.",
+      "id" : 13868,
+      "judgments" : [ {
+          "item" : "English_people",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "John_Davis_(English_explorer)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Cumberland_Sound",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Baffin_Island",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Northwest_Passage",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1585",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "august" , "8" , "english" , "explorer" , "john" , "davis" , "enters" , "cumberland" , "sound" , "in" , "baffin" , "island" , "in" , "his" , "quest" , "for" , "the" , "northwest" , "passage"],
+      "year" : 1585
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Pope_Pius_V\">Pope Pius V</a> expels most of the <a href=\"https://en.wikipedia.org/wiki/prostitute\">prostitute</a>s from <a href=\"https://en.wikipedia.org/wiki/Rome\">Rome</a>.",
+      "id" : 11855,
+      "judgments" : [ {
+          "item" : "Pope_Pius_V",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "prostitute",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Rome",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1566",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "pope" , "pius" , "v" , "expels" , "most" , "of" , "the" , "prostitute" , "s" , "from" , "rome"],
+      "year" : 1566
+    } , {
+      "html" : "July-September. September 19 - <a href=\"https://en.wikipedia.org/wiki/William_Lloyd_Garrison\">William Lloyd Garrison</a> publishes <a href=\"https://en.wikipedia.org/wiki/Angelina_Grimk\u00e9\">Angelina Grimk\u00e9</a>'s anti-slavery letter in <a href=\"https://en.wikipedia.org/wiki/The_Liberator_(newspaper)\">The Liberator</a>.",
+      "id" : 13326,
+      "judgments" : [ {
+          "item" : "William_Lloyd_Garrison",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Angelina_Grimk\u00e9",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "The_Liberator_(newspaper)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1835",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "september" , "september" , "19" , "william" , "lloyd" , "garrison" , "publishes" , "angelina" , "grimk\u00e9" , "s" , "anti" , "slavery" , "letter" , "in" , "the" , "liberator"],
+      "year" : 1835
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Henry_Briggs_(mathematician)\">Henry Briggs</a> publishes Arithmetica Logarithmica.",
+      "id" : 1434,
+      "judgments" : [ {
+          "item" : "Henry_Briggs_(mathematician)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1624",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "henry" , "briggs" , "publishes" , "arithmetica" , "logarithmica"],
+      "year" : 1624
+    } , {
+      "html" : "Publications. <a href=\"https://en.wikipedia.org/wiki/Immanuel_Kant\">Immanuel Kant</a> - <a href=\"https://en.wikipedia.org/wiki/Observations_on_the_Feeling_of_the_Beautiful_and_Sublime\">Observations on the Feeling of the Beautiful and Sublime</a> (Beobachtungen \u00fcber das Gef\u00fchl des Sch\u00f6nen und Erhabenen)",
+      "id" : 6623,
+      "judgments" : [ {
+          "item" : "Immanuel_Kant",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Observations_on_the_Feeling_of_the_Beautiful_and_Sublime",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1764",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "publications" , "immanuel" , "kant" , "observations" , "on" , "the" , "feeling" , "of" , "the" , "beautiful" , "and" , "sublime" , "beobachtungen" , "\u00fcber" , "das" , "gef\u00fchl" , "des" , "sch\u00f6nen" , "und" , "erhabenen"],
+      "year" : 1764
+    } , {
+      "html" : "January-March. March 7 - <a href=\"https://en.wikipedia.org/wiki/Shrigley_Abduction\">Shrigley Abduction</a>: <a href=\"https://en.wikipedia.org/wiki/Ellen_Turner\">Ellen Turner</a>, a wealthy <a href=\"https://en.wikipedia.org/wiki/heir\">heir</a>ess in <a href=\"https://en.wikipedia.org/wiki/Cheshire\">Cheshire</a>, <a href=\"https://en.wikipedia.org/wiki/England\">England</a>, is <a href=\"https://en.wikipedia.org/wiki/kidnapping\">abducted</a> by <a href=\"https://en.wikipedia.org/wiki/Edward_Gibbon_Wakefield\">Edward Gibbon Wakefield</a>, the future <a href=\"https://en.wikipedia.org/wiki/politician\">politician</a> in <a href=\"https://en.wikipedia.org/wiki/Colonisation\">colonial</a> <a href=\"https://en.wikipedia.org/wiki/New_Zealand\">New Zealand</a>.",
+      "id" : 1837,
+      "judgments" : [ {
+          "item" : "Shrigley_Abduction",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Ellen_Turner",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "heir",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Cheshire",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "kidnapping",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Edward_Gibbon_Wakefield",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "politician",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Colonisation",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "New_Zealand",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1827",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "march" , "march" , "7" , "shrigley" , "abduction" , "ellen" , "turner" , "a" , "wealthy" , "heir" , "ess" , "in" , "cheshire" , "england" , "is" , "abducted" , "by" , "edward" , "gibbon" , "wakefield" , "the" , "future" , "politician" , "in" , "colonial" , "new" , "zealand"],
+      "year" : 1827
+    } , {
+      "html" : "July-December. December - <a href=\"https://en.wikipedia.org/wiki/Louis_XII_of_France\">Louis XII</a> makes peace with the <a href=\"https://en.wikipedia.org/wiki/Papal_States\">Pope</a> and <a href=\"https://en.wikipedia.org/wiki/Spanish_Empire\">Spain</a>.",
+      "id" : 5726,
+      "judgments" : [ {
+          "item" : "Louis_XII_of_France",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Papal_States",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Spanish_Empire",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1513",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "december" , "louis" , "xii" , "makes" , "peace" , "with" , "the" , "pope" , "and" , "spain"],
+      "year" : 1513
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Emperor_Go-Sanjo\">Emperor Go-Sanj\u014d</a> ascends to the throne of <a href=\"https://en.wikipedia.org/wiki/Japan\">Japan</a>.",
+      "id" : 10767,
+      "judgments" : [ {
+          "item" : "Emperor_Go-Sanjo",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Japan",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1068",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "emperor" , "go" , "sanj\u014d" , "ascends" , "to" , "the" , "throne" , "of" , "japan"],
+      "year" : 1068
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Perkin_Warbeck\">Perkin Warbeck</a> claims to be the son of King <a href=\"https://en.wikipedia.org/wiki/Edward_IV_of_England\">Edward IV of England</a> at the court of <a href=\"https://en.wikipedia.org/wiki/Duchy_of_Burgundy\">Burgundy</a>.",
+      "id" : 13079,
+      "judgments" : [ {
+          "item" : "Perkin_Warbeck",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Edward_IV_of_England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Duchy_of_Burgundy",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1490",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "perkin" , "warbeck" , "claims" , "to" , "be" , "the" , "son" , "of" , "king" , "edward" , "iv" , "of" , "england" , "at" , "the" , "court" , "of" , "burgundy"],
+      "year" : 1490
+    } , {
+      "html" : "The first official translation of the entire <a href=\"https://en.wikipedia.org/wiki/Bible\">Bible</a> into <a href=\"https://en.wikipedia.org/wiki/Swedish_(language)\">Swedish</a> is made.",
+      "id" : 11304,
+      "judgments" : [ {
+          "item" : "Bible",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Swedish_(language)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1541",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "the" , "first" , "official" , "translation" , "of" , "the" , "entire" , "bible" , "into" , "swedish" , "is" , "made"],
+      "year" : 1541
+    } , {
+      "html" : "July-December. September 7 - The city of <a href=\"https://en.wikipedia.org/wiki/Boston\">Boston</a>, <a href=\"https://en.wikipedia.org/wiki/Massachusetts\">Massachusetts</a> is founded.",
+      "id" : 11616,
+      "judgments" : [ {
+          "item" : "Boston",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Massachusetts",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1630",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "september" , "7" , "the" , "city" , "of" , "boston" , "massachusetts" , "is" , "founded"],
+      "year" : 1630
+    } , {
+      "html" : "January-June. January 1 - Minimum date value for a datetime field in SQL Server (up to version 2005) due to it being the first full year after Britain adopted the <a href=\"https://en.wikipedia.org/wiki/Gregorian_calendar\">Gregorian calendar</a>.",
+      "id" : 164,
+      "judgments" : [ {
+          "item" : "Gregorian_calendar",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1753",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "june" , "january" , "1" , "minimum" , "date" , "value" , "for" , "a" , "datetime" , "field" , "in" , "sql" , "server" , "up" , "to" , "version" , "2005" , "due" , "to" , "it" , "being" , "the" , "first" , "full" , "year" , "after" , "britain" , "adopted" , "the" , "gregorian" , "calendar"],
+      "year" : 1753
+    } , {
+      "html" : "October",
+      "id" : 7149,
+      "judgments" : [ {
+          "item" : "1900",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "october"],
+      "year" : 1900
+    } , {
+      "html" : "July-December. July - <a href=\"https://en.wikipedia.org/wiki/Deventer\">Deventer</a> is captured by the Dutch under Maurice of Nassau.",
+      "id" : 2512,
+      "judgments" : [ {
+          "item" : "Deventer",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1591",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "july" , "deventer" , "is" , "captured" , "by" , "the" , "dutch" , "under" , "maurice" , "of" , "nassau"],
+      "year" : 1591
+    } , {
+      "html" : "Europe. June 29 - <a href=\"https://en.wikipedia.org/wiki/Romanos_IV_Diogenes\">Romanos IV Diogenes</a>, deposed ruler of the <a href=\"https://en.wikipedia.org/wiki/Byzantine_Empire\">Byzantine Empire</a>, is <a href=\"https://en.wikipedia.org/wiki/Political_mutilation_in_Byzantine_culture\">blinded</a> and sent into exile at the <a href=\"https://en.wikipedia.org/wiki/Monastery_of_the_Transfiguration,_Kinaliada\">Monastery of the Transfiguration, Kinaliada</a>.",
+      "id" : 15821,
+      "judgments" : [ {
+          "item" : "Romanos_IV_Diogenes",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Byzantine_Empire",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Political_mutilation_in_Byzantine_culture",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Monastery_of_the_Transfiguration,_Kinaliada",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1072",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "europe" , "june" , "29" , "romanos" , "iv" , "diogenes" , "deposed" , "ruler" , "of" , "the" , "byzantine" , "empire" , "is" , "blinded" , "and" , "sent" , "into" , "exile" , "at" , "the" , "monastery" , "of" , "the" , "transfiguration" , "kinaliada"],
+      "year" : 1072
+    } , {
+      "html" : "July-December November 30. <a href=\"https://en.wikipedia.org/wiki/Sucre\">Sucre</a>, Bolivia, is founded under the name Ciudad de la Plata de la Nueva Toledo",
+      "id" : 4219,
+      "judgments" : [ {
+          "item" : "Sucre",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1538",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "november" , "30" , "sucre" , "bolivia" , "is" , "founded" , "under" , "the" , "name" , "ciudad" , "de" , "la" , "plata" , "de" , "la" , "nueva" , "toledo"],
+      "year" : 1538
+    } , {
+      "html" : "July-December. September 14 - <a href=\"https://en.wikipedia.org/wiki/Eighty_Years'_War\">Eighty Years' War</a>: After <a href=\"https://en.wikipedia.org/wiki/Siege_of_'s-Hertogenbosch\">a 5 month long siege</a>, <a href=\"https://en.wikipedia.org/wiki/'s-Hertogenbosch\">'s-Hertogenbosch</a> surrenders to <a href=\"https://en.wikipedia.org/wiki/Frederick_Henry,_Prince_of_Orange\">Frederick Henry</a>. As a result of the capture of this key fortress, <a href=\"https://en.wikipedia.org/wiki/Spain\">Spain</a>'s situation along the Spanish-Dutch border worsens greatly.",
+      "id" : 6183,
+      "judgments" : [ {
+          "item" : "Eighty_Years",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Siege_of_",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Frederick_Henry,_Prince_of_Orange",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Spain",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1629",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "september" , "14" , "eighty" , "years" , "war" , "after" , "a" , "5" , "month" , "long" , "siege" , "s" , "hertogenbosch" , "surrenders" , "to" , "frederick" , "henry" , "as" , "a" , "result" , "of" , "the" , "capture" , "of" , "this" , "key" , "fortress" , "spain" , "s" , "situation" , "along" , "the" , "spanish" , "dutch" , "border" , "worsens" , "greatly"],
+      "year" : 1629
+    } , {
+      "html" : "The first recorded <a href=\"https://en.wikipedia.org/wiki/Culture_of_Wales\">Welsh</a> <a href=\"https://en.wikipedia.org/wiki/Eisteddfod\">Eisteddfod</a> is held by <a href=\"https://en.wikipedia.org/wiki/Rhys_ap_Gruffydd\">Rhys ap Gruffydd</a> at <a href=\"https://en.wikipedia.org/wiki/Cardigan,_Ceredigion\">Cardigan</a>.",
+      "id" : 6285,
+      "judgments" : [ {
+          "item" : "Culture_of_Wales",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Eisteddfod",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Rhys_ap_Gruffydd",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Cardigan,_Ceredigion",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1176",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "the" , "first" , "recorded" , "welsh" , "eisteddfod" , "is" , "held" , "by" , "rhys" , "ap" , "gruffydd" , "at" , "cardigan"],
+      "year" : 1176
+    } , {
+      "html" : "January-June. June 4 - <a href=\"https://en.wikipedia.org/wiki/Great_Upheaval\">Great Upheaval</a>: <a href=\"https://en.wikipedia.org/wiki/New_England\">New England</a> planters arrive to claim land in <a href=\"https://en.wikipedia.org/wiki/Nova_Scotia\">Nova Scotia</a> taken from the <a href=\"https://en.wikipedia.org/wiki/Acadians\">Acadians</a>.",
+      "id" : 12357,
+      "judgments" : [ {
+          "item" : "Great_Upheaval",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "New_England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Nova_Scotia",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Acadians",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1760",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "june" , "june" , "4" , "great" , "upheaval" , "new" , "england" , "planters" , "arrive" , "to" , "claim" , "land" , "in" , "nova" , "scotia" , "taken" , "from" , "the" , "acadians"],
+      "year" : 1760
+    } , {
+      "html" : "April 23 \u2013 <a href=\"https://en.wikipedia.org/wiki/British_Empire_Exhibition\">British Empire Exhibition</a> opens. It was the largest <a href=\"https://en.wikipedia.org/wiki/colonial_exhibition\">colonial exhibition</a> with 58 countries of the empire dramatically represented.",
+      "id" : 2058,
+      "judgments" : [ {
+          "item" : "British_Empire_Exhibition",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "colonial_exhibition",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1924",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "april" , "23" , "\u2013" , "british" , "empire" , "exhibition" , "opens" , "it" , "was" , "the" , "largest" , "colonial" , "exhibition" , "with" , "58" , "countries" , "of" , "the" , "empire" , "dramatically" , "represented"],
+      "year" : 1924
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Henry_II_of_England\">Henry II</a> prohibits <a href=\"https://en.wikipedia.org/wiki/English_people\">English</a> students from attending the <a href=\"https://en.wikipedia.org/wiki/University_of_Paris\">University of Paris</a>; many settle at the <a href=\"https://en.wikipedia.org/wiki/University_of_Oxford\">University of Oxford</a>.",
+      "id" : 17275,
+      "judgments" : [ {
+          "item" : "Henry_II_of_England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "English_people",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "University_of_Paris",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "University_of_Oxford",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1167",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "henry" , "ii" , "prohibits" , "english" , "students" , "from" , "attending" , "the" , "university" , "of" , "paris" , "many" , "settle" , "at" , "the" , "university" , "of" , "oxford"],
+      "year" : 1167
+    } , {
+      "html" : "November 21 - <a href=\"https://en.wikipedia.org/wiki/Irish_War_of_Independence\">Irish War of Independence</a>: <a href=\"https://en.wikipedia.org/wiki/Bloody_Sunday_(1920)\">Bloody Sunday</a>: The <a href=\"https://en.wikipedia.org/wiki/Irish_Republican_Army\">Irish Republican Army</a>, on the instructions of <a href=\"https://en.wikipedia.org/wiki/Michael_Collins_(Irish_leader)\">Michael Collins</a>, shoot dead the \"Cairo gang\", fourteen British undercover agents in <a href=\"https://en.wikipedia.org/wiki/Dublin\">Dublin</a>, most in their homes. Later that day in retaliation the <a href=\"https://en.wikipedia.org/wiki/Auxiliary_Division\">Auxiliary Division</a> of the <a href=\"https://en.wikipedia.org/wiki/Royal_Irish_Constabulary\">Royal Irish Constabulary</a> open fire on a crowd at a <a href=\"https://en.wikipedia.org/wiki/Gaelic_Athletic_Association\">Gaelic Athletic Association</a> Football match in <a href=\"https://en.wikipedia.org/wiki/Croke_Park\">Croke Park</a>, killing thirteen spectators and one player and wounding 60. Three men are shot this night in <a href=\"https://en.wikipedia.org/wiki/Dublin_Castle\">Dublin Castle</a> \"while trying to escape\".",
+      "id" : 13623,
+      "judgments" : [ {
+          "item" : "Irish_War_of_Independence",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Bloody_Sunday_(1920)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Irish_Republican_Army",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Michael_Collins_(Irish_leader)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Dublin",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Auxiliary_Division",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Royal_Irish_Constabulary",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Gaelic_Athletic_Association",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Croke_Park",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Dublin_Castle",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1920",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "november" , "21" , "irish" , "war" , "of" , "independence" , "bloody" , "sunday" , "the" , "irish" , "republican" , "army" , "on" , "the" , "instructions" , "of" , "michael" , "collins" , "shoot" , "dead" , "the" , "cairo" , "gang" , "fourteen" , "british" , "undercover" , "agents" , "in" , "dublin" , "most" , "in" , "their" , "homes" , "later" , "that" , "day" , "in" , "retaliation" , "the" , "auxiliary" , "division" , "of" , "the" , "royal" , "irish" , "constabulary" , "open" , "fire" , "on" , "a" , "crowd" , "at" , "a" , "gaelic" , "athletic" , "association" , "football" , "match" , "in" , "croke" , "park" , "killing" , "thirteen" , "spectators" , "and" , "one" , "player" , "and" , "wounding" , "60" , "three" , "men" , "are" , "shot" , "this" , "night" , "in" , "dublin" , "castle" , "while" , "trying" , "to" , "escape"],
+      "year" : 1920
+    } , {
+      "html" : "January-March. February 7 - The play La vida alegre y muerte triste by dramatist <a href=\"https://en.wikipedia.org/wiki/Jos\u00e9_Echegaray\">Jos\u00e9 Echegaray</a> opens.",
+      "id" : 11071,
+      "judgments" : [ {
+          "item" : "Jos\u00e9_Echegaray",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1885",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "march" , "february" , "7" , "the" , "play" , "la" , "vida" , "alegre" , "y" , "muerte" , "triste" , "by" , "dramatist" , "jos\u00e9" , "echegaray" , "opens"],
+      "year" : 1885
+    } , {
+      "html" : "July-December. September-October - <a href=\"https://en.wikipedia.org/wiki/Battle_of_Khotyn_(1621)\">Battle of Khotyn</a>: Polish troops hold off a large Ottoman army for over a month.",
+      "id" : 7347,
+      "judgments" : [ {
+          "item" : "Battle_of_Khotyn_(1621)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1621",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "september" , "october" , "battle" , "of" , "khotyn" , "polish" , "troops" , "hold" , "off" , "a" , "large" , "ottoman" , "army" , "for" , "over" , "a" , "month"],
+      "year" : 1621
+    } , {
+      "html" : "The <a href=\"https://en.wikipedia.org/wiki/Bosnia_(region)\">Bosnia</a>n nobility dethrone Queen <a href=\"https://en.wikipedia.org/wiki/Jelena_Gruba\">Jelena Gruba</a> and replace her with King <a href=\"https://en.wikipedia.org/wiki/Stjepan_Ostoja\">Stjepan Ostoja</a>.",
+      "id" : 1124,
+      "judgments" : [ {
+          "item" : "Bosnia_(region)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Jelena_Gruba",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Stjepan_Ostoja",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1398",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "the" , "bosnia" , "n" , "nobility" , "dethrone" , "queen" , "jelena" , "gruba" , "and" , "replace" , "her" , "with" , "king" , "stjepan" , "ostoja"],
+      "year" : 1398
+    } , {
+      "html" : "The <a href=\"https://en.wikipedia.org/wiki/Wilmington_and_Raleigh_Railroad\">Wilmington and Raleigh Railroad</a> is chartered in <a href=\"https://en.wikipedia.org/wiki/Wilmington,_North_Carolina\">Wilmington, North Carolina</a>.",
+      "id" : 7611,
+      "judgments" : [ {
+          "item" : "Wilmington_and_Raleigh_Railroad",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Wilmington,_North_Carolina",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1834",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "the" , "wilmington" , "and" , "raleigh" , "railroad" , "is" , "chartered" , "in" , "wilmington" , "north" , "carolina"],
+      "year" : 1834
+    } , {
+      "html" : "November November 1. A <a href=\"https://en.wikipedia.org/wiki/broadcasting_license_fee\">broadcasting license fee</a> of ten <a href=\"https://en.wikipedia.org/wiki/shilling\">shilling</a>s is introduced in the <a href=\"https://en.wikipedia.org/wiki/United_Kingdom\">United Kingdom</a>.",
+      "id" : 7999,
+      "judgments" : [ {
+          "item" : "broadcasting_license_fee",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "shilling",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "United_Kingdom",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1922",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "november" , "november" , "1" , "a" , "broadcasting" , "license" , "fee" , "of" , "ten" , "shilling" , "s" , "is" , "introduced" , "in" , "the" , "united" , "kingdom"],
+      "year" : 1922
+    } , {
+      "html" : "The <a href=\"https://en.wikipedia.org/wiki/Acad\u00e9mie_fran\u00e7aise\">Acad\u00e9mie fran\u00e7aise</a> publishes the first complete edition of its <a href=\"https://en.wikipedia.org/wiki/Dictionnaire_de_l'Acad\u00e9mie_fran\u00e7aise\">Dictionnaire</a> in <a href=\"https://en.wikipedia.org/wiki/Paris\">Paris</a>.",
+      "id" : 14617,
+      "judgments" : [ {
+          "item" : "Acad\u00e9mie_fran\u00e7aise",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Dictionnaire_de_l",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Paris",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1694",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "the" , "acad\u00e9mie" , "fran\u00e7aise" , "publishes" , "the" , "first" , "complete" , "edition" , "of" , "its" , "dictionnaire" , "in" , "paris"],
+      "year" : 1694
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Leon_Battista_Alberti\">Leon Battista Alberti</a>'s <a href=\"https://en.wikipedia.org/wiki/De_Re_Aedificatoria\">De Re Aedificatoria</a> (written 1443-52 and published posthumously) becomes the first printed work on architecture.",
+      "id" : 7678,
+      "judgments" : [ {
+          "item" : "Leon_Battista_Alberti",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "De_Re_Aedificatoria",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1485",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "leon" , "battista" , "alberti" , "s" , "de" , "re" , "aedificatoria" , "written" , "1443" , "52" , "and" , "published" , "posthumously" , "becomes" , "the" , "first" , "printed" , "work" , "on" , "architecture"],
+      "year" : 1485
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Napoleon_Bonaparte\">Napoleon Bonaparte</a> becomes a <a href=\"https://en.wikipedia.org/wiki/lieutenant\">lieutenant</a> in the French artillery.",
+      "id" : 15787,
+      "judgments" : [ {
+          "item" : "Napoleon_Bonaparte",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "lieutenant",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1785",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "napoleon" , "bonaparte" , "becomes" , "a" , "lieutenant" , "in" , "the" , "french" , "artillery"],
+      "year" : 1785
+    } , {
+      "html" : "Undated. The Al Bu Falah move to <a href=\"https://en.wikipedia.org/wiki/Abu_Dhabi\">Abu Dhabi</a>.",
+      "id" : 4807,
+      "judgments" : [ {
+          "item" : "Abu_Dhabi",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1793",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "undated" , "the" , "al" , "bu" , "falah" , "move" , "to" , "abu" , "dhabi"],
+      "year" : 1793
+    } , {
+      "html" : "July-December. November 10 (19 Brumaire) - A remnant of the <a href=\"https://en.wikipedia.org/wiki/Council_of_Ancients\">Council of Ancients</a> in France abolishes the <a href=\"https://en.wikipedia.org/wiki/Constitution_of_the_Year_III\">Constitution of the Year III</a>, and ordains the <a href=\"https://en.wikipedia.org/wiki/French_Consulate\">French Consulate</a> with Napoleon as First Consul with the <a href=\"https://en.wikipedia.org/wiki/Constitution_of_the_Year_VIII\">Constitution of the Year VIII</a>.",
+      "id" : 4780,
+      "judgments" : [ {
+          "item" : "Council_of_Ancients",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Constitution_of_the_Year_III",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "French_Consulate",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Constitution_of_the_Year_VIII",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1799",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "november" , "10" , "19" , "brumaire" , "a" , "remnant" , "of" , "the" , "council" , "of" , "ancients" , "in" , "france" , "abolishes" , "the" , "constitution" , "of" , "the" , "year" , "iii" , "and" , "ordains" , "the" , "french" , "consulate" , "with" , "napoleon" , "as" , "first" , "consul" , "with" , "the" , "constitution" , "of" , "the" , "year" , "viii"],
+      "year" : 1799
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Jayavarman_VII\">Jayavarman VII</a>, the king of <a href=\"https://en.wikipedia.org/wiki/Cambodia\">Cambodia</a>, founds the temple of <a href=\"https://en.wikipedia.org/wiki/Ta_Prohm\">Ta Prohm</a>.",
+      "id" : 11695,
+      "judgments" : [ {
+          "item" : "Jayavarman_VII",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Cambodia",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Ta_Prohm",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1186",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "jayavarman" , "vii" , "the" , "king" , "of" , "cambodia" , "founds" , "the" , "temple" , "of" , "ta" , "prohm"],
+      "year" : 1186
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Manuel_I_Comnenus\">Manuel I Comnenus</a> orders all the Venetians in the <a href=\"https://en.wikipedia.org/wiki/Byzantine_Empire\">Byzantine Empire</a> to be arrested and their property confiscated.",
+      "id" : 6742,
+      "judgments" : [ {
+          "item" : "Manuel_I_Comnenus",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Byzantine_Empire",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1171",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "manuel" , "i" , "comnenus" , "orders" , "all" , "the" , "venetians" , "in" , "the" , "byzantine" , "empire" , "to" , "be" , "arrested" , "and" , "their" , "property" , "confiscated"],
+      "year" : 1171
+    } , {
+      "html" : "September 30 - <a href=\"https://en.wikipedia.org/wiki/Pedro_de_Ayala\">Treaty of Ayton</a> establishes a seven-year peace between England and <a href=\"https://en.wikipedia.org/wiki/Scotland\">Scotland</a>.",
+      "id" : 13108,
+      "judgments" : [ {
+          "item" : "Pedro_de_Ayala",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Scotland",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1497",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "september" , "30" , "treaty" , "of" , "ayton" , "establishes" , "a" , "seven" , "year" , "peace" , "between" , "england" , "and" , "scotland"],
+      "year" : 1497
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Covenanter\">Covenanter</a>s meet at <a href=\"https://en.wikipedia.org/wiki/Muchalls_Castle\">Muchalls Castle</a> to compose responses to the <a href=\"https://en.wikipedia.org/wiki/Bishops_of_Aberdeen\">Bishops of Aberdeen</a>.",
+      "id" : 11666,
+      "judgments" : [ {
+          "item" : "Covenanter",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Muchalls_Castle",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Bishops_of_Aberdeen",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1638",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "covenanter" , "s" , "meet" , "at" , "muchalls" , "castle" , "to" , "compose" , "responses" , "to" , "the" , "bishops" , "of" , "aberdeen"],
+      "year" : 1638
+    } , {
+      "html" : "April 15 - The United Kingdom's <a href=\"https://en.wikipedia.org/wiki/Edward_VIII\">Prince of Wales</a> visits the Japanese paramilitary youth group Seinendan in annexed <a href=\"https://en.wikipedia.org/wiki/Korea_under_Japanese_rule\">Korea</a>.",
+      "id" : 1994,
+      "judgments" : [ {
+          "item" : "Edward_VIII",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Korea_under_Japanese_rule",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1922",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "april" , "15" , "the" , "united" , "kingdoms" , "prince" , "of" , "wales" , "visits" , "the" , "japanese" , "paramilitary" , "youth" , "group" , "seinendan" , "in" , "annexed" , "korea"],
+      "year" : 1922
+    } , {
+      "html" : "The Clontarf Cricket Club is established. The 2008 2nd XI calls their assault on all Senior II competitions \"Operation 1876\" in honour of this fantastic year.",
+      "id" : 9134,
+      "judgments" : [ {
+          "item" : "1876",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "the" , "clontarf" , "cricket" , "club" , "is" , "established" , "the" , "2008" , "2nd" , "xi" , "calls" , "their" , "assault" , "on" , "all" , "senior" , "ii" , "competitions" , "operation" , "1876" , "in" , "honour" , "of" , "this" , "fantastic" , "year"],
+      "year" : 1876
+    } , {
+      "html" : "July-December. July - The <a href=\"https://en.wikipedia.org/wiki/Hanseatic_League\">Hanseatic League</a>, after 400 years of operation, holds its last official meeting in <a href=\"https://en.wikipedia.org/wiki/L\u00fcbeck\">L\u00fcbeck</a>.",
+      "id" : 10793,
+      "judgments" : [ {
+          "item" : "Hanseatic_League",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "L\u00fcbeck",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1669",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "july" , "the" , "hanseatic" , "league" , "after" , "400" , "years" , "of" , "operation" , "holds" , "its" , "last" , "official" , "meeting" , "in" , "l\u00fcbeck"],
+      "year" : 1669
+    } , {
+      "html" : "January-June. April 5 - Sir Henry Collins, Earl Nick Rollings and Callum of Brown released from Snow Hill Police Dungeons after charge of fraud suspended.",
+      "id" : 15680,
+      "judgments" : [ {
+          "item" : "1616",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "june" , "april" , "5" , "sir" , "henry" , "collins" , "earl" , "nick" , "rollings" , "and" , "callum" , "of" , "brown" , "released" , "from" , "snow" , "hill" , "police" , "dungeons" , "after" , "charge" , "of" , "fraud" , "suspended"],
+      "year" : 1616
+    } , {
+      "html" : "March 20 - <a href=\"https://en.wikipedia.org/wiki/Sung_Chiao-jen\">Sung Chiao-jen</a>, a founder of the Chinese nationalist party (<a href=\"https://en.wikipedia.org/wiki/Kuomintang\">Kuomintang</a>), is wounded in an assassination attempt and dies two days later.",
+      "id" : 9428,
+      "judgments" : [ {
+          "item" : "Sung_Chiao-jen",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Kuomintang",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1913",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "march" , "20" , "sung" , "chiao" , "jen" , "a" , "founder" , "of" , "the" , "chinese" , "nationalist" , "party" , "kuomintang" , "is" , "wounded" , "in" , "an" , "assassination" , "attempt" , "and" , "dies" , "two" , "days" , "later"],
+      "year" : 1913
+    } , {
+      "html" : "July-December. August 22 - The <a href=\"https://en.wikipedia.org/wiki/Fernando_Alvarez_de_Toledo,_Duke_of_Alba\">Duke of Alba</a> is sent to the Netherlands with a strong Spanish force to suppress unrest there. He replaces <a href=\"https://en.wikipedia.org/wiki/Margaret_of_Parma\">Margaret of Parma</a> as Governor of the Netherlands. Prince <a href=\"https://en.wikipedia.org/wiki/William_I_of_Orange\">William of Orange</a> is outlawed, and Count <a href=\"https://en.wikipedia.org/wiki/Lamoral_of_Egmont\">Lamoral of Egmont</a> imprisoned.",
+      "id" : 6058,
+      "judgments" : [ {
+          "item" : "Fernando_Alvarez_de_Toledo,_Duke_of_Alba",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Margaret_of_Parma",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "William_I_of_Orange",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Lamoral_of_Egmont",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1567",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "august" , "22" , "the" , "duke" , "of" , "alba" , "is" , "sent" , "to" , "the" , "netherlands" , "with" , "a" , "strong" , "spanish" , "force" , "to" , "suppress" , "unrest" , "there" , "he" , "replaces" , "margaret" , "of" , "parma" , "as" , "governor" , "of" , "the" , "netherlands" , "prince" , "william" , "of" , "orange" , "is" , "outlawed" , "and" , "count" , "lamoral" , "of" , "egmont" , "imprisoned"],
+      "year" : 1567
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Celia_Fiennes\">Celia Fiennes</a> noblewoman and traveller, begins her journeys across Britain, in a venture that would prove to be her life's work. Her aim was to chronicle the towns, cities and great houses of the country. Her travels continued until at least 1712, and would take her to every county in England, though the main body of her journal was not written until the year 1702.",
+      "id" : 15279,
+      "judgments" : [ {
+          "item" : "Celia_Fiennes",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1682",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "celia" , "fiennes" , "noblewoman" , "and" , "traveller" , "begins" , "her" , "journeys" , "across" , "britain" , "in" , "a" , "venture" , "that" , "would" , "prove" , "to" , "be" , "her" , "lifes" , "work" , "her" , "aim" , "was" , "to" , "chronicle" , "the" , "towns" , "cities" , "and" , "great" , "houses" , "of" , "the" , "country" , "her" , "travels" , "continued" , "until" , "at" , "least" , "1712" , "and" , "would" , "take" , "her" , "to" , "every" , "county" , "in" , "england" , "though" , "the" , "main" , "body" , "of" , "her" , "journal" , "was" , "not" , "written" , "until" , "the" , "year" , "1702"],
+      "year" : 1682
+    } , {
+      "html" : "Europe. September 28 - <a href=\"https://en.wikipedia.org/wiki/James_I_of_Aragon\">James I of Aragon</a> captures the city of <a href=\"https://en.wikipedia.org/wiki/Valencia_(city_in_Spain)\">Valencia</a> from the <a href=\"https://en.wikipedia.org/wiki/Moors\">Moors</a>, who retreat to <a href=\"https://en.wikipedia.org/wiki/Granada\">Granada</a>.",
+      "id" : 15381,
+      "judgments" : [ {
+          "item" : "James_I_of_Aragon",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Valencia_(city_in_Spain)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Moors",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Granada",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1238",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "europe" , "september" , "28" , "james" , "i" , "of" , "aragon" , "captures" , "the" , "city" , "of" , "valencia" , "from" , "the" , "moors" , "who" , "retreat" , "to" , "granada"],
+      "year" : 1238
+    } , {
+      "html" : "December - <a href=\"https://en.wikipedia.org/wiki/First_Barons'_War\">First Barons' War</a>: <a href=\"https://en.wikipedia.org/wiki/Alexander_II_of_Scotland\">Alexander II of Scotland</a> invades <a href=\"https://en.wikipedia.org/wiki/northern_England\">northern England</a>.",
+      "id" : 14232,
+      "judgments" : [ {
+          "item" : "First_Barons",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Alexander_II_of_Scotland",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "northern_England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1215",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "december" , "first" , "barons" , "war" , "alexander" , "ii" , "of" , "scotland" , "invades" , "northern" , "england"],
+      "year" : 1215
+    } , {
+      "html" : "January-June. January 7 - <a href=\"https://en.wikipedia.org/wiki/Pope_Pius_V\">Pope Pius V</a> succeeds <a href=\"https://en.wikipedia.org/wiki/Pope_Pius_IV\">Pope Pius IV</a> as the 225th <a href=\"https://en.wikipedia.org/wiki/pope\">pope</a>.",
+      "id" : 6052,
+      "judgments" : [ {
+          "item" : "Pope_Pius_V",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Pope_Pius_IV",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "pope",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1566",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "june" , "january" , "7" , "pope" , "pius" , "v" , "succeeds" , "pope" , "pius" , "iv" , "as" , "the" , "225th" , "pope"],
+      "year" : 1566
+    } , {
+      "html" : "February 22 - King <a href=\"https://en.wikipedia.org/wiki/Charles_VIII_of_France\">Charles VIII of France</a> enters <a href=\"https://en.wikipedia.org/wiki/Naples\">Naples</a> to claim the city's throne. A few months later, he decides to return to France, and leaves Naples with most of his army, leaving a force under his cousin <a href=\"https://en.wikipedia.org/wiki/Gilbert,_Count_of_Montpensier\">Gilbert, Count of Montpensier</a> as viceroy. <a href=\"https://en.wikipedia.org/wiki/Syphilis\">Syphilis</a> is first definitely recorded during this invasion.",
+      "id" : 7370,
+      "judgments" : [ {
+          "item" : "Charles_VIII_of_France",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Naples",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Gilbert,_Count_of_Montpensier",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Syphilis",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1495",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "february" , "22" , "king" , "charles" , "viii" , "of" , "france" , "enters" , "naples" , "to" , "claim" , "the" , "citys" , "throne" , "a" , "few" , "months" , "later" , "he" , "decides" , "to" , "return" , "to" , "france" , "and" , "leaves" , "naples" , "with" , "most" , "of" , "his" , "army" , "leaving" , "a" , "force" , "under" , "his" , "cousin" , "gilbert" , "count" , "of" , "montpensier" , "as" , "viceroy" , "syphilis" , "is" , "first" , "definitely" , "recorded" , "during" , "this" , "invasion"],
+      "year" : 1495
+    } , {
+      "html" : "January-June. May 22 - Francis repudiates the Treaty of Madrid and forms the <a href=\"https://en.wikipedia.org/wiki/League_of_Cognac\">League of Cognac</a> against Charles, including the <a href=\"https://en.wikipedia.org/wiki/Pope_Clement_VII\">Pope</a>, <a href=\"https://en.wikipedia.org/wiki/Province_of_Milan\">Milan</a>, <a href=\"https://en.wikipedia.org/wiki/Republic_of_Venice\">Venice</a>, and <a href=\"https://en.wikipedia.org/wiki/Republic_of_Florence\">Florence</a>.",
+      "id" : 15949,
+      "judgments" : [ {
+          "item" : "League_of_Cognac",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Pope_Clement_VII",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Province_of_Milan",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Republic_of_Venice",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Republic_of_Florence",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1526",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "june" , "may" , "22" , "francis" , "repudiates" , "the" , "treaty" , "of" , "madrid" , "and" , "forms" , "the" , "league" , "of" , "cognac" , "against" , "charles" , "including" , "the" , "pope" , "milan" , "venice" , "and" , "florence"],
+      "year" : 1526
+    } , {
+      "html" : "July-December. October 7 - The first biography of <a href=\"https://en.wikipedia.org/wiki/Nicolaus_Copernicus\">Nicolaus Copernicus</a> (d.<a href=\"https://en.wikipedia.org/wiki/1543\">1543</a>) is completed by <a href=\"https://en.wikipedia.org/wiki/Bernardino_Baldi\">Bernardino Baldi</a>.",
+      "id" : 2150,
+      "judgments" : [ {
+          "item" : "Nicolaus_Copernicus",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1543",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Bernardino_Baldi",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1588",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "october" , "7" , "the" , "first" , "biography" , "of" , "nicolaus" , "copernicus" , "d" , "1543" , "is" , "completed" , "by" , "bernardino" , "baldi"],
+      "year" : 1588
+    } , {
+      "html" : "Europe. <a href=\"https://en.wikipedia.org/wiki/Sancho_IV_of_Castile\">Sancho IV of Castile</a> captures <a href=\"https://en.wikipedia.org/wiki/Tarifa\">Tarifa</a> from the <a href=\"https://en.wikipedia.org/wiki/Moors\">Moors</a>.",
+      "id" : 5781,
+      "judgments" : [ {
+          "item" : "Sancho_IV_of_Castile",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Tarifa",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Moors",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1291",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "europe" , "sancho" , "iv" , "of" , "castile" , "captures" , "tarifa" , "from" , "the" , "moors"],
+      "year" : 1291
+    } , {
+      "html" : "July-August. August 30 - In Martinique, Mount Pel\u00e9e erupts again, destroying the town of Morne-Rouge causing 1000 deaths.",
+      "id" : 14535,
+      "judgments" : [ {
+          "item" : "1902",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "august" , "august" , "30" , "in" , "martinique" , "mount" , "pel\u00e9e" , "erupts" , "again" , "destroying" , "the" , "town" , "of" , "morne" , "rouge" , "causing" , "1000" , "deaths"],
+      "year" : 1902
+    } , {
+      "html" : "Early Spring - <a href=\"https://en.wikipedia.org/wiki/Joseph_Smith,_Jr.\">Joseph Smith, Jr.</a> receives his <a href=\"https://en.wikipedia.org/wiki/First_Vision\">First Vision</a> in <a href=\"https://en.wikipedia.org/wiki/Palmyra_(town),_New_York\">Palmyra, New York</a>.",
+      "id" : 13561,
+      "judgments" : [ {
+          "item" : "Joseph_Smith,_Jr.",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "First_Vision",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Palmyra_(town),_New_York",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1820",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "early" , "spring" , "joseph" , "smith" , "jr" , "receives" , "his" , "first" , "vision" , "in" , "palmyra" , "new" , "york"],
+      "year" : 1820
+    } , {
+      "html" : "January-March. March 15 - A <a href=\"https://en.wikipedia.org/wiki/Germany\">German</a> naval force shells a village in <a href=\"https://en.wikipedia.org/wiki/Samoa\">Samoa</a>, destroying some <a href=\"https://en.wikipedia.org/wiki/United_States\">American</a> property; three American warships enter the <a href=\"https://en.wikipedia.org/wiki/Samoa\">Samoa</a>n harbor and prepare to fire on the three German warships found there. Before guns are fired, the <a href=\"https://en.wikipedia.org/wiki/1889_Apia_cyclone\">1889 Apia cyclone</a> blows in and sinks all the ships, American and German. A compulsory <a href=\"https://en.wikipedia.org/wiki/armistice\">armistice</a> is called because of the lack of warships.",
+      "id" : 16523,
+      "judgments" : [ {
+          "item" : "Germany",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Samoa",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "United_States",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Samoa",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1889_Apia_cyclone",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "armistice",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1889",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "march" , "march" , "15" , "a" , "german" , "naval" , "force" , "shells" , "a" , "village" , "in" , "samoa" , "destroying" , "some" , "american" , "property" , "three" , "american" , "warships" , "enter" , "the" , "samoa" , "n" , "harbor" , "and" , "prepare" , "to" , "fire" , "on" , "the" , "three" , "german" , "warships" , "found" , "there" , "before" , "guns" , "are" , "fired" , "the" , "1889" , "apia" , "cyclone" , "blows" , "in" , "and" , "sinks" , "all" , "the" , "ships" , "american" , "and" , "german" , "a" , "compulsory" , "armistice" , "is" , "called" , "because" , "of" , "the" , "lack" , "of" , "warships"],
+      "year" : 1889
+    } , {
+      "html" : "South Asia. Battle of Kennagal: The <a href=\"https://en.wikipedia.org/wiki/Hoysala_Empire\">Hoysala Empire</a> defeats the <a href=\"https://en.wikipedia.org/wiki/Chalukya\">Chalukya</a>.",
+      "id" : 8616,
+      "judgments" : [ {
+          "item" : "Hoysala_Empire",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Chalukya",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1118",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "south" , "asia" , "battle" , "of" , "kennagal" , "the" , "hoysala" , "empire" , "defeats" , "the" , "chalukya"],
+      "year" : 1118
+    } , {
+      "html" : "March 5 \u2013 <a href=\"https://en.wikipedia.org/wiki/Kingdom_of_Italy\">Italian</a> forces are the first to use <a href=\"https://en.wikipedia.org/wiki/airship\">airship</a>s for a military purpose, using them for <a href=\"https://en.wikipedia.org/wiki/reconnaissance\">reconnaissance</a> west of <a href=\"https://en.wikipedia.org/wiki/Tripoli,_Libya\">Tripoli, Libya</a>, behind <a href=\"https://en.wikipedia.org/wiki/Ottoman_Empire\">Turkish</a> lines.",
+      "id" : 9452,
+      "judgments" : [ {
+          "item" : "Kingdom_of_Italy",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "airship",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "reconnaissance",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Tripoli,_Libya",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Ottoman_Empire",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1912",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "march" , "5" , "\u2013" , "italian" , "forces" , "are" , "the" , "first" , "to" , "use" , "airship" , "s" , "for" , "a" , "military" , "purpose" , "using" , "them" , "for" , "reconnaissance" , "west" , "of" , "tripoli" , "libya" , "behind" , "turkish" , "lines"],
+      "year" : 1912
+    } , {
+      "html" : "June 1 - <a href=\"https://en.wikipedia.org/wiki/Battle_of_San_Romano\">Battle of San Romano</a>: <a href=\"https://en.wikipedia.org/wiki/Florence\">Florence</a> defeats <a href=\"https://en.wikipedia.org/wiki/Siena\">Siena</a>.",
+      "id" : 5416,
+      "judgments" : [ {
+          "item" : "Battle_of_San_Romano",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Florence",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Siena",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1432",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "june" , "1" , "battle" , "of" , "san" , "romano" , "florence" , "defeats" , "siena"],
+      "year" : 1432
+    } , {
+      "html" : "July-September. August 9 - The <a href=\"https://en.wikipedia.org/wiki/Aberdeen_Act\">Aberdeen Act</a> is signed as part of the abolition of the African <a href=\"https://en.wikipedia.org/wiki/slave_trade\">slave trade</a>.",
+      "id" : 2816,
+      "judgments" : [ {
+          "item" : "Aberdeen_Act",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "slave_trade",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1845",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "september" , "august" , "9" , "the" , "aberdeen" , "act" , "is" , "signed" , "as" , "part" , "of" , "the" , "abolition" , "of" , "the" , "african" , "slave" , "trade"],
+      "year" : 1845
+    } , {
+      "html" : "July-December. July 3 - A <a href=\"https://en.wikipedia.org/wiki/lightning_strike\">lightning strike</a> causes a major fire at <a href=\"https://en.wikipedia.org/wiki/HMNB_Portsmouth\">Portsmouth Royal Dockyard</a> in <a href=\"https://en.wikipedia.org/wiki/England\">England</a>.",
+      "id" : 531,
+      "judgments" : [ {
+          "item" : "lightning_strike",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "HMNB_Portsmouth",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "England",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1760",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "july" , "3" , "a" , "lightning" , "strike" , "causes" , "a" , "major" , "fire" , "at" , "portsmouth" , "royal" , "dockyard" , "in" , "england"],
+      "year" : 1760
+    } , {
+      "html" : "May 11 - The <a href=\"https://en.wikipedia.org/wiki/Mountainous_Republic_of_the_Northern_Caucasus\">Mountainous Republic of the Northern Caucasus</a> is officially established.",
+      "id" : 3439,
+      "judgments" : [ {
+          "item" : "Mountainous_Republic_of_the_Northern_Caucasus",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1918",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "may" , "11" , "the" , "mountainous" , "republic" , "of" , "the" , "northern" , "caucasus" , "is" , "officially" , "established"],
+      "year" : 1918
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Nathan_B._Stubblefield\">Nathan B. Stubblefield</a> demonstrates his <a href=\"https://en.wikipedia.org/wiki/mobile_phone\">mobile phone</a> device in <a href=\"https://en.wikipedia.org/wiki/Kentucky\">Kentucky</a>.",
+      "id" : 2948,
+      "judgments" : [ {
+          "item" : "Nathan_B._Stubblefield",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "mobile_phone",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Kentucky",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1902",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "nathan" , "b" , "stubblefield" , "demonstrates" , "his" , "mobile" , "phone" , "device" , "in" , "kentucky"],
+      "year" : 1902
+    } , {
+      "html" : "According to a popular legend, <a href=\"https://en.wikipedia.org/wiki/Madoc\">Prince Madog of Gwynedd</a> reaches <a href=\"https://en.wikipedia.org/wiki/North_America\">North America</a> in what is present-day <a href=\"https://en.wikipedia.org/wiki/Alabama\">Alabama</a>.",
+      "id" : 124,
+      "judgments" : [ {
+          "item" : "Madoc",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "North_America",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Alabama",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1196",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "according" , "to" , "a" , "popular" , "legend" , "prince" , "madog" , "of" , "gwynedd" , "reaches" , "north" , "america" , "in" , "what" , "is" , "present" , "day" , "alabama"],
+      "year" : 1196
+    } , {
+      "html" : "The world's first complex machine mass-produced from <a href=\"https://en.wikipedia.org/wiki/interchangeable_parts\">interchangeable parts</a>, <a href=\"https://en.wikipedia.org/wiki/Eli_Terry\">Eli Terry</a>'s wooden pillar-and-scroll clock, comes off the production line in <a href=\"https://en.wikipedia.org/wiki/Plymouth,_Connecticut\">Plymouth, Connecticut</a>.",
+      "id" : 721,
+      "judgments" : [ {
+          "item" : "interchangeable_parts",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Eli_Terry",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Plymouth,_Connecticut",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1814",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "the" , "worlds" , "first" , "complex" , "machine" , "mass" , "produced" , "from" , "interchangeable" , "parts" , "eli" , "terry" , "s" , "wooden" , "pillar" , "and" , "scroll" , "clock" , "comes" , "off" , "the" , "production" , "line" , "in" , "plymouth" , "connecticut"],
+      "year" : 1814
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Johann_Heinrich_Alsted\">Johann Heinrich Alsted</a>'s <a href=\"https://en.wikipedia.org/wiki/Encyclopaedia\">Encyclopaedia</a> septem tomis distincta is published.",
+      "id" : 17117,
+      "judgments" : [ {
+          "item" : "Johann_Heinrich_Alsted",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Encyclopaedia",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1630",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "johann" , "heinrich" , "alsted" , "s" , "encyclopaedia" , "septem" , "tomis" , "distincta" , "is" , "published"],
+      "year" : 1630
+    } , {
+      "html" : "Hananchi succeeds Min as King of <a href=\"https://en.wikipedia.org/wiki/Hokuzan\">Hokuzan</a> in present-day north <a href=\"https://en.wikipedia.org/wiki/Okinawa\">Okinawa</a>, <a href=\"https://en.wikipedia.org/wiki/Japan\">Japan</a>.",
+      "id" : 16436,
+      "judgments" : [ {
+          "item" : "Hokuzan",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Okinawa",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Japan",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1400",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "hananchi" , "succeeds" , "min" , "as" , "king" , "of" , "hokuzan" , "in" , "present" , "day" , "north" , "okinawa" , "japan"],
+      "year" : 1400
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/John_III_Ducas_Vatatzes\">John III Ducas Vatatzes</a> becomes <a href=\"https://en.wikipedia.org/wiki/Byzantine_Emperor\">Byzantine Emperor</a> (in the <a href=\"https://en.wikipedia.org/wiki/Empire_of_Nicaea\">Empire of Nicaea</a>).",
+      "id" : 333,
+      "judgments" : [ {
+          "item" : "John_III_Ducas_Vatatzes",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Byzantine_Emperor",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Empire_of_Nicaea",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1222",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "john" , "iii" , "ducas" , "vatatzes" , "becomes" , "byzantine" , "emperor" , "in" , "the" , "empire" , "of" , "nicaea"],
+      "year" : 1222
+    } , {
+      "html" : "February 28 - <a href=\"https://en.wikipedia.org/wiki/Ch'oe_Pu\">Ch'oe Pu</a> (1454-1504), the <a href=\"https://en.wikipedia.org/wiki/Korea\">Korea</a>n Commissioner of Registers for the island of <a href=\"https://en.wikipedia.org/wiki/Jeju-do\">Cheju</a>, <a href=\"https://en.wikipedia.org/wiki/shipwreck\">shipwreck</a>s on the southeast coast of <a href=\"https://en.wikipedia.org/wiki/China\">China</a> in <a href=\"https://en.wikipedia.org/wiki/Taizhou,_Zhejiang\">Taizhou, Zhejiang</a>, during the <a href=\"https://en.wikipedia.org/wiki/Ming_Dynasty\">Ming Dynasty</a>. From then until July 12 he and his crew are hosted by Chinese military courier officers to travel along the <a href=\"https://en.wikipedia.org/wiki/Grand_Canal_of_China\">Grand Canal of China</a>, all the way to <a href=\"https://en.wikipedia.org/wiki/Beijing\">Beijing</a>, and then finally back across the <a href=\"https://en.wikipedia.org/wiki/Yalu_River\">Yalu River</a> into Korea. His written commentary on Chinese customs, foreign and domestic trade, and transport in places such as <a href=\"https://en.wikipedia.org/wiki/Hangzhou\">Hangzhou</a> and <a href=\"https://en.wikipedia.org/wiki/Suzhou\">Suzhou</a> are valuable records of Ming era culture and commerce.",
+      "id" : 13388,
+      "judgments" : [ {
+          "item" : "Ch",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Korea",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Jeju-do",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "shipwreck",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "China",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Taizhou,_Zhejiang",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Ming_Dynasty",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Grand_Canal_of_China",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Beijing",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Yalu_River",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Hangzhou",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Suzhou",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1488",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "february" , "28" , "choe" , "pu" , "1454" , "1504" , "the" , "korea" , "n" , "commissioner" , "of" , "registers" , "for" , "the" , "island" , "of" , "cheju" , "shipwreck" , "s" , "on" , "the" , "southeast" , "coast" , "of" , "china" , "in" , "taizhou" , "zhejiang" , "during" , "the" , "ming" , "dynasty" , "from" , "then" , "until" , "july" , "12" , "he" , "and" , "his" , "crew" , "are" , "hosted" , "by" , "chinese" , "military" , "courier" , "officers" , "to" , "travel" , "along" , "the" , "grand" , "canal" , "of" , "china" , "all" , "the" , "way" , "to" , "beijing" , "and" , "then" , "finally" , "back" , "across" , "the" , "yalu" , "river" , "into" , "korea" , "his" , "written" , "commentary" , "on" , "chinese" , "customs" , "foreign" , "and" , "domestic" , "trade" , "and" , "transport" , "in" , "places" , "such" , "as" , "hangzhou" , "and" , "suzhou" , "are" , "valuable" , "records" , "of" , "ming" , "era" , "culture" , "and" , "commerce"],
+      "year" : 1488
+    } , {
+      "html" : "July-September. August 16 - <a href=\"https://en.wikipedia.org/wiki/War_of_1812\">War of 1812</a>: American <a href=\"https://en.wikipedia.org/wiki/General\">General</a> <a href=\"https://en.wikipedia.org/wiki/William_Hull\">William Hull</a> surrenders <a href=\"https://en.wikipedia.org/wiki/Fort_Shelby_(Michigan)\">Fort Detroit</a> without a fight to the <a href=\"https://en.wikipedia.org/wiki/British_Army\">British Army</a>.",
+      "id" : 6844,
+      "judgments" : [ {
+          "item" : "War_of_1812",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "General",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "William_Hull",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Fort_Shelby_(Michigan)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "British_Army",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1812",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "september" , "august" , "16" , "war" , "of" , "1812" , "american" , "general" , "william" , "hull" , "surrenders" , "fort" , "detroit" , "without" , "a" , "fight" , "to" , "the" , "british" , "army"],
+      "year" : 1812
+    } , {
+      "html" : "January-June. April 2 - The town of <a href=\"https://en.wikipedia.org/wiki/Raynham,_Massachusetts\">Raynham, Massachusetts</a> in Bristol County is entered as a new town by the governor and court of Massachusetts, New England, America.",
+      "id" : 8418,
+      "judgments" : [ {
+          "item" : "Raynham,_Massachusetts",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1731",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "january" , "june" , "april" , "2" , "the" , "town" , "of" , "raynham" , "massachusetts" , "in" , "bristol" , "county" , "is" , "entered" , "as" , "a" , "new" , "town" , "by" , "the" , "governor" , "and" , "court" , "of" , "massachusetts" , "new" , "england" , "america"],
+      "year" : 1731
+    } , {
+      "html" : "A serious fire occurs at <a href=\"https://en.wikipedia.org/wiki/St_Paul's_Cathedral\">St Paul's Cathedral</a> in <a href=\"https://en.wikipedia.org/wiki/London\">London</a>.",
+      "id" : 11574,
+      "judgments" : [ {
+          "item" : "St_Paul",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "London",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1444",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "a" , "serious" , "fire" , "occurs" , "at" , "st" , "pauls" , "cathedral" , "in" , "london"],
+      "year" : 1444
+    } , {
+      "html" : "October-December. November 15 - <a href=\"https://en.wikipedia.org/wiki/American_Civil_War\">American Civil War</a> - <a href=\"https://en.wikipedia.org/wiki/Sherman's_March_to_the_Sea\">Sherman's March to the Sea</a> begins: Union General Sherman burns Atlanta and starts to move south, causing extensive devastation to crops and mills and living off the land.",
+      "id" : 4053,
+      "judgments" : [ {
+          "item" : "American_Civil_War",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Sherman",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1864",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "october" , "december" , "november" , "15" , "american" , "civil" , "war" , "shermans" , "march" , "to" , "the" , "sea" , "begins" , "union" , "general" , "sherman" , "burns" , "atlanta" , "and" , "starts" , "to" , "move" , "south" , "causing" , "extensive" , "devastation" , "to" , "crops" , "and" , "mills" , "and" , "living" , "off" , "the" , "land"],
+      "year" : 1864
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Jacob_ben_Machir\">Jacob ben Machir</a> is appointed <a href=\"https://en.wikipedia.org/wiki/Dean_(education)\">dean</a> of the medical school at <a href=\"https://en.wikipedia.org/wiki/Montpellier\">Montpellier</a>.",
+      "id" : 3137,
+      "judgments" : [ {
+          "item" : "Jacob_ben_Machir",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Dean_(education)",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Montpellier",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1300",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "jacob" , "ben" , "machir" , "is" , "appointed" , "dean" , "of" , "the" , "medical" , "school" , "at" , "montpellier"],
+      "year" : 1300
+    } , {
+      "html" : "July-September. July 23 - <a href=\"https://en.wikipedia.org/wiki/Robert_Emmet\">Robert Emmet</a>'s uprising in <a href=\"https://en.wikipedia.org/wiki/Ireland\">Ireland</a> begins.",
+      "id" : 1200,
+      "judgments" : [ {
+          "item" : "Robert_Emmet",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Ireland",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1803",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "september" , "july" , "23" , "robert" , "emmet" , "s" , "uprising" , "in" , "ireland" , "begins"],
+      "year" : 1803
+    } , {
+      "html" : "July-December. October - An <a href=\"https://en.wikipedia.org/wiki/Algeria\">Algeria</a>n military campaign by <a href=\"https://en.wikipedia.org/wiki/Charles_V_of_Spain\">Charles V of Spain</a> (<a href=\"https://en.wikipedia.org/wiki/Habsburg\">Habsburg</a>) is unsuccessful.",
+      "id" : 16825,
+      "judgments" : [ {
+          "item" : "Algeria",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Charles_V_of_Spain",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Habsburg",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1541",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "july" , "december" , "october" , "an" , "algeria" , "n" , "military" , "campaign" , "by" , "charles" , "v" , "of" , "spain" , "habsburg" , "is" , "unsuccessful"],
+      "year" : 1541
+    } , {
+      "html" : "<a href=\"https://en.wikipedia.org/wiki/Drago\u015f\">Drago\u015f</a> becomes <a href=\"https://en.wikipedia.org/wiki/voivode\">voivode</a> of <a href=\"https://en.wikipedia.org/wiki/Moldova\">Moldova</a>.",
+      "id" : 11499,
+      "judgments" : [ {
+          "item" : "Drago\u015f",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "voivode",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "Moldova",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        } , {
+          "item" : "1352",
+          "relevance" : 3,
+          "time" : 0,
+          "user" : "__enwiki__"
+        }],
+      "queries" : [ ],
+      "terms" : [ "drago\u015f" , "becomes" , "voivode" , "of" , "moldova"],
+      "year" : 1352
+    }]
+}

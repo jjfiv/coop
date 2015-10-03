@@ -17,6 +17,45 @@ class Main {
     }
 }
 
+class QuerySuggestionUI extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            facts: [],
+            activeFact: null,
+        }
+    }
+    componentDidMount() {
+        this.refreshFacts();
+    }
+    refreshFacts() {
+        postJSON("/api/facts", {}, (succ) => this.setState({facts: succ.facts}));
+    }
+    render() {
+        let getText = (x) => {
+            return strjoin(x.terms);
+        };
+        let render = (x) => {
+            let id = x.id;
+            return <SimpleFactRenderer key={id} fact={x} />;
+        };
+
+        return <FilterableList
+            getItemText={x => render(x)}
+            items={this.props.judged}
+            getItemText={getText}
+            keyFn={x => x.factId}
+            renderItem={render} />;
+    }
+}
+
+class SimpleFactRenderer extends React.Component {
+    render() {
+        let fact = this.props.fact;
+        return <span>In <a href={"http://en.wikipedia.org/"+fact.year}>{fact.year}</a>, <span dangerouslySetInnerHTML={{__html: fact.html}} /></span>;
+    }
+}
+
 class PageView extends React.Component {
     constructor(props) {
         super(props);
@@ -120,7 +159,7 @@ class UserInterface extends React.Component {
                     <Button label="Logout" onClick={(evt) => this.logout()} />
                     {admin() ? <Button label="Save!" onClick={(evt) => postJSON("/api/save")} />  : null}
                 </div>
-                <QueryWriter />
+                <QuerySuggestionUI />
                 </div>;
         }
     }
