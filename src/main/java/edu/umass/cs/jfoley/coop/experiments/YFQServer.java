@@ -23,6 +23,7 @@ import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.StreamUtil;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -217,6 +218,10 @@ public class YFQServer implements Closeable, WebHandler {
     @Nonnull
     public static UserSubmittedQuery parseJSON(Parameters input) {
       return new UserSubmittedQuery(input.getInt("id"), input.get("user", "jfoley"), input.getLong("time"), input.getString("query"));
+    }
+
+    public boolean isDeleted() {
+      return deleted > 0;
     }
   }
 
@@ -448,18 +453,11 @@ public class YFQServer implements Closeable, WebHandler {
     return Parameters.parseArray("facts", ListFns.map(facts, YearFact::asJSON));
   }
 
-  public YFQServer(Parameters argp) throws Exception {
-    this.dbDir = new Directory(argp.get("save", "coop/sampled.db.saves"));
-    if(!argp.containsKey("port")) {
-      argp.put("port", 1234);
-    }
-
-    System.err.println("Listing: ");
-    dbDir.ls(System.err);
-
+  @Nullable
+  public static File getNewestSave(Directory dir) throws IOException {
     long newestTime = 0;
     File newestBackup = null;
-    for (File file : dbDir.children()) {
+    for (File file : dir.children()) {
       if(!file.isFile()) continue;
       String name = file.getName();
       if(!name.endsWith(".json.gz") || !name.startsWith("db")) {
@@ -476,6 +474,19 @@ public class YFQServer implements Closeable, WebHandler {
       }
     }
 
+    return newestBackup;
+  }
+
+  public YFQServer(Parameters argp) throws Exception {
+    this.dbDir = new Directory(argp.get("save", "coop/sampled.db.saves"));
+    if(!argp.containsKey("port")) {
+      argp.put("port", 1234);
+    }
+
+    System.err.println("Listing: ");
+    dbDir.ls(System.err);
+
+    File newestBackup = getNewestSave(dbDir);
     String resumeFile = argp.get("resume", newestBackup != null ? newestBackup.getName() : "shutdown.json.gz");
 
     htmlDir = Directory.Read(argp.get("html", "coop/yfq_query_writer"));
