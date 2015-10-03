@@ -347,6 +347,18 @@ class FactRenderer extends React.Component {
             }
         )
     }
+    submitPageRating(id, qId, score) {
+        postJSON("/api/judgePage", {
+                factId: this.props.fact.id,
+                queryId: qId,
+                user: globalUser,
+                relevance: score,
+                page: id },
+            (succ) => {
+                this.refresh(succ);
+            }
+        )
+    }
     refresh(fact) {
         this.props.refresh(fact);
     }
@@ -385,6 +397,8 @@ class FactRenderer extends React.Component {
             <table>
                 <tr><th>Pages</th></tr>
                 <tr><td>{fact.pages}</td></tr>
+                <tr><th>PageSearch Search</th></tr>
+                <tr><td><PageSearch submitRating={(id, qid, score) => this.submitPageRating(id, qid, score)} /></td></tr>
             </table>
         </div>
     }
@@ -401,7 +415,7 @@ class EntitySearch extends React.Component {
         let q = this.state.text.trim();
         if(_.isEmpty(q)) return;
         console.log(q);
-        postJSON("/api/searchEntities", {query: q, pullTerms: false}, (succ) => {
+        postJSON("/api/searchEntities", {query: q, pullTerms: false, n:30}, (succ) => {
             this.setState({entities: succ.docs});
         })
     }
@@ -429,5 +443,68 @@ class EntitySearch extends React.Component {
                 keyFn={getText}
                 renderItem={render} />
             </div>;
+    }
+}
+
+class PageSearch extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            text: "",
+            data: {}
+        }
+    }
+    submitQuery() {
+        let q = this.state.text.trim();
+        if(_.isEmpty(q)) return;
+        console.log(q);
+        this.setState({data:{}});
+        postJSON("/api/searchPages", {query: q, pullTerms: true, n:30}, (succ) => {
+            this.setState({data: succ});
+        })
+    }
+    render() {
+        let data = this.state.data || {};
+        let queryTerms = _.map(data.queryTerms || [], (x) => x.toLowerCase());
+        let docs = data.docs || [];
+
+        let getText = (x) => x.name;
+        let render = (x) => {
+            let name = x.name;
+            let id = name.split(":")[0];
+            let pageIndex = parseInt(name.split(":")[1]);
+            let pageNo = pageIndex+1;
+
+            //let snippet = strjoin(x.terms);
+
+            let snippet = _.map(x.terms, (term) => {
+                if(_.contains(queryTerms, term)) {
+                    return [<strong>{term}</strong>, ' ']
+                } else {
+                    return [term, ' '];
+                }
+            });
+
+            return <span key={id}>
+                    <a href={"/page.html?name="+name}>{id} pp.{pageNo}</a>&nbsp;
+                <a href={"http://archive.org/details/"+id}>@Internet Archive</a>
+                <div>{snippet}</div>
+                    <RelevanceChoice score={-1} onRating={(id, score) => this.props.submitRating(id, 0, score)} id={x.name} />
+                </span>;
+        };
+
+        return <div>
+            <div><input value={this.state.text}
+                        type="text"
+                        onKeyPress={(evt) => (evt.which == 13) ? this.submitQuery() : null }
+                        onChange={(evt) => this.setState({text: evt.target.value})} />
+                <Button label="Search" onClick={e=>this.submitQuery()} /></div>
+            <FilterableList
+                getItemText={render}
+                items={docs}
+                getItemText={getText}
+                keyFn={getText}
+                renderItem={render} />
+        </div>;
     }
 }
