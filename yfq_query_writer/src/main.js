@@ -40,29 +40,30 @@ let userPrompt = <span>
     <p className="needsQueries">RED facts have no queries by any author.</p>
     <p className="needsMyQueries">BLUE facts have queries by at least one author.</p>
     <p className="doneMyQueries">GREEN facts have been completed by your user name.</p>
-    <p><strong>Thank you!</strong> You can <strong>refresh</strong> to get another random fact, or click on the <span className="needsQueries">red</span> and <span className="needsMyQueries">blue</span> ones you haven't done yet.</p>
+    <p><strong>Thank you!</strong> You can click on the <span className="needsQueries">red</span> and <span className="needsMyQueries">blue</span> ones you haven't done yet, or press Random to see where it takes you.</p>
 </span>;
 
 
 class QuerySuggestionUI extends React.Component {
     constructor(props) {
         super(props);
+        let urlP = getURLParams()
         this.state = {
             facts: [],
-            activeFact: 0,
+            activeFact: parseInt(urlP.id) || 0,
             queryText: "",
         }
     }
     componentDidMount() {
         postJSON("/api/facts", {}, (succ) => this.setState({
             facts: succ.facts,
-            activeFact: ((Math.random() * _.size(succ.facts)) | 0)
         }));
     }
     refreshFacts() {
         postJSON("/api/facts", {}, (succ) => this.setState({facts: succ.facts}));
     }
     setActive(activeFact) {
+        pushURLParams({id:activeFact})
         this.setState({activeFact});
     }
     suggestQuery(fact) {
@@ -147,6 +148,8 @@ class QuerySuggestionUI extends React.Component {
                 <div>{yourQueries}</div>
             </div>;
         }
+
+        summary.push(<Button label="Random" onClick={(e=>this.setActive((Math.random()*_.size(facts)) | 0))} />);
 
         return <div>
             <div>{userPrompt}</div>
