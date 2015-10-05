@@ -1,7 +1,9 @@
 package edu.umass.cs.jfoley.coop.entityco;
 
+import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
+import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
 import org.lemurproject.galago.utility.Parameters;
@@ -20,14 +22,15 @@ public class EntityCoExperiment {
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
 
-    List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/robust04.json")));
+    String dataset = "clue12";
+    List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/"+dataset+".json")));
     Collections.sort(queries, (lhs, rhs) -> lhs.qid.compareTo(rhs.qid));
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "dbpedia.ints")));
     //IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", "robust.ints")));
 
     String smoothing = argp.get("smoothing", "linear");
 
-    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", "dbpedia.ql."+smoothing+".trecrun"))) {
+    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset+".dbpedia.ql."+smoothing+".trecrun"))) {
       for (EntityJudgedQuery query : queries) {
         String qid = query.qid;
         //long start = System.currentTimeMillis();
@@ -38,6 +41,10 @@ public class EntityCoExperiment {
         List<ScoredDocument> entities = dbpedia.searchQL(query.text, smoothing, 1000);
 
         for (ScoredDocument entity : entities) {
+          if(entity.rank < 4) {
+            System.out.println("\t"+entity.documentName+" "+entity.score);
+            System.out.println("\t\t"+ StrUtil.join(dbpedia.translateToTerms(new IntList(dbpedia.getCorpus().getDocument((int) entity.document)))));
+          }
           trecrun.println(entity.toTRECformat(qid, "jfoley"));
         }
       }
