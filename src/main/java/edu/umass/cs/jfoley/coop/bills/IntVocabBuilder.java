@@ -158,22 +158,21 @@ public class IntVocabBuilder {
       // lengths-array.
       lengths = new int[numberOfDocuments()];
       int ND = numberOfDocuments();
-      long NT = numberOfTermOccurrences();
       InputStream stream = docOffsetReader.stream();
       long prev = FixedSize.longs.read(stream);
       for (int i = 1; i < ND; i++) {
         long here = FixedSize.longs.read(stream);
-        lengths[i-1] = (int) (here - prev);
+        lengths[i-1] = (int) ((here - prev)/4L);
         prev = here;
       }
-      lengths[ND-1] = (int) (NT - prev);
+      lengths[ND-1] = (int) ((corpusReader.size() - prev)/4L);
     }
 
     public long numberOfTermOccurrences() throws IOException {
-      return corpusReader.size() / 4;
+      return corpusReader.size() / 4L;
     }
     public int numberOfDocuments() throws IOException {
-      return IntMath.fromLong(docOffsetReader.size() / 8);
+      return IntMath.fromLong(docOffsetReader.size() / 8L);
     }
     public int getTerm(long corpusPosition) throws IOException {
       return corpusReader.readInt(corpusPosition * 4);

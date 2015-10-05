@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.bills;
 
 import ciir.jfoley.chai.IntMath;
 import ciir.jfoley.chai.collections.Pair;
+import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.Directory;
@@ -12,6 +13,7 @@ import edu.umass.cs.ciir.waltz.IdMaps;
 import edu.umass.cs.ciir.waltz.coders.kinds.CharsetCoders;
 import edu.umass.cs.ciir.waltz.coders.kinds.FixedSize;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
+import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
 import edu.umass.cs.ciir.waltz.galago.io.GalagoIO;
 import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
@@ -20,6 +22,7 @@ import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.experiments.IndexedSDMQuery;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.front.PhrasePositionsIndex;
+import edu.umass.cs.jfoley.coop.front.QueryEngine;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import edu.umass.cs.jfoley.coop.phrases.PhraseDetector;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
@@ -29,13 +32,16 @@ import edu.umass.cs.jfoley.coop.tokenization.GalagoTokenizer;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
+import org.lemurproject.galago.core.retrieval.ScoredDocument;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.StringPooler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author jfoley
@@ -52,6 +58,114 @@ public class IntCoopIndex implements CoopIndex {
   PhraseHitsReader entities;
   TermPositionsIndex positionsIndex;
   PhrasePositionsIndex entitiesIndex;
+
+  public QueryEngine.QCNode<Double> smooth(String method, QueryEngine.QCNode<Integer> child) {
+    switch (method) {
+      case "linear":
+      case "jm":
+        return new QueryEngine.LinearSmoothingNode(child);
+      case "dirichlet":
+        return new QueryEngine.DirichletSmoothingNode(child);
+      default:
+        throw new RuntimeException("Smoothing: "+method+" does not exist!");
+    }
+  }
+
+  public List<ScoredDocument> searchQL(String query, String smoothingMethod, int numResults) throws IOException {
+    TermPositionsIndex index = getPositionsIndex("lemmas");
+
+    if(query.isEmpty()) return Collections.emptyList();
+
+    TagTokenizer tokenizer = new TagTokenizer();
+    List<String> terms = tokenizer.tokenize(query).terms;
+    if(terms.isEmpty()) return Collections.emptyList();
+
+    List<QueryEngine.QCNode<Double>> pnodes = new ArrayList<>();
+    IntList termIds = index.translateFromTerms(terms);
+    for (int termId : termIds) {
+      QueryEngine.QCNode<Integer> countNode = index.getUnigram(termId);
+      if(countNode == null) {
+        countNode = QueryEngine.MissingTermNode.instance;
+      }
+      pnodes.add(smooth(smoothingMethod, countNode));
+    }
+    if(pnodes.isEmpty()) { return Collections.emptyList(); }
+    QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(pnodes);
+    Mover mover = QueryEngine.createMover(ql);
+
+    TopKHeap<ScoredDocument> sdocs = new TopKHeap<>(numResults, new ScoredDocument.ScoredDocumentComparator());
+    ql.setup(index);
+    for(mover.start(); !mover.isDone(); mover.next()) {
+      int id = mover.currentKey();
+      double score = Objects.requireNonNull(ql.calculate(index, id));
+      sdocs.add(new ScoredDocument(id, score));
+    }
+
+    List<ScoredDocument> sorted = sdocs.getSorted();
+    for (int i = 0; i < sorted.size(); i++) {
+      ScoredDocument scoredDocument = sorted.get(i);
+      int doc = (int) scoredDocument.document;
+      scoredDocument.documentName = getNames().getForward(doc);
+      scoredDocument.rank = i+1;
+    }
+
+    return sorted;
+  }
+  public static Parameters searchQL(IntCoopIndex target, Parameters p) throws IOException {
+    TermPositionsIndex index = target.getPositionsIndex("lemmas");
+
+    String q = p.getString("query");
+    int num = p.get("n", 200);
+    if(q.isEmpty()) return Parameters.create();
+
+    List<Parameters> jsonPages = new ArrayList<>();
+
+    TagTokenizer tokenizer = new TagTokenizer();
+    List<String> terms = tokenizer.tokenize(q).terms;
+    if(terms.isEmpty()) return Parameters.create();
+
+    List<QueryEngine.QCNode<Double>> pnodes = new ArrayList<>();
+    IntList termIds = index.translateFromTerms(terms);
+    for (int termId : termIds) {
+      if(termId == -1) continue;
+      pnodes.add(new QueryEngine.LinearSmoothingNode(index.getUnigram(termId)));
+    }
+    if(pnodes.isEmpty()) {
+      return Parameters.create();
+    }
+    QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(pnodes);
+    Mover mover = QueryEngine.createMover(ql);
+
+    TopKHeap<ScoredDocument> sdocs = new TopKHeap<>(num, new ScoredDocument.ScoredDocumentComparator());
+    ql.setup(index);
+    for(mover.start(); !mover.isDone(); mover.next()) {
+      int id = mover.currentKey();
+      double score = Objects.requireNonNull(ql.calculate(index, id));
+      sdocs.add(new ScoredDocument(id, score));
+    }
+    boolean pullTerms = p.get("pullTerms", true);
+
+    List<ScoredDocument> sorted = sdocs.getSorted();
+    for (int i = 0; i < sorted.size(); i++) {
+      ScoredDocument scoredDocument = sorted.get(i);
+      if(scoredDocument == null) continue;
+      Parameters jdoc = Parameters.create();
+      int doc = (int) scoredDocument.document;
+      jdoc.put("score", scoredDocument.score);
+      jdoc.put("rank", i+1);
+      jdoc.put("name", target.getNames().getForward(doc));
+      if(pullTerms) {
+        jdoc.put("terms", target.translateToTerms(new IntList(target.getCorpus().getDocument(doc))));
+      }
+      jsonPages.add(jdoc);
+    }
+
+    return Parameters.parseArray(
+        "queryTerms", terms,
+        "queryIds", termIds,
+        "docs", jsonPages
+    );
+  }
 
   private void tryBuildNames() throws IOException {
     if(!baseDir.child("names.fwd").exists()) {

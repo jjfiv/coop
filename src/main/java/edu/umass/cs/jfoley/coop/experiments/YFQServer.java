@@ -1,21 +1,15 @@
 package edu.umass.cs.jfoley.coop.experiments;
 
-import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.FixedSlidingWindow;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
-import edu.umass.cs.ciir.waltz.dociter.movement.Mover;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.conll.server.ServerErr;
 import edu.umass.cs.jfoley.coop.conll.server.ServerFn;
-import edu.umass.cs.jfoley.coop.front.QueryEngine;
-import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import org.lemurproject.galago.core.parse.TagTokenizer;
-import org.lemurproject.galago.core.retrieval.ScoredDocument;
 import org.lemurproject.galago.tupleflow.web.WebHandler;
 import org.lemurproject.galago.tupleflow.web.WebServer;
 import org.lemurproject.galago.tupleflow.web.WebServerException;
@@ -315,62 +309,10 @@ public class YFQServer implements Closeable, WebHandler {
     public boolean hasQueries() {
       return queries.size() > 0;
     }
-  }
 
-  public static Parameters searchQL(IntCoopIndex target, Parameters p) throws IOException {
-    TermPositionsIndex index = target.getPositionsIndex("lemmas");
-
-    String q = p.getString("query");
-    int num = p.get("n", 200);
-    if(q.isEmpty()) return Parameters.create();
-
-    List<Parameters> jsonPages = new ArrayList<>();
-
-    TagTokenizer tokenizer = new TagTokenizer();
-    List<String> terms = tokenizer.tokenize(q).terms;
-    if(terms.isEmpty()) return Parameters.create();
-
-    List<QueryEngine.QCNode<Double>> pnodes = new ArrayList<>();
-    IntList termIds = index.translateFromTerms(terms);
-    for (int termId : termIds) {
-      if(termId == -1) continue;
-      pnodes.add(new QueryEngine.LinearSmoothingNode(index.getUnigram(termId)));
+    public List<UserRelevanceJudgment> getJudgments() {
+      return judgments;
     }
-    if(pnodes.isEmpty()) {
-      return Parameters.create();
-    }
-    QueryEngine.QCNode<Double> ql = new QueryEngine.CombineNode(pnodes);
-    Mover mover = QueryEngine.createMover(ql);
-
-    TopKHeap<ScoredDocument> sdocs = new TopKHeap<>(num, new ScoredDocument.ScoredDocumentComparator());
-    ql.setup(index);
-    for(mover.start(); !mover.isDone(); mover.next()) {
-      int id = mover.currentKey();
-      double score = Objects.requireNonNull(ql.calculate(index, id));
-      sdocs.add(new ScoredDocument(id, score));
-    }
-    boolean pullTerms = p.get("pullTerms", true);
-
-    List<ScoredDocument> sorted = sdocs.getSorted();
-    for (int i = 0; i < sorted.size(); i++) {
-      ScoredDocument scoredDocument = sorted.get(i);
-      if(scoredDocument == null) continue;
-      Parameters jdoc = Parameters.create();
-      int doc = (int) scoredDocument.document;
-      jdoc.put("score", scoredDocument.score);
-      jdoc.put("rank", i+1);
-      jdoc.put("name", target.getNames().getForward(doc));
-      if(pullTerms) {
-        jdoc.put("terms", target.translateToTerms(new IntList(target.getCorpus().getDocument(doc))));
-      }
-      jsonPages.add(jdoc);
-    }
-
-    return Parameters.parseArray(
-        "queryTerms", terms,
-        "queryIds", termIds,
-        "docs", jsonPages
-    );
   }
 
   public void setupFunctions() {
@@ -408,7 +350,7 @@ public class YFQServer implements Closeable, WebHandler {
       addJudgment(factId, rel);
       return getFacts();
     });
-    apiMethods.put("searchPages", p -> searchQL(pages, p));
+    apiMethods.put("searchPages", p -> IntCoopIndex.searchQL(pages, p));
     apiMethods.put("page", p -> {
       Parameters output = Parameters.create();
 
@@ -467,6 +409,7 @@ public class YFQServer implements Closeable, WebHandler {
         String time = StrUtil.takeBeforeLast(name.substring(2), ".json.gz");
         long time_ms = Long.parseLong(time);
         if(time_ms > newestTime) {
+          newestTime = time_ms;
           newestBackup = file;
         }
       } catch (Exception e) {

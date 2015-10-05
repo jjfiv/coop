@@ -15,6 +15,10 @@ class Main {
         Main.init();
         Main.render(<PageView />);
     }
+    static pageSearch() {
+        Main.init();
+        Main.render(<PageSearch />);
+    }
 }
 
 function admin() {
@@ -175,18 +179,32 @@ class PageView extends React.Component {
         super(props);
         let urlP = getURLParams();
         this.state = {
-            id: parseInt(urlP.id) || 0
+            id: parseInt(urlP.id) || 0,
+            name: urlP.name
         }
     }
     componentDidMount() {
-        this.loadPage(this.state.id, true);
+        if(this.state.name) {
+            this.loadPageByName(this.state.name, true);
+        } else {
+            this.loadPage(this.state.id, true);
+        }
+    }
+    loadPageByName(name, force) {
+        if(force || id != this.state.id) {
+            this.setState({id: -1, data: null, name: null});
+            postJSON("/api/page", {name}, (data) => {
+                pushURLParams({id: data.id});
+                this.setState({data, id: data.id, name: data.name})
+            })
+        }
     }
     loadPage(id, force) {
         if(force || id != this.state.id) {
-            this.setState({id, data: null});
-            pushURLParams({id: id});
+            this.setState({id, data: null, name: null});
             postJSON("/api/page", {id}, (data) => {
-                this.setState({data})
+                pushURLParams({id: data.id});
+                this.setState({data, id: data.id, name: data.name})
             })
         }
     }
@@ -623,6 +641,8 @@ class PageSearch extends React.Component {
                     return [term, ' '];
                 }
             });
+
+            console.log(x);
 
             return <span key={id}>
                     <a href={"/page.html?name="+name}>{id} pp.{pageNo}</a>&nbsp;

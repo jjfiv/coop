@@ -358,6 +358,31 @@ public class QueryEngine {
     }
   }
 
+  public static class MissingTermNode implements CountableNode {
+    public static QCNode<Integer> instance = new MissingTermNode();
+
+    @Override public ChildMovingLogic getMovingLogic() { return ChildMovingLogic.NA; }
+    @Override public Collection<? extends QCNode<?>> children() { return Collections.emptyList(); }
+
+    @Nullable
+    @Override
+    public Integer calculate(QueryEvaluationContext ctx, int document) {
+      return null;
+    }
+
+    @Override
+    public int count(QueryEvaluationContext ctx, int document) {
+      return 0;
+    }
+
+    /**
+     * Always zero for these nodes.
+     * @return collection frequency; number of times it occurs in a collection.
+     */
+    @Override
+    public int getCollectionFrequency() { return 0; }
+  }
+
   /** These guys make movement OR rather than AND, since they sanely reply to everything... */
   public static class LinearSmoothingNode extends QCApplySingleNode<Double, Integer> {
     private final double lambda;
@@ -372,15 +397,8 @@ public class QueryEngine {
       this.bgScore = Double.NaN;
     }
 
-    @Override
-    public ChildMovingLogic getMovingLogic() {
-      return ChildMovingLogic.OR;
-    }
-
-    @Override
-    public Class<Double> getResultClass() {
-      return Double.class;
-    }
+    @Override public ChildMovingLogic getMovingLogic() { return ChildMovingLogic.OR; }
+    @Override public Class<Double> getResultClass() { return Double.class; }
 
     @Override
     public void setup(QueryEvaluationContext ctx) {
@@ -403,6 +421,45 @@ public class QueryEngine {
       //System.err.println(Parameters.parseArray("len", len, "count", count, "bgScore", bgScore));
 
       return Math.log(bgScore + lambda * (count / len));
+    }
+  }
+
+  /** These guys make movement OR rather than AND, since they sanely reply to everything... */
+  public static class DirichletSmoothingNode extends QCApplySingleNode<Double, Integer> {
+    public final double mu;
+    public double background;
+
+    public DirichletSmoothingNode(@Nonnull QCNode<Integer> child) {
+      this(child, 1500D);
+    }
+    public DirichletSmoothingNode(@Nonnull QCNode<Integer> child, double mu) {
+      super(child);
+      this.mu = mu;
+    }
+
+    @Override
+    public void setup(QueryEvaluationContext ctx) {
+      double clen = ctx.getCollectionLength();
+      int cf = child.getCollectionFrequency();
+      this.background = (cf > 0) ? cf / clen : 0.5 / clen;
+    }
+
+    @Override public ChildMovingLogic getMovingLogic() { return ChildMovingLogic.OR; }
+    @Override public Class<Double> getResultClass() { return Double.class; }
+
+    @Nullable
+    @Override
+    public Double calculate(QueryEvaluationContext ctx, int document) {
+      int count = child.count(ctx, document);
+      int length = ctx.getLength(document);
+      double numerator = count + (mu * background);
+      double denominator = length + mu;
+      double score = Math.log(numerator) - Math.log(denominator);
+      /*if(Double.isNaN(score)) {
+        System.err.println(Parameters.parseArray("document", document,"count", count, "length", length, "numerator", numerator, "denominator", denominator, "mu", mu, "score", score, "background", background));
+        throw new RuntimeException("Oh-no!"+score);
+      }*/
+      return score;
     }
   }
 
