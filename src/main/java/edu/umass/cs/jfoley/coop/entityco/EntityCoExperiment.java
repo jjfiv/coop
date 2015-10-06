@@ -28,7 +28,7 @@ public class EntityCoExperiment {
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "dbpedia.ints")));
     //IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", "robust.ints")));
 
-    String smoothing = argp.get("smoothing", "linear");
+    String smoothing = argp.get("smoothing", "dirichlet");
 
     try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset+".dbpedia.ql."+smoothing+".trecrun"))) {
       for (EntityJudgedQuery query : queries) {

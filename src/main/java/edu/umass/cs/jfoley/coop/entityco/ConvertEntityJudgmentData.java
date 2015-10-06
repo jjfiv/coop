@@ -32,7 +32,7 @@ public class ConvertEntityJudgmentData {
     Map<String, String> queries = loadQueriesFromMentionsFile(judgedEntitiesByQuery);
 
     ArrayList<Parameters> data = new ArrayList<>();
-    try (PrintWriter qrel = IO.openPrintWriter("coop/data/robust04.ent.minus3.qrel")) {
+    try (PrintWriter qrel = IO.openPrintWriter("coop/data/robust04.ent.qrel")) {
       for (String qid : queries.keySet()) {
         EntityJudgedQuery ejq = new EntityJudgedQuery(qid, queries.get(qid));
         ejq.judgments.putAll(judgedEntitiesByQuery.get(qid));
@@ -80,7 +80,7 @@ public class ConvertEntityJudgmentData {
       String[] cols = line.split("\\s+");
       String qid = cols[0];
       String ent = cols[2];
-      double score = Double.parseDouble(cols[3])-3;
+      double score = Double.parseDouble(cols[3])-1; // 1->0, 5->4 ...
       judgedEntitiesByQuery.computeIfAbsent(qid, (ignored) -> new HashMap<>()).put(ent, score);
     }
     return judgedEntitiesByQuery;

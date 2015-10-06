@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 public class ExtractNames {
   public static void main(String[] args) throws IOException {
-    IntCoopIndex target = new IntCoopIndex(new Directory("inex-sentences.ints"));
+    IntCoopIndex target = new IntCoopIndex(new Directory("robust.ints"));
     IntCoopIndex index = new IntCoopIndex(new Directory("dbpedia.ints"));
 
     int N = 20;
@@ -25,7 +25,7 @@ public class ExtractNames {
     Debouncer msg2 = new Debouncer(2000);
     Directory output = target.baseDir;
     //output = new Directory("test.foo");
-    try (PhraseHitsWriter writer = new PhraseHitsWriter(output, "dbpedia")) {
+    try (PhraseHitsWriter writer = new PhraseHitsWriter(output, "robust-timed")) {
       tagger.tag(msg2, (phraseId, docId, hitStart, hitSize, terms) -> {
         IntList data_found = IntList.clone(terms, hitStart, hitSize);
         /*
