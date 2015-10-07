@@ -22,13 +22,15 @@ public class EntityJudgedQuery {
   public Parameters toJSON() {
     return Parameters.parseArray(
         "qid", qid,
-        "text", text,
+        "number", qid,
+        "raw", text,
+        "text", "#sdm("+text+")",
         "entities", Parameters.wrap(judgments)
     );
   }
 
   public static EntityJudgedQuery fromJSON(Parameters p) {
-    EntityJudgedQuery parsed = new EntityJudgedQuery(p.getString("qid"), p.getString("text"));
+    EntityJudgedQuery parsed = new EntityJudgedQuery(p.getString("qid"), p.getString("raw"));
     Parameters entities = p.getMap("entities");
     for (String eid : entities.keySet()) {
       parsed.judgments.put(eid, entities.getDouble(eid));

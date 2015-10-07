@@ -19,6 +19,11 @@ import java.util.stream.Collectors;
  */
 public class ConvertEntityJudgmentData {
 
+  //
+  // Generate unfiltered Wiki-SDM baseline:
+  // sh ~/code/stable/galago-3-8/core/target/appassembler/bin/galago batch-search ../../../coop/data/robust04.json --index= /mnt/scratch/jfoley/jeff-wiki.galago/full-wiki-stanf3_context_g351/ --stemming=false --mu=96400.0 --defaultSmoothingMu=96400.0 --uniw=0.29 --odw=0.21 --uww=0.5 > jdalton.wikisdm.robust04.trecrun
+  //
+
   public static List<EntityJudgedQuery> parseQueries(File input) {
     try {
       return ListFns.map(Parameters.parseFile(input).getAsList("data", Parameters.class), EntityJudgedQuery::fromJSON);
@@ -33,23 +38,26 @@ public class ConvertEntityJudgmentData {
 
     ArrayList<Parameters> data = new ArrayList<>();
     try (PrintWriter qrel = IO.openPrintWriter("coop/data/robust04.ent.qrel")) {
-      for (String qid : queries.keySet()) {
-        EntityJudgedQuery ejq = new EntityJudgedQuery(qid, queries.get(qid));
-        ejq.judgments.putAll(judgedEntitiesByQuery.get(qid));
+      try (PrintWriter tsv = IO.openPrintWriter("coop/data/robust04.tsv")) {
+        for (String qid : queries.keySet()) {
+          EntityJudgedQuery ejq = new EntityJudgedQuery(qid, queries.get(qid));
+          ejq.judgments.putAll(judgedEntitiesByQuery.get(qid));
 
-        List<Map.Entry<String, Double>> collect = ejq.judgments.entrySet().stream().sorted((lhs, rhs) -> -Double.compare(lhs.getValue(), rhs.getValue())).limit(5).collect(Collectors.toList());
-        System.err.println(ejq.text+"\t"+collect);
-        data.add(ejq.toJSON());
+          List<Map.Entry<String, Double>> collect = ejq.judgments.entrySet().stream().sorted((lhs, rhs) -> -Double.compare(lhs.getValue(), rhs.getValue())).limit(5).collect(Collectors.toList());
+          System.err.println(ejq.text + "\t" + collect);
+          data.add(ejq.toJSON());
 
-        // print qrel
-        for (Map.Entry<String, Double> kv : ejq.judgments.entrySet()) {
-          qrel.println(ejq.qid + " Q0 " + kv.getKey()+" "+(int) Math.round(kv.getValue()));
+          // print qrel
+          for (Map.Entry<String, Double> kv : ejq.judgments.entrySet()) {
+            qrel.println(ejq.qid + " Q0 " + kv.getKey() + " " + (int) Math.round(kv.getValue()));
+          }
+          tsv.println(qid+"\t"+ejq.text);
         }
       }
     }
 
     Parameters output = Parameters.create();
-    output.put("data", data);
+    output.put("queries", data);
 
     try (PrintWriter out = IO.openPrintWriter("coop/data/robust04.json")) {
       out.println(output.toPrettyString());

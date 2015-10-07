@@ -22,14 +22,17 @@ public class ConvertClueEntityData {
     Map<String, String> queries = loadQueriesFromMentionsFile(judgedEntitiesByQuery);
 
     ArrayList<Parameters> data = new ArrayList<>();
-    for (String qid : queries.keySet()) {
-      EntityJudgedQuery ejq = new EntityJudgedQuery(qid, queries.get(qid));
-      ejq.judgments.putAll(judgedEntitiesByQuery.get(qid));
+    try (PrintWriter out = IO.openPrintWriter("coop/data/clue12.tsv")) {
+      for (String qid : queries.keySet()) {
+        EntityJudgedQuery ejq = new EntityJudgedQuery(qid, queries.get(qid));
+        ejq.judgments.putAll(judgedEntitiesByQuery.get(qid));
 
-      List<Map.Entry<String, Double>> collect = ejq.judgments.entrySet().stream().sorted((lhs, rhs) -> -Double.compare(lhs.getValue(), rhs.getValue())).limit(5).collect(Collectors.toList());
-      System.err.println(ejq.text+"\t"+collect);
-      data.add(ejq.toJSON());
+        List<Map.Entry<String, Double>> collect = ejq.judgments.entrySet().stream().sorted((lhs, rhs) -> -Double.compare(lhs.getValue(), rhs.getValue())).limit(5).collect(Collectors.toList());
+        System.err.println(ejq.text + "\t" + collect);
+        data.add(ejq.toJSON());
 
+        out.println(qid+"\t"+ejq.text);
+      }
     }
 
     Parameters output = Parameters.create();

@@ -22,7 +22,7 @@ public class EntityCoExperiment {
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
 
-    String dataset = "clue12";
+    String dataset = "robust04";
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/"+dataset+".json")));
     Collections.sort(queries, (lhs, rhs) -> lhs.qid.compareTo(rhs.qid));
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "dbpedia.ints")));
