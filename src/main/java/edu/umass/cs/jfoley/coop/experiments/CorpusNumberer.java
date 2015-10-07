@@ -125,10 +125,10 @@ public class CorpusNumberer {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory output = new Directory(argp.get("output", "inex-sentences.ints"));
+    Directory output = new Directory(argp.get("output", "/mnt/scratch/jfoley/clue12a.sdm.ints"));
     //List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "inex_txt")), argp);
 
-    List<DocumentSplit> documentSplits = DocumentSource.processFile(new File(argp.get("input", "/media/jfoley/Seagate Backup Plus Drive/indices/full-books/sentences.galago/corpus")), argp);
+    List<DocumentSplit> documentSplits = DocumentSource.processFile(new File(argp.get("input", "/mnt/scratch/jfoley/Clue12A.subset.galago/Clue12A-Subindex-FULL/corpus")), argp);
     //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
     //List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/dbpedia.trectext")), argp);
 
@@ -158,10 +158,10 @@ public class CorpusNumberer {
           parsingTime.push((et - st) / 1e9);
 
           // patch name!
-          String book = doc.metadata.get("book");
-          String sentence = doc.metadata.get("sentence");
-          String year = doc.metadata.get("year");
-          doc.name = book+"-"+sentence+":"+year;
+          //String book = doc.metadata.get("book");
+          //String sentence = doc.metadata.get("sentence");
+          //String year = doc.metadata.get("year");
+          //doc.name = book+"-"+sentence+":"+year;
 
           if(alreadySeenDocuments.contains(doc.name)) {
             skipped++;
@@ -180,7 +180,7 @@ public class CorpusNumberer {
 
 
           if(msg.ready()) {
-            System.out.println(msg.estimate(writer.nextDocId, 10_000_000));
+            System.out.println(msg.estimate(writer.nextDocId, 1_962_807));
             System.out.println("# "+doc.name+" "+writer.nextDocId);
             System.out.println("\t skipped     : "+skipped);
             System.out.println("\t parse     : "+parsingTime);
