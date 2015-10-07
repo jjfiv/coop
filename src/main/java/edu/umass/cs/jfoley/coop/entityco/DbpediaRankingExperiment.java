@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author jfoley
  */
-public class EntityCoExperiment {
+public class DbpediaRankingExperiment {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);

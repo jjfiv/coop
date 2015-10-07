@@ -82,15 +82,27 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
         output.add(new DocumentResult<>(doc, pos));
       }
     };*/
-    AllOfMover<?> andMover = new AllOfMover<>(movers);
-    for(; !andMover.isDone(); andMover.next()) {
-      int doc = andMover.currentKey();
-      ArrayList<SpanIterator> iters = new ArrayList<>();
-      for (PostingMover<PositionsList> mover : movers) {
-        iters.add(mover.getPosting(doc).getSpanIterator());
+
+    if(movers.size() == 1) {
+      PostingMover<PositionsList> m = movers.get(0);
+      for (m.start(); !m.isDone(); m.next()) {
+        int doc = m.currentKey();
+        PositionsList docHits = m.getPosting(doc);
+        for (int i = 0; i < docHits.size(); i++) {
+          output.add(new DocumentResult<>(doc, docHits.getPosition(i)));
+        }
       }
-      for (Span span : UnorderedWindow.calculateSpans(iters, passageSize)) {
-        output.add(new DocumentResult<>(doc, span.begin));
+    } else {
+      AllOfMover<?> andMover = new AllOfMover<>(movers);
+      for (; !andMover.isDone(); andMover.next()) {
+        int doc = andMover.currentKey();
+        ArrayList<SpanIterator> iters = new ArrayList<>();
+        for (PostingMover<PositionsList> mover : movers) {
+          iters.add(mover.getPosting(doc).getSpanIterator());
+        }
+        for (Span span : UnorderedWindow.calculateSpans(iters, passageSize)) {
+          output.add(new DocumentResult<>(doc, span.begin));
+        }
       }
     }
 

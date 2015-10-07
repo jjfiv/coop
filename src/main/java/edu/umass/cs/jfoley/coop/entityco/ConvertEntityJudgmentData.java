@@ -26,7 +26,7 @@ public class ConvertEntityJudgmentData {
 
   public static List<EntityJudgedQuery> parseQueries(File input) {
     try {
-      return ListFns.map(Parameters.parseFile(input).getAsList("data", Parameters.class), EntityJudgedQuery::fromJSON);
+      return ListFns.map(Parameters.parseFile(input).getAsList("queries", Parameters.class), EntityJudgedQuery::fromJSON);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

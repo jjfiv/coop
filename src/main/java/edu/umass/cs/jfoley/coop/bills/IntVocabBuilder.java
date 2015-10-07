@@ -178,6 +178,7 @@ public class IntVocabBuilder {
       return corpusReader.readInt(corpusPosition * 4);
     }
     public Pair<Long,Long> getDocumentRange(int document) throws IOException {
+      assert(document >= 0);
       if(document >= numberOfDocuments()) throw new RuntimeException("Can't find document above max: "+numberOfDocuments());
       long start = docOffsetReader.readLong(document * 8);
       if((document+1) >= numberOfDocuments()) {
