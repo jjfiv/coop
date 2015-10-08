@@ -6,5 +6,6 @@ target
 *.zip
 *.out
 *.err
+*.trecrun
 data/
 src/main/resources/libs/
