@@ -1,8 +1,10 @@
 package edu.umass.cs.jfoley.coop.pagerank;
 
+import ciir.jfoley.chai.collections.TopKHeap;
+import org.lemurproject.galago.core.retrieval.ScoredDocument;
+
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 
 /**
  * @author jfoley
@@ -59,7 +61,7 @@ public class PageRank {
 
   public static void main(String[] args) throws IOException {
     // Read arguments from command line; or use sane defaults for IDE.
-    String inputFile = args.length >= 1 ? args[0] : "/mnt/scratch/jfoley/page-links_en.nt.bz2";
+    String inputFile = args.length >= 1 ? args[0] : "/mnt/scratch/jfoley/dbpedia.srt.gz";
     double lambda = args.length >=2 ? Double.parseDouble(args[3]) : 0.15;
     double tau = args.length >=3 ? Double.parseDouble(args[4]) : 0.001;
 
@@ -72,27 +74,18 @@ public class PageRank {
 
   private static void printTopK(NameMapping names, double[] scores, int K) {
     // A heap would be better, but Java doesn't have a great fixed-size heap implementation.
-    ArrayList<ScoredDoc> scored = new ArrayList<>();
+    TopKHeap<ScoredDocument> heap = new TopKHeap<>(K);
     for (int i = 0; i < names.size(); i++) {
-      ScoredDoc doc = new ScoredDoc(scores[i], i);
-      scored.add(doc);
-      // Every once in a while, throw out the low-scoring documents.
-      if(scored.size() % 5000 == 0) {
-        Collections.sort(scored);
-        ArrayList<ScoredDoc> top = new ArrayList<>(scored.subList(0, K));
-        scored.clear();
-        scored.addAll(top);
-      }
+      ScoredDocument doc = new ScoredDocument(i, scores[i]);
+      heap.offer(doc);
     }
 
     // Finish by taking the topmost K.
-    Collections.sort(scored);
-    ArrayList<ScoredDoc> top = new ArrayList<>(scored.subList(0, K));
-    scored.clear();
+    List<ScoredDocument> top = heap.getSorted();
 
     // Output documents with the highest pagerank:
-    for (ScoredDoc sdoc : top) {
-      System.out.printf("%s\t%f\n", names.getName(sdoc.id), sdoc.score);
+    for (ScoredDocument sdoc : top) {
+      System.out.printf("%s\t%f\n", names.getName((int) sdoc.document), sdoc.score);
     }
   }
 
