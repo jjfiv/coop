@@ -15,7 +15,6 @@ import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.bills.ZeroTerminatedIds;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
-import gnu.trove.set.hash.TIntHashSet;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -55,16 +54,6 @@ public class PhraseHitsReader implements Closeable {
 
     phrasesByTermIndex = new TermPositionsIndex(index.getTermVocabulary(), null, phrasesByTerm, index.getTokenizer(), index.getCorpus());
     //documentsByPhraseIndex = new CoopIndex.PositionsIndex<>(vocab, documentsByPhrase);
-
-    TIntHashSet wordToEntity = new TIntHashSet();
-    long start = System.currentTimeMillis();
-    for (IntList key : vocab.values()) {
-      //wordToEntity.addAll(key.asArray());
-      wordToEntity.add(key.getQuick(0));
-    }
-    System.err.println("# entity-trigger-words: " + wordToEntity.size());
-    long end = System.currentTimeMillis();
-    System.out.println("Entity autocomplete: "+(end-start)+"ms.");
   }
 
   @Override

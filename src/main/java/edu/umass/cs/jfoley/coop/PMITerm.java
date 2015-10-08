@@ -45,6 +45,10 @@ public class PMITerm<Term> implements Comparable<PMITerm<?>> {
     return cachedPMI.get();
   }
 
+  public double logPMI() {
+    return Math.log(pxy()) - Math.log(px()) - Math.log(py());
+  }
+
   @Override
   public int compareTo(@Nonnull PMITerm<?> o) {
     return Double.compare(pmi(), o.pmi());

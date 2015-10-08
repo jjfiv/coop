@@ -50,8 +50,8 @@ public class PMIRankingExperiment {
     TermPositionsIndex tpos = target.getPositionsIndex("lemmas");
     PhrasePositionsIndex eIndex = target.getEntitiesIndex();
 
-    int numEntities = argp.get("requested", 1500);
-    int minEntityFrequency = argp.get("minEntityFrequency", 10);
+    int numEntities = argp.get("requested", 5000);
+    int minEntityFrequency = argp.get("minEntityFrequency", 2);
 
     IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
     assert(ambiguous != null);
@@ -67,8 +67,8 @@ public class PMIRankingExperiment {
         queryP.put("query", query.text);
         queryP.put("passageSize", passageSize);
         Parameters infoP = Parameters.create();
-        FindHitsMethod method = new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
-        ArrayList<DocumentResult<Integer>> hits = method.computeTimed();
+        FindHitsMethod hitsFinder= new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
+        ArrayList<DocumentResult<Integer>> hits = hitsFinder.computeTimed();
         int queryFrequency = hits.size();
 
         long startEntites = System.currentTimeMillis();

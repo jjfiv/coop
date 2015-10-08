@@ -16,7 +16,7 @@ public class IntCorpusPIndex {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    String path = argp.get("input", "/mnt/scratch/jfoley/clue12a.sdm.ints");
+    String path = argp.get("input", "/mnt/scratch/jfoley/inex-page-djvu.ints");
     //String path = argp.get("input", "dbpedia.ints");
     Directory input = Directory.Read(path);
     Directory output = Directory.Read(argp.get("output", path));

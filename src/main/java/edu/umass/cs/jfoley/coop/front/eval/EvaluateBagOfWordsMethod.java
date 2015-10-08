@@ -43,45 +43,7 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
       movers.add(index.getPositionsMover(term));
     }
 
-    //System.err.println(queryIds);
-    //System.err.println(movers);
-
     ArrayList<DocumentResult<Integer>> output = new ArrayList<>();
-
-    /*AnyOfMover<?> orMover = new AnyOfMover<>(movers);
-    for(; !orMover.isDone(); orMover.next()) {
-      int doc = orMover.currentKey();
-      int length = index.getLength(doc);
-      int windows = length / passageSize;
-
-
-      HashSet<Integer> uniquePos = new HashSet<>();
-      ArrayList<SpanIterator> posLists = new ArrayList<>();
-      for (PostingMover<PositionsList> mover : movers) {
-        if (mover.matches(doc)) {
-          PositionsList pl = mover.getPosting(doc);
-          uniquePos.addAll(pl);
-          posLists.add(pl.getSpanIterator());
-        }
-      }
-
-
-      for (int i = 0; i < length; i+=passageSize) {
-        int limit = i+passageSize;
-        for (SpanIterator iter : posLists) {
-          int count = 0;
-          for(; !iter.isDone(); iter.next()) {
-            int begin = iter.currentBegin();
-            if(begin < i) continue;
-            if(begin >= limit) break;
-            count++;
-          }
-        }
-      }
-      for (int pos : IterableFns.sorted(uniquePos)) {
-        output.add(new DocumentResult<>(doc, pos));
-      }
-    };*/
 
     if(movers.size() == 1) {
       PostingMover<PositionsList> m = movers.get(0);
@@ -93,9 +55,9 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
         }
       }
     } else {
-      AllOfMover<?> andMover = new AllOfMover<>(movers);
-      for (; !andMover.isDone(); andMover.next()) {
-        int doc = andMover.currentKey();
+      AllOfMover<?> m = new AllOfMover<>(movers);
+      for (m.start(); !m.isDone(); m.next()) {
+        int doc = m.currentKey();
         ArrayList<SpanIterator> iters = new ArrayList<>();
         for (PostingMover<PositionsList> mover : movers) {
           iters.add(mover.getPosting(doc).getSpanIterator());
