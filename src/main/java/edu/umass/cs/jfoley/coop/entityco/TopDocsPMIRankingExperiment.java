@@ -103,7 +103,7 @@ public class TopDocsPMIRankingExperiment {
         TIntIntHashMap ecounts = new TIntIntHashMap();
 
         for (Pair<Integer, PhraseHitList> pair : inBulk) {
-          int doc = pair.getKey();
+          //int doc = pair.getKey();
           PhraseHitList dochits = pair.getValue();
 
           for (PhraseHit dochit : dochits) {

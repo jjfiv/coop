@@ -39,14 +39,25 @@ public class PMIRankingExperiment {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
-    String dataset = "robust04";
+    String dataset = "clue12";
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
 
     assert(queries.size() > 0);
 
+    String index;
+    switch (dataset) {
+      case "robust04":
+        index = "robust.ints";
+        break;
+      case "clue12":
+        index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
+        break;
+      default: throw new UnsupportedOperationException("dataset="+dataset);
+    }
+
     Collections.sort(queries, (lhs, rhs) -> lhs.qid.compareTo(rhs.qid));
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "dbpedia.ints")));
-    IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", "robust.ints")));
+    IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", index)));
     TermPositionsIndex tpos = target.getPositionsIndex("lemmas");
     PhrasePositionsIndex eIndex = target.getEntitiesIndex();
 
