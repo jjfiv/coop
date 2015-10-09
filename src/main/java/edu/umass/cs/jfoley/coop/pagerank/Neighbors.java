@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.pagerank;
 
 import ciir.jfoley.chai.io.IO;
+import ciir.jfoley.chai.time.Debouncer;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -32,6 +33,8 @@ public class Neighbors {
   public static Neighbors load(Reader input, NameMapping names) throws IOException {
     TIntObjectHashMap<int[]> neighbors = new TIntObjectHashMap<>();
 
+    Debouncer msg = new Debouncer();
+
     TIntArrayList currentNeighborList = new TIntArrayList();
     try (BufferedReader reader = new BufferedReader(input)) {
       int i=0;
@@ -40,8 +43,8 @@ public class Neighbors {
       while(true) {
         i++;
         // every 10,000 print progress.
-        if(PageRank.printProgress && i % 10000 == 0) {
-          System.err.printf("Processed %d lines, %d with neighbors.\n", i, neighbors.size());
+        if(PageRank.printProgress && msg.ready()) {
+          System.err.printf("Processed %d lines, %d with neighbors, at %s\n", i, neighbors.size(), msg.estimate(i));
         }
 
         // Read a line and break on EOF.
@@ -51,7 +54,7 @@ public class Neighbors {
         // Parse the file.
         int split = line.indexOf('\t');
         String src = line.substring(0, split);
-        String target = line.substring(split+1);
+        String target = line.substring(split + 1);
 
         // Group by src.
         if(!src.equals(lastSrc)) {

@@ -29,10 +29,10 @@ import static edu.umass.cs.jfoley.coop.bills.IntCoopIndex.parseDBPediaTitle;
  */
 public class BuildEntityConflationIndex {
   public static void main(String[] args) throws IOException {
-    IntCoopIndex target = new IntCoopIndex(new Directory("robust.ints"));
+    IntCoopIndex target = new IntCoopIndex(new Directory("/mnt/scratch/jfoley/clue12a.sdm.ints"));
     IntCoopIndex index = new IntCoopIndex(new Directory("dbpedia.ints"));
 
-    int N = 20;
+    int N = 10;
 
     TagTokenizer tokenizer = new TagTokenizer();
     StringPooler.disable();

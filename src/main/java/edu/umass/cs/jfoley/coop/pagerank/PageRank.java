@@ -1,9 +1,11 @@
 package edu.umass.cs.jfoley.coop.pagerank;
 
 import ciir.jfoley.chai.collections.TopKHeap;
+import ciir.jfoley.chai.io.IO;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 /**
@@ -12,7 +14,7 @@ import java.util.List;
 public class PageRank {
   /** While debugging, make sure it doesn't run infinitely. */
   public static int MaxIterations = 1000;
-  public static boolean printProgress = false;
+  public static boolean printProgress = true;
 
   public static double[] calculatePageRank(NameMapping names, Neighbors neighbors, double lambda, double tau) {
     PageRankScores scores = new PageRankScores(names.size(), lambda);
@@ -65,10 +67,29 @@ public class PageRank {
     double lambda = args.length >=2 ? Double.parseDouble(args[3]) : 0.15;
     double tau = args.length >=3 ? Double.parseDouble(args[4]) : 0.001;
 
+    long start, end;
+
+    start = System.currentTimeMillis();
     NameMapping names = NameMapping.load(inputFile);
+    end = System.currentTimeMillis();
+    System.err.println("Loaded names into mapping:"+(end-start)+"ms.");
+
+
+    start = System.currentTimeMillis();
     Neighbors neighbors = Neighbors.load(inputFile, names);
+    end = System.currentTimeMillis();
+    System.err.println("Loaded links:"+(end-start)+"ms.");
 
     double[] scores = calculatePageRank(names, neighbors, lambda, tau);
+
+    try (PrintWriter output = IO.openPrintWriter("wikipagerank.tsv.gz")) {
+      for (int i = 0; i < names.size(); i++) {
+        output.print(names.getName(i));
+        output.print('\t');
+        output.println(Math.log(scores[i]));
+      }
+    }
+
     printTopK(names, scores, 100);
   }
 

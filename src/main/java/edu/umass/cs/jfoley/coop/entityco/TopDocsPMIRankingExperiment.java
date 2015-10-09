@@ -12,7 +12,6 @@ import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.PhrasePositionsIndex;
-import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHit;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -33,8 +32,10 @@ public class TopDocsPMIRankingExperiment {
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
 
-    String dataset = "robust04";
+    String dataset = "clue12";
     Map<String, Set<String>> lauraDocsByQuery = new HashMap<>();
+
+    String index;
 
     switch(dataset) {
       case "robust04": {
@@ -49,8 +50,22 @@ public class TopDocsPMIRankingExperiment {
             MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
           }
         }
+        index = "robust.ints";
       }
-
+      break;
+      case "clue12": {
+        try (LinesIterable lines = LinesIterable.fromFile("clueweb_sdm_top20docs.data")) {
+          for (String line : lines) {
+            String[] row = line.split("\t");
+            String qid = row[0];
+            String doc = row[2];
+            MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
+          }
+        }
+        index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
+      }
+      break;
+      default: throw new UnsupportedOperationException("dataset="+dataset);
     }
 
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
@@ -59,15 +74,13 @@ public class TopDocsPMIRankingExperiment {
 
     Collections.sort(queries, (lhs, rhs) -> lhs.qid.compareTo(rhs.qid));
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "dbpedia.ints")));
-    IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", "robust.ints")));
-    TermPositionsIndex tpos = target.getPositionsIndex("lemmas");
+    IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", index)));
     PhrasePositionsIndex eIndex = target.getEntitiesIndex();
+    IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
+    assert(ambiguous != null);
 
     int numEntities = argp.get("requested", 5000);
     int minEntityFrequency = argp.get("minEntityFrequency", 2);
-
-    IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
-    assert(ambiguous != null);
 
     long start, end;
     try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".top20.logpmi.m" + minEntityFrequency + ".trecrun"))) {

@@ -36,7 +36,7 @@ public class ConvertClueEntityData {
     }
 
     Parameters output = Parameters.create();
-    output.put("data", data);
+    output.put("queries", data);
 
     try (PrintWriter out = IO.openPrintWriter("coop/data/clue12.json")) {
       out.println(output.toPrettyString());

@@ -1,6 +1,7 @@
 package edu.umass.cs.jfoley.coop.pagerank;
 
 import ciir.jfoley.chai.io.IO;
+import ciir.jfoley.chai.time.Debouncer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,6 +23,7 @@ public class NameMapping {
   public static NameMapping load(Reader input) throws IOException {
     HashSet<String> uniqueNames = new HashSet<>();
 
+    Debouncer msg = new Debouncer();
     int i=0;
     try (BufferedReader reader = new BufferedReader(input)) {
 
@@ -29,7 +31,7 @@ public class NameMapping {
       while(true) {
         i++;
         // every 10,000 print progress.
-        if(PageRank.printProgress && i % 10000 == 0) {
+        if(PageRank.printProgress && msg.ready()) {
           System.err.printf("Processed %d lines, %d unique links.\n", i, uniqueNames.size());
         }
         String line = reader.readLine();

@@ -3,6 +3,7 @@ package edu.umass.cs.jfoley.coop.pagerank;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.string.StrUtil;
+import ciir.jfoley.chai.time.Debouncer;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,9 +14,11 @@ import java.io.PrintWriter;
 public class DBPediaWikiWikiToSRT {
   public static final String LinkRelation = "<http://dbpedia.org/ontology/wikiPageWikiLink>";
   public static void main(String[] args) throws IOException {
+
+    Debouncer msg = new Debouncer();
     int written = 0;
     try (PrintWriter output = IO.openPrintWriter("/mnt/scratch/jfoley/dbpedia.srt.gz");
-         LinesIterable lines = LinesIterable.fromFile( "/mnt/scratch/jfoley/page-links_en.nt.gz")) {
+         LinesIterable lines = LinesIterable.fromFile("/mnt/scratch/jfoley/page-links_en.nt.gz")) {
       for (String line : lines) {
         if(line.charAt(0) == '#') continue;
         int pos = line.indexOf(LinkRelation);
@@ -28,6 +31,9 @@ public class DBPediaWikiWikiToSRT {
         String target = StrUtil.takeBeforeLast(StrUtil.takeAfterLast(rhs, '/'), ">");
         output.println(src+"\t"+target);
         written++;
+        if(msg.ready()) {
+          System.err.println("converted: "+written+" lines at "+msg.estimate(written));
+        }
       }
     }
 

@@ -4,6 +4,7 @@ import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.string.StrUtil;
 import gnu.trove.list.array.TDoubleArrayList;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 import org.lemurproject.galago.core.eval.QueryJudgments;
 import org.lemurproject.galago.core.eval.QuerySetJudgments;
 import org.lemurproject.galago.utility.Parameters;
@@ -16,7 +17,6 @@ import java.util.*;
  * @author jfoley
  */
 public class TrecRunReranker {
-
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
@@ -48,6 +48,45 @@ public class TrecRunReranker {
         featureNames.add(inputName);
       }
     }
+
+    System.err.println("Loaded "+featureNames+" as trecrun features...");
+
+    if(argp.containsKey("pagerank")) {
+      featureNames.add("pagerank");
+      HashSet<String> allDocuments = new HashSet<>();
+      for (Map<String, Map<String, Double>> docToFeatures : queryToDocumentToFeatures.values()) {
+        allDocuments.addAll(docToFeatures.keySet());
+      }
+
+      // load necessary pageranks from file:
+      TObjectDoubleHashMap<String> pageRanks = new TObjectDoubleHashMap<>();
+      try (LinesIterable lines = LinesIterable.fromFile(argp.getString("pagerank"))) {
+        for (String line : lines) {
+          String[] data = line.split("\t");
+          String id = data[0];
+          if(!allDocuments.contains(id)) {
+            continue;
+          }
+          double score = Double.parseDouble(data[1]);
+          pageRanks.put(id, score);
+
+          // leave loop as soon as we're done:
+          if(pageRanks.size() >= allDocuments.size()) break;
+        }
+      }
+
+      // weave in
+      for (Map<String, Map<String, Double>> docToFeatures : queryToDocumentToFeatures.values()) {
+        for (Map.Entry<String, Map<String, Double>> dfv : docToFeatures.entrySet()) {
+          String doc = dfv.getKey();
+          Map<String, Double> features = dfv.getValue();
+          features.put("pagerank", pageRanks.get(doc));
+        }
+      }
+    }
+
+    // zscore normalization...
+
 
     List<String> featureNumTable = new ArrayList<>(featureNames);
 
