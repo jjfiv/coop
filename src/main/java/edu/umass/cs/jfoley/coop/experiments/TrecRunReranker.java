@@ -49,38 +49,69 @@ public class TrecRunReranker {
       }
     }
 
-    System.err.println("Loaded "+featureNames+" as trecrun features...");
+    System.err.println("Loaded " + featureNames + " as trecrun features...");
 
-    if(argp.containsKey("pagerank")) {
-      featureNames.add("pagerank");
+    List<String> staticPriors = argp.getAsList("static", String.class);
+    if(argp.isString("pagerank")) {
+      staticPriors.add(argp.getString("pagerank"));
+    }
+
+    if(!staticPriors.isEmpty()) {
+      featureNames.addAll(staticPriors);
+
       HashSet<String> allDocuments = new HashSet<>();
       for (Map<String, Map<String, Double>> docToFeatures : queryToDocumentToFeatures.values()) {
         allDocuments.addAll(docToFeatures.keySet());
       }
 
-      // load necessary pageranks from file:
-      TObjectDoubleHashMap<String> pageRanks = new TObjectDoubleHashMap<>();
-      try (LinesIterable lines = LinesIterable.fromFile(argp.getString("pagerank"))) {
-        for (String line : lines) {
-          String[] data = line.split("\t");
-          String id = data[0];
-          if(!allDocuments.contains(id)) {
-            continue;
-          }
-          double score = Double.parseDouble(data[1]);
-          pageRanks.put(id, score);
+      Map<String, TObjectDoubleHashMap<String>> priors = new HashMap<>();
 
-          // leave loop as soon as we're done:
-          if(pageRanks.size() >= allDocuments.size()) break;
+      for (String staticPrior : staticPriors) {
+        // load necessary priors from file:
+        TObjectDoubleHashMap<String> pageRanks = new TObjectDoubleHashMap<>();
+        priors.put(staticPrior, pageRanks);
+
+        double min = Integer.MAX_VALUE;
+        try (LinesIterable lines = LinesIterable.fromFile(staticPrior)) {
+          for (String line : lines) {
+            String[] data = line.split("\t");
+            String id = data[0];
+            if(!allDocuments.contains(id)) {
+              continue;
+            }
+            double score = Double.parseDouble(data[1]);
+            pageRanks.put(id, score);
+
+            if(score < min) {
+              min = score;
+            }
+
+            // leave loop as soon as we're done:
+            //if(pageRanks.size() >= allDocuments.size()) break;
+          }
+
+          pageRanks.put("__MIN__", min);
         }
+
       }
+
+      System.err.println("Loaded " + staticPriors + " as static priors...");
 
       // weave in
       for (Map<String, Map<String, Double>> docToFeatures : queryToDocumentToFeatures.values()) {
         for (Map.Entry<String, Map<String, Double>> dfv : docToFeatures.entrySet()) {
           String doc = dfv.getKey();
           Map<String, Double> features = dfv.getValue();
-          features.put("pagerank", pageRanks.get(doc));
+          for (Map.Entry<String, TObjectDoubleHashMap<String>> kv : priors.entrySet()) {
+            String fname = kv.getKey();
+            TObjectDoubleHashMap<String> docPriors = kv.getValue();
+            if(priors.containsKey(doc)) {
+              double value = docPriors.get(doc);
+              features.put(fname, value);
+            } else {
+              features.put(fname, docPriors.get("__MIN__"));
+            }
+          }
         }
       }
     }
