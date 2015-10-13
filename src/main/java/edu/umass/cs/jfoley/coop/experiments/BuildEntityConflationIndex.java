@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import static edu.umass.cs.jfoley.coop.bills.IntCoopIndex.parseDBPediaTitle;
 
@@ -29,8 +28,9 @@ import static edu.umass.cs.jfoley.coop.bills.IntCoopIndex.parseDBPediaTitle;
  */
 public class BuildEntityConflationIndex {
   public static void main(String[] args) throws IOException {
-    IntCoopIndex target = new IntCoopIndex(new Directory("/mnt/scratch/jfoley/clue12a.sdm.ints"));
-    IntCoopIndex index = new IntCoopIndex(new Directory("dbpedia.ints"));
+    //IntCoopIndex target = new IntCoopIndex(new Directory("/mnt/scratch/jfoley/clue12a.sdm.ints"));
+    IntCoopIndex target = new IntCoopIndex(Directory.Read("robust.ints"));
+    IntCoopIndex index = new IntCoopIndex(Directory.Read("dbpedia.ints"));
 
     int N = 10;
 
@@ -40,7 +40,7 @@ public class BuildEntityConflationIndex {
     int count = IntMath.fromLong(index.getNames().size());
     PhraseDetector detector = new PhraseDetector(N);
 
-    HashMap<Integer, HashSet<Integer>> ambiguityIndex = new HashMap<>();
+    HashMap<List<Integer>, HashSet<Integer>> ambiguityIndex = new HashMap<>();
     long start = System.currentTimeMillis();
     TObjectIntHashMap<String> vocabLookup = new TObjectIntHashMap<>(IntMath.fromLong(target.getTermVocabulary().size()));
     for (Pair<Integer, String> kv : target.getTermVocabulary().items()) {
@@ -76,7 +76,7 @@ public class BuildEntityConflationIndex {
 
       Integer matches = detector.getMatch(qIds);
       if(matches != null) {
-        HashSet<Integer> confusing = ambiguityIndex.computeIfAbsent(phraseId, ignored -> new HashSet<>());
+        HashSet<Integer> confusing = ambiguityIndex.computeIfAbsent(qIds, ignored -> new HashSet<>());
         confusing.add(matches);
         confusing.add(phraseId);
       } else {
@@ -97,10 +97,12 @@ public class BuildEntityConflationIndex {
     }
 
     try (IOMapWriter<Integer,IntList> writer = GalagoIO.getIOMapWriter(target.baseDir, "dbpedia.ambiguous", FixedSize.ints, IntListCoder.instance).getSorting()) {
-      for (Map.Entry<Integer, HashSet<Integer>> kv : ambiguityIndex.entrySet()) {
-        int eid = kv.getKey();
-        IntList ids = new IntList(kv.getValue());
-        writer.put(eid, ids);
+      for (HashSet<Integer> phraseIds : ambiguityIndex.values()) {
+        IntList ids = new IntList(phraseIds);
+        for (int i = 0; i < ids.size(); i++) {
+          int eid = ids.getQuick(i);
+          writer.put(eid, ids);
+        }
       }
     }
     System.out.println(ambiguityIndex.size());

@@ -20,17 +20,18 @@ import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
+import org.lemurproject.galago.core.parse.TagTokenizer;
+import org.lemurproject.galago.core.retrieval.LocalRetrieval;
+import org.lemurproject.galago.core.retrieval.Results;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
+import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.lists.Ranked;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author jfoley
@@ -39,8 +40,15 @@ public class PMIRankingExperiment {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
-    String dataset = "clue12";
+    String dataset = "robust04";
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
+
+    Parameters jeffWikiP = Parameters.create();
+    jeffWikiP.put("mu", 96400.0);
+    jeffWikiP.put("uniw", 0.29);
+    jeffWikiP.put("odw", 0.21);
+    jeffWikiP.put("uww", 0.5);
+    LocalRetrieval jeffWiki = new LocalRetrieval("/mnt/scratch/jfoley/jeff-wiki.galago/full-wiki-stanf3_context_g351");
 
     assert(queries.size() > 0);
 
@@ -61,24 +69,31 @@ public class PMIRankingExperiment {
     TermPositionsIndex tpos = target.getPositionsIndex("lemmas");
     PhrasePositionsIndex eIndex = target.getEntitiesIndex();
 
-    int numEntities = argp.get("requested", 5000);
+    int numEntities = argp.get("requested", 200);
     int minEntityFrequency = argp.get("minEntityFrequency", 2);
 
     IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
     assert(ambiguous != null);
 
-    int passageSize = argp.get("passageSize", 100);
+    int passageSize = argp.get("passageSize", 250);
     long start, end;
-    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".dbpedia.pmi.m"+minEntityFrequency+".p"+passageSize+".trecrun"))) {
+    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".dbpedia.wiki-pmi.m"+minEntityFrequency+".p"+passageSize+".trecrun"))) {
       for (EntityJudgedQuery query : queries) {
         String qid = query.qid;
+        if(Objects.equals(qid, "302")) {
+          query.text = "poliomyelitis";
+        } else if(Objects.equals(qid, "316")) {
+          query.text = "polygamy";
+        } else if(Objects.equals(qid, "326")) {
+          query.text = "ferry sinking";
+        }
 
         System.out.println(qid + " " + query.text);
         Parameters queryP = Parameters.create();
         queryP.put("query", query.text);
         queryP.put("passageSize", passageSize);
         Parameters infoP = Parameters.create();
-        FindHitsMethod hitsFinder= new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
+        FindHitsMethod hitsFinder = new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
         ArrayList<DocumentResult<Integer>> hits = hitsFinder.computeTimed();
         int queryFrequency = hits.size();
 
@@ -93,7 +108,7 @@ public class PMIRankingExperiment {
         List<Pair<Integer, PhraseHitList>> inBulk = documentHits.getInBulk(new IntList(slicesByDocument.keySet()));
         end = System.currentTimeMillis();
 
-        System.out.println("Data pull: "+(end-start)+"ms. for "+slicesByDocument.size()+" documents.");
+        System.out.println("Data pull: " + (end - start) + "ms. for " + slicesByDocument.size() + " documents.");
         StreamingStats intersectTimes = new StreamingStats();
 
         for (Pair<Integer, PhraseHitList> pair : inBulk) {
@@ -105,14 +120,14 @@ public class PMIRankingExperiment {
             start = System.nanoTime();
             IntList eids = dochits.find(slice.start, slice.size());
             end = System.nanoTime();
-            intersectTimes.push((end-start) / 1e6);
+            intersectTimes.push((end - start) / 1e6);
             for (int eid : eids) {
               ecounts.adjustOrPutValue(eid, 1, 1);
             }
           }
         }
 
-        System.out.println("# PhraseHitList.find time stats: "+intersectTimes);
+        System.out.println("# PhraseHitList.find time stats: " + intersectTimes);
 
         long stopEntities = System.currentTimeMillis();
         long millisForScoring = (stopEntities - startEntites);
@@ -145,26 +160,56 @@ public class PMIRankingExperiment {
 
         TObjectDoubleHashMap<String> entityScores = new TObjectDoubleHashMap<>();
 
-        for (PMITerm<Integer> pmiEntity: pmiEntities.getSorted()) {
+        HashSet<String> entities = new HashSet<>();
+
+        int items = 0;
+        for (PMITerm<Integer> pmiEntity : pmiEntities.getSorted()) {
           int eid = pmiEntity.term;
           IntList eterms = eIndex.getPhraseVocab().getForward(eid);
-          Parameters ep = pmiEntity.toJSON();
           List<String> sterms = target.translateToTerms(eterms);
-          ep.put("term", StrUtil.join(sterms));
-          ep.put("eId", eid);
 
           IntList ids = ambiguous.get(eid);
-          if(ids == null) {
+          if (ids == null) {
             ids = new IntList();
             ids.push(eid);
-            ep.put("ids", ids);
           }
 
-          double count = ids.size();
-          double scoreProportion = pmiEntity.pmi() / count; // consider FACC popularity
+          List<String> names = new ArrayList<>(dbpedia.getNames().getForwardMap(ids).values());
+          if (items++ < 10) {
+            System.out.println(sterms + "\t" + pmiEntity.logPMI() + "\t" + names + "\t" + ids);
+          }
+          entities.addAll(names);
+        }
 
-          for (String dbpediaName: dbpedia.getNames().getForwardMap(ids).values()) {
-            entityScores.adjustOrPutValue(dbpediaName, scoreProportion, scoreProportion);
+        Parameters qp = Parameters.create();
+        qp.put("working", new ArrayList<>(entities));
+        qp.put("warnMissingDocuments", false);
+        Node gq = new Node("sdm");
+        TagTokenizer tok = new TagTokenizer();
+        for (String term : tok.tokenize(query.text).terms) {
+          gq.addChild(Node.Text(term));
+        }
+        System.err.println("Fetch WikiSDM prob for "+entities.size()+" entities: "+gq);
+        Results results = jeffWiki.transformAndExecuteQuery(gq, qp);
+        Map<String, Double> entityProbs = results.asDocumentFeatures();
+
+        for (PMITerm<Integer> pmiEntity : pmiEntities.getSorted()) {
+          int eid = pmiEntity.term;
+          IntList ids = ambiguous.get(eid);
+          if (ids == null) {
+            ids = new IntList();
+            ids.push(eid);
+          }
+
+          List<String> names = new ArrayList<>(dbpedia.getNames().getForwardMap(ids).values());
+
+
+          double scoreProportion = pmiEntity.logPMI();
+          for (String dbpediaName: names) {
+            Double escore = entityProbs.get(dbpediaName);
+            if(escore == null) continue;
+            double score = scoreProportion + escore;
+            entityScores.adjustOrPutValue(dbpediaName, score, score);
             //scoredEntities.add(new ScoredDocument(dbpediaName, -1, pmiEntity.pmi()));
           }
         }

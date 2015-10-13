@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class EntityJudgedQuery {
   final String qid;
-  final String text;
+  String text;
   final Map<String, Double> judgments;
 
   public EntityJudgedQuery(String qid, String text) {
