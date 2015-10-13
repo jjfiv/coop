@@ -43,6 +43,8 @@ public class FACCLinkerPMIRankingExperiment {
     int id;
     int totalCount;
     TObjectIntHashMap<String> entities;
+    private IntList termIds;
+    private List<String> terms;
 
     public EntityDistribution(int id) {
       this.id = id;
@@ -62,13 +64,22 @@ public class FACCLinkerPMIRankingExperiment {
     public double logprob(String ent) {
       return Math.log(entities.get(ent) / (double) totalCount);
     }
+
+    public void setTermIds(IntList termIds) {
+      this.termIds = termIds;
+    }
+
+    public void setTerms(List<String> terms) {
+      this.terms = terms;
+    }
   }
+
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
     String dataset = "robust04";
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
 
-    assert(queries.size() > 0);
+    assert (queries.size() > 0);
 
     String index;
     switch (dataset) {
@@ -78,7 +89,8 @@ public class FACCLinkerPMIRankingExperiment {
       case "clue12":
         index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
         break;
-      default: throw new UnsupportedOperationException("dataset="+dataset);
+      default:
+        throw new UnsupportedOperationException("dataset=" + dataset);
     }
 
     IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", index)));
@@ -93,7 +105,7 @@ public class FACCLinkerPMIRankingExperiment {
         String row[] = line.split("\t");
         List<String> mt = Arrays.asList(row[0].split(" "));
         IntList mIds = target.translateFromTerms(mt);
-        if(mIds.isEmpty() || mIds.containsInt(-1)) continue;
+        if (mIds.isEmpty() || mIds.containsInt(-1)) continue;
 
         int idForMention = mentionToEntities.size();
         EntityDistribution einfo = new EntityDistribution(idForMention);
@@ -103,12 +115,14 @@ public class FACCLinkerPMIRankingExperiment {
           int count = Integer.parseInt(StrUtil.takeAfter(row[i], " "));
           einfo.push(ent, count);
         }
+        einfo.setTermIds(mIds);
+        einfo.setTerms(mt);
 
         mentionToEntities.add(einfo);
         detector.addPattern(mIds, idForMention);
 
-        if(msg.ready()) {
-          System.err.println("Loading phrases: "+msg.estimate(idForMention, 4_000_000));
+        if (msg.ready()) {
+          System.err.println("Loading phrases: " + msg.estimate(idForMention, 4_000_000));
         }
       }
     }
@@ -124,10 +138,10 @@ public class FACCLinkerPMIRankingExperiment {
     int minEntityFrequency = argp.get("minEntityFrequency", 2);
 
     IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
-    assert(ambiguous != null);
+    assert (ambiguous != null);
 
-    int passageSize = argp.get("passageSize", 100);
-    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".dbpedia.faccpmi.m"+minEntityFrequency+".p"+passageSize+".trecrun"))) {
+    int passageSize = argp.get("passageSize", 3000);
+    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".dbpedia.faccpmi.m" + minEntityFrequency + ".p" + passageSize + ".trecrun"))) {
       for (EntityJudgedQuery query : queries) {
         String qid = query.qid;
 
@@ -136,7 +150,7 @@ public class FACCLinkerPMIRankingExperiment {
         queryP.put("query", query.text);
         queryP.put("passageSize", passageSize);
         Parameters infoP = Parameters.create();
-        FindHitsMethod hitsFinder= new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
+        FindHitsMethod hitsFinder = new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
         ArrayList<DocumentResult<Integer>> hits = hitsFinder.computeTimed();
         int queryFrequency = hits.size();
 
@@ -144,7 +158,7 @@ public class FACCLinkerPMIRankingExperiment {
         NearbyTermFinder termFinder = new NearbyTermFinder(target, argp, infoP, passageSize);
 
         TIntIntHashMap ecounts = new TIntIntHashMap();
-        for (Pair<TermSlice, IntList> docRegion : target.pullTermSlices(termFinder.hitsToSlices(hits))) {
+        for (Pair<TermSlice, IntList> docRegion : termFinder.pullSlicesForTermScoring(termFinder.hitsToSlices(hits))) {
           int[] slice = docRegion.right.asArray();
           detector.match(slice, (phraseId, position, size) -> ecounts.adjustOrPutValue(phraseId, 1, 1));
         }
@@ -170,10 +184,18 @@ public class FACCLinkerPMIRankingExperiment {
         List<ScoredDocument> scoredEntities = new ArrayList<>();
         TObjectDoubleHashMap<String> entityScores = new TObjectDoubleHashMap<>();
 
-        for (PMITerm<Integer> pmiEntity: pmiEntities.getSorted()) {
+        List<PMITerm<Integer>> sorted = pmiEntities.getSorted();
+
+        int count = 0;
+        for (PMITerm<Integer> pmiEntity : sorted) {
           int eid = pmiEntity.term;
 
           EntityDistribution dist = mentionToEntities.get(eid);
+          List<String> terms = mentionToEntities.get(eid).terms;
+          if(count++ < 10) {
+            System.err.println(terms + "\t" + pmiEntity.logPMI() + "\t" + dist.getEntities());
+          }
+
           List<String> entities = dist.getEntities();
           for (String entity : entities) {
             double scoreProportion = pmiEntity.logPMI() + dist.logprob(entity); // consider FACC popularity
@@ -188,14 +210,14 @@ public class FACCLinkerPMIRankingExperiment {
         Ranked.setRanksByScore(scoredEntities);
 
         for (ScoredDocument entity : scoredEntities) {
-          if(entity.rank < 4) {
-            System.out.println("\t"+entity.documentName+" "+entity.score);
+          if (entity.rank < 4) {
+            System.out.println("\t" + entity.documentName + " " + entity.score);
             Integer docId = dbpedia.getNames().getReverse(entity.documentName);
-            if(docId == null) {
+            if (docId == null) {
               continue;
             }
             IntList terms = new IntList(dbpedia.getCorpus().getDocument(docId));
-            System.out.println("\t\t"+ StrUtil.join(dbpedia.translateToTerms(terms)));
+            System.out.println("\t\t" + StrUtil.join(dbpedia.translateToTerms(terms)));
           }
           trecrun.println(entity.toTRECformat(qid, "jfoley-pmi"));
         }
