@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 public class ExtractNames {
   public static void main(String[] args) throws IOException {
-    IntCoopIndex target = new IntCoopIndex(new Directory("/mnt/scratch/jfoley/clue12a.sdm.ints"));
+    IntCoopIndex target = new IntCoopIndex(new Directory("/mnt/scratch/jfoley/inex-page-djvu.ints"));
     IntCoopIndex index = new IntCoopIndex(new Directory("dbpedia.ints"));
 
     int N = 10;

@@ -51,6 +51,7 @@ public class CLIJudgmentInterface {
     runs.add("robust04.dbpedia.pmi.m2.p100.trecrun");
     runs.add("robust04.dbpedia.wiki-pmi.m2.p250.trecrun");
     runs.add("robust04.top20.logpmi.m2.trecrun");
+    runs.add("robust04.top20pmi.m2.trecrun");
     runs.addAll(argp.getAsList("runs", String.class));
 
     Map<String, HashMap<String, Integer>> topRetrieved = new HashMap<>();

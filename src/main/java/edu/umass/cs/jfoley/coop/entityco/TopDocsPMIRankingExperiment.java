@@ -32,7 +32,7 @@ public class TopDocsPMIRankingExperiment {
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
 
-    String dataset = "clue12";
+    String dataset = "robust04";
     Map<String, Set<String>> lauraDocsByQuery = new HashMap<>();
 
     String index;
@@ -79,7 +79,7 @@ public class TopDocsPMIRankingExperiment {
     IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
     assert(ambiguous != null);
 
-    int numEntities = argp.get("requested", 5000);
+    int numEntities = argp.get("requested", 200);
     int minEntityFrequency = argp.get("minEntityFrequency", 2);
 
     long start, end;
@@ -138,21 +138,17 @@ public class TopDocsPMIRankingExperiment {
 
         for (PMITerm<Integer> pmiEntity: pmiEntities.getSorted()) {
           int eid = pmiEntity.term;
-          IntList eterms = eIndex.getPhraseVocab().getForward(eid);
-          Parameters ep = pmiEntity.toJSON();
-          List<String> sterms = target.translateToTerms(eterms);
-          ep.put("term", StrUtil.join(sterms));
-          ep.put("eId", eid);
+          //IntList eterms = eIndex.getPhraseVocab().getForward(eid);
+          //List<String> sterms = target.translateToTerms(eterms);
 
           IntList ids = ambiguous.get(eid);
-          if(ids == null) {
+          if (ids == null) {
             ids = new IntList();
             ids.push(eid);
-            ep.put("ids", ids);
           }
 
           double count = ids.size();
-          double scoreProportion = pmiEntity.logPMI() / count; // consider FACC popularity
+          double scoreProportion = pmiEntity.logPMI() - Math.log(count); // consider FACC popularity
 
           for (String dbpediaName: dbpedia.getNames().getForwardMap(ids).values()) {
             entityScores.adjustOrPutValue(dbpediaName, scoreProportion, scoreProportion);

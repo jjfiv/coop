@@ -3,21 +3,17 @@ package edu.umass.cs.jfoley.coop.entityco;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.collections.list.IntList;
+import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
-import ciir.jfoley.chai.math.StreamingStats;
+import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.PhrasePositionsIndex;
-import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
-import edu.umass.cs.jfoley.coop.front.eval.EvaluateBagOfWordsMethod;
-import edu.umass.cs.jfoley.coop.front.eval.FindHitsMethod;
-import edu.umass.cs.jfoley.coop.front.eval.NearbyTermFinder;
+import edu.umass.cs.jfoley.coop.phrases.PhraseHit;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
-import edu.umass.cs.jfoley.coop.querying.TermSlice;
-import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
@@ -36,108 +32,91 @@ import java.util.*;
 /**
  * @author jfoley
  */
-public class PMIRankingExperiment {
-
-  public static LocalRetrieval openJeffWiki(Parameters argp) throws IOException {
-    Parameters jeffWikiP = Parameters.create();
-    jeffWikiP.put("mu", 96400.0);
-    jeffWikiP.put("uniw", 0.29);
-    jeffWikiP.put("odw", 0.21);
-    jeffWikiP.put("uww", 0.5);
-    return new LocalRetrieval("/mnt/scratch/jfoley/jeff-wiki.galago/full-wiki-stanf3_context_g351");
-  }
-
+public class TopDocsWikiPMI {
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
+
     String dataset = "robust04";
-    List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
+    Map<String, Set<String>> lauraDocsByQuery = new HashMap<>();
 
-    LocalRetrieval jeffWiki = openJeffWiki(argp);
-
-    assert(queries.size() > 0);
+    // for mention->entity probs:
+    LocalRetrieval jeffWiki = PMIRankingExperiment.openJeffWiki(argp);
 
     String index;
-    switch (dataset) {
-      case "robust04":
+
+    switch(dataset) {
+      case "robust04": {
+        try (LinesIterable lines = LinesIterable.fromFile("rob_document_mentions.data")) {
+          List<String> header = Arrays.asList(lines.readLine().split("\t"));
+          int docIndex = header.indexOf("rob04_doc");
+          int qidIndex = header.indexOf("rob04_qid");
+          for (String line : lines) {
+            String[] row = line.split("\t");
+            String doc = row[docIndex];
+            String qid = row[qidIndex];
+            MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
+          }
+        }
         index = "robust.ints";
-        break;
-      case "clue12":
+      }
+      break;
+      case "clue12": {
+        try (LinesIterable lines = LinesIterable.fromFile("clueweb_sdm_top20docs.data")) {
+          for (String line : lines) {
+            String[] row = line.split("\t");
+            String qid = row[0];
+            String doc = row[2];
+            MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
+          }
+        }
         index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
-        break;
+      }
+      break;
       default: throw new UnsupportedOperationException("dataset="+dataset);
     }
+
+    List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
+
+    assert(queries.size() > 0);
 
     Collections.sort(queries, (lhs, rhs) -> lhs.qid.compareTo(rhs.qid));
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "dbpedia.ints")));
     IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", index)));
-    TermPositionsIndex tpos = target.getPositionsIndex("lemmas");
     PhrasePositionsIndex eIndex = target.getEntitiesIndex();
-
-    int numEntities = argp.get("requested", 200);
-    int minEntityFrequency = argp.get("minEntityFrequency", 2);
-
     IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
     assert(ambiguous != null);
 
-    int passageSize = argp.get("passageSize", 250);
+    int numEntities = argp.get("requested", 5000);
+    int minEntityFrequency = argp.get("minEntityFrequency", 2);
+
     long start, end;
-    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".dbpedia.wiki-pmi.m"+minEntityFrequency+".p"+passageSize+".trecrun"))) {
+    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".top20wpmi.m" + minEntityFrequency + ".trecrun"))) {
       for (EntityJudgedQuery query : queries) {
         String qid = query.qid;
-        if(Objects.equals(qid, "302")) {
-          query.text = "poliomyelitis";
-        } else if(Objects.equals(qid, "316")) {
-          query.text = "polygamy";
-        } else if(Objects.equals(qid, "326")) {
-          query.text = "ferry sinking";
+
+        List<String> topDocs = new ArrayList<>(lauraDocsByQuery.get(qid));
+        System.out.println(qid + " " + query.text+" topDocs: "+topDocs.size());
+
+        IntList topDocIds = new IntList();
+        for (Pair<String, Integer> docIdPair : target.getNames().getReverse(topDocs)) {
+          topDocIds.add(docIdPair.getValue());
         }
-
-        System.out.println(qid + " " + query.text);
-        Parameters queryP = Parameters.create();
-        queryP.put("query", query.text);
-        queryP.put("passageSize", passageSize);
-        Parameters infoP = Parameters.create();
-        FindHitsMethod hitsFinder = new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
-        ArrayList<DocumentResult<Integer>> hits = hitsFinder.computeTimed();
-        int queryFrequency = hits.size();
-
-        long startEntites = System.currentTimeMillis();
-        NearbyTermFinder termFinder = new NearbyTermFinder(target, argp, infoP, passageSize);
-        IOMap<Integer, PhraseHitList> documentHits = eIndex.getPhraseHits().getDocumentHits();
-
-        HashMap<Integer, List<TermSlice>> slicesByDocument = termFinder.slicesByDocument(termFinder.hitsToSlices(hits));
-        TIntIntHashMap ecounts = new TIntIntHashMap();
 
         start = System.currentTimeMillis();
-        List<Pair<Integer, PhraseHitList>> inBulk = documentHits.getInBulk(new IntList(slicesByDocument.keySet()));
+        List<Pair<Integer, PhraseHitList>> inBulk = eIndex.getPhraseHits().getDocumentHits().getInBulk(topDocIds);
         end = System.currentTimeMillis();
 
-        System.out.println("Data pull: " + (end - start) + "ms. for " + slicesByDocument.size() + " documents.");
-        StreamingStats intersectTimes = new StreamingStats();
+        System.out.println("Data pull: "+(end-start)+"ms. for "+topDocIds.size()+" documents.");
+        TIntIntHashMap ecounts = new TIntIntHashMap();
 
         for (Pair<Integer, PhraseHitList> pair : inBulk) {
-          int doc = pair.getKey();
+          //int doc = pair.getKey();
           PhraseHitList dochits = pair.getValue();
 
-          List<TermSlice> localSlices = slicesByDocument.get(doc);
-          for (TermSlice slice : localSlices) {
-            start = System.nanoTime();
-            IntList eids = dochits.find(slice.start, slice.size());
-            end = System.nanoTime();
-            intersectTimes.push((end - start) / 1e6);
-            for (int eid : eids) {
-              ecounts.adjustOrPutValue(eid, 1, 1);
-            }
+          for (PhraseHit dochit : dochits) {
+            ecounts.adjustOrPutValue(dochit.id(), 1, 1);
           }
         }
-
-        System.out.println("# PhraseHitList.find time stats: " + intersectTimes);
-
-        long stopEntities = System.currentTimeMillis();
-        long millisForScoring = (stopEntities - startEntites);
-        System.out.printf("Spent %d milliseconds scoring %d entities for %d locations; %1.2f ms/hit; %d candidates.\n", millisForScoring, ecounts.size(), hits.size(),
-            ((double) millisForScoring / (double) hits.size()),
-            ecounts.size());
 
         start = System.currentTimeMillis();
         TIntIntHashMap freq = eIndex.getCollectionFrequencies(new IntList(ecounts.keys()));
@@ -154,7 +133,7 @@ public class PMIRankingExperiment {
               cf = 1;
             }
 
-            pmiEntities.add(new PMITerm<>(eid, cf, queryFrequency, frequency, collectionLength));
+            pmiEntities.add(new PMITerm<>(eid, cf, topDocIds.size(), frequency, collectionLength));
           }
           return true;
         });
@@ -165,7 +144,6 @@ public class PMIRankingExperiment {
         TObjectDoubleHashMap<String> entityScores = new TObjectDoubleHashMap<>();
 
         HashSet<String> entities = new HashSet<>();
-
         int items = 0;
         for (PMITerm<Integer> pmiEntity : pmiEntities.getSorted()) {
           int eid = pmiEntity.term;
@@ -180,7 +158,7 @@ public class PMIRankingExperiment {
 
           List<String> names = new ArrayList<>(dbpedia.getNames().getForwardMap(ids).values());
           if (items++ < 10) {
-            System.out.println(sterms + "\t" + pmiEntity.logPMI() + "\t" + names + "\t" + ids);
+            System.out.println(sterms + "\t" + pmiEntity.logPMI() + "\t" + names);
           }
           entities.addAll(names);
         }
@@ -208,12 +186,12 @@ public class PMIRankingExperiment {
           List<String> names = new ArrayList<>(dbpedia.getNames().getForwardMap(ids).values());
 
 
-          int count = names.size();
+          int size = names.size();
           double scoreProportion = pmiEntity.logPMI();
           for (String dbpediaName: names) {
             Double escore = entityProbs.get(dbpediaName);
             if(escore == null) continue;
-            double score = scoreProportion + escore - Math.log(count);
+            double score = scoreProportion + escore - Math.log(size);
             entityScores.adjustOrPutValue(dbpediaName, score, score);
             //scoredEntities.add(new ScoredDocument(dbpediaName, -1, pmiEntity.pmi()));
           }
@@ -235,7 +213,7 @@ public class PMIRankingExperiment {
             IntList terms = new IntList(dbpedia.getCorpus().getDocument(docId));
             System.out.println("\t\t"+ StrUtil.join(dbpedia.translateToTerms(terms)));
           }
-          trecrun.println(entity.toTRECformat(qid, "jfoley-pmi"));
+          trecrun.println(entity.toTRECformat(qid, "jfoley-topdocs-pmi"));
         }
       }
     }

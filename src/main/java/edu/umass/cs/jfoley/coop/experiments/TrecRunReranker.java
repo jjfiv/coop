@@ -55,6 +55,64 @@ public class TrecRunReranker {
       }
     }
 
+    System.err.println("Loaded " + featureNames + " as trecrun features...");
+
+    List<String> staticPriors = argp.getAsList("static", String.class);
+    if(argp.isString("pagerank")) {
+      staticPriors.add(argp.getString("pagerank"));
+    }
+
+    if(!staticPriors.isEmpty()) {
+      featureNames.addAll(staticPriors);
+
+      HashSet<String> allDocuments = new HashSet<>();
+      for (Map<String, Map<String, Double>> docToFeatures : queryToDocumentToFeatures.values()) {
+        allDocuments.addAll(docToFeatures.keySet());
+      }
+
+      Map<String, TObjectDoubleHashMap<String>> priors = new HashMap<>();
+
+      for (String staticPrior : staticPriors) {
+        // load necessary priors from file:
+        TObjectDoubleHashMap<String> pageRanks = new TObjectDoubleHashMap<>();
+        priors.put(staticPrior, pageRanks);
+
+        try (LinesIterable lines = LinesIterable.fromFile(staticPrior)) {
+          for (String line : lines) {
+            String[] data = line.split("\t");
+            String id = data[0];
+            if(!allDocuments.contains(id)) {
+              continue;
+            }
+            double score = Double.parseDouble(data[1]);
+            pageRanks.put(id, score);
+
+            // leave loop as soon as we're done:
+            if(pageRanks.size() >= allDocuments.size()) break;
+          }
+        }
+
+      }
+
+      System.err.println("Loaded " + staticPriors + " as static priors...");
+
+      // weave in
+      for (Map<String, Map<String, Double>> docToFeatures : queryToDocumentToFeatures.values()) {
+        for (Map.Entry<String, Map<String, Double>> dfv : docToFeatures.entrySet()) {
+          String doc = dfv.getKey();
+          Map<String, Double> features = dfv.getValue();
+          for (Map.Entry<String, TObjectDoubleHashMap<String>> kv : priors.entrySet()) {
+            String fname = kv.getKey();
+            TObjectDoubleHashMap<String> docPriors = kv.getValue();
+            if(docPriors.containsKey(doc)) {
+              double value = docPriors.get(doc);
+              features.put(fname, value);
+            }
+          }
+        }
+      }
+    }
+
     // calculate minimums:
     for (Map.Entry<String, Map<String, Map<String, Double>>> stringMapEntry : queryToDocumentToFeatures.entrySet()) {
       String qid = stringMapEntry.getKey();
@@ -78,73 +136,6 @@ public class TrecRunReranker {
       byQuery.computeIfAbsent("__MIN__", ignored -> new HashMap<>()).putAll(minFeatures);
     }
 
-
-    System.err.println("Loaded " + featureNames + " as trecrun features...");
-
-    List<String> staticPriors = argp.getAsList("static", String.class);
-    if(argp.isString("pagerank")) {
-      staticPriors.add(argp.getString("pagerank"));
-    }
-
-    if(!staticPriors.isEmpty()) {
-      featureNames.addAll(staticPriors);
-
-      HashSet<String> allDocuments = new HashSet<>();
-      for (Map<String, Map<String, Double>> docToFeatures : queryToDocumentToFeatures.values()) {
-        allDocuments.addAll(docToFeatures.keySet());
-      }
-
-      Map<String, TObjectDoubleHashMap<String>> priors = new HashMap<>();
-
-      for (String staticPrior : staticPriors) {
-        // load necessary priors from file:
-        TObjectDoubleHashMap<String> pageRanks = new TObjectDoubleHashMap<>();
-        priors.put(staticPrior, pageRanks);
-
-        double min = Integer.MAX_VALUE;
-        try (LinesIterable lines = LinesIterable.fromFile(staticPrior)) {
-          for (String line : lines) {
-            String[] data = line.split("\t");
-            String id = data[0];
-            if(!allDocuments.contains(id)) {
-              continue;
-            }
-            double score = Double.parseDouble(data[1]);
-            pageRanks.put(id, score);
-
-            if(score < min) {
-              min = score;
-            }
-
-            // leave loop as soon as we're done:
-            //if(pageRanks.size() >= allDocuments.size()) break;
-          }
-
-          pageRanks.put("__MIN__", min);
-        }
-
-      }
-
-      System.err.println("Loaded " + staticPriors + " as static priors...");
-
-      // weave in
-      for (Map<String, Map<String, Double>> docToFeatures : queryToDocumentToFeatures.values()) {
-        for (Map.Entry<String, Map<String, Double>> dfv : docToFeatures.entrySet()) {
-          String doc = dfv.getKey();
-          Map<String, Double> features = dfv.getValue();
-          for (Map.Entry<String, TObjectDoubleHashMap<String>> kv : priors.entrySet()) {
-            String fname = kv.getKey();
-            TObjectDoubleHashMap<String> docPriors = kv.getValue();
-            if(priors.containsKey(doc)) {
-              double value = docPriors.get(doc);
-              features.put(fname, value);
-            } else {
-              features.put(fname, docPriors.get("__MIN__"));
-            }
-          }
-        }
-      }
-    }
 
     // zscore normalization...
 
@@ -178,7 +169,7 @@ public class TrecRunReranker {
                       Objects.requireNonNull(docToFeaturesMap.get("__MIN__"))
                           .get(feature)));
               scores.add(value);
-              featureBuilder.append(' ').append(featureNum).append(":").append(value);
+              featureBuilder.append(' ').append(featureNum+1).append(":").append(value);
             } catch (NullPointerException npe) {
               System.err.println(qid+" "+feature);
               System.err.println(qid+" "+docToFeaturesMap.get("__MIN__"));
@@ -191,10 +182,10 @@ public class TrecRunReranker {
             int MIN_FEATURE = MAX_FEATURE + 1;
             int SUM_FEATURE = MIN_FEATURE + 1;
             int AVG_FEATURE = SUM_FEATURE + 1;
-            featureBuilder.append(' ').append(MAX_FEATURE).append(":").append(scores.max());
-            featureBuilder.append(' ').append(MIN_FEATURE).append(":").append(scores.min());
-            featureBuilder.append(' ').append(SUM_FEATURE).append(":").append(scores.sum());
-            featureBuilder.append(' ').append(AVG_FEATURE).append(":").append(scores.sum() / ((double) scores.size()));
+            featureBuilder.append(' ').append(MAX_FEATURE+1).append(":").append(scores.max());
+            featureBuilder.append(' ').append(MIN_FEATURE+1).append(":").append(scores.min());
+            featureBuilder.append(' ').append(SUM_FEATURE+1).append(":").append(scores.sum());
+            featureBuilder.append(' ').append(AVG_FEATURE+1).append(":").append(scores.sum() / ((double) scores.size()));
           }
 
           out.printf("%d qid:%s %s # %s\n", rel, qid, StrUtil.compactSpaces(featureBuilder.toString()), doc);
@@ -202,6 +193,7 @@ public class TrecRunReranker {
       }
     }
 
+    System.out.println(outputFileName);
 
   }
 }
