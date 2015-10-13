@@ -24,6 +24,8 @@ public class TrecRunReranker {
     Map<String, Map<String, Map<String, Double>>> queryToDocumentToFeatures = new HashMap<>();
     Map<String, QueryJudgments> judgments = QuerySetJudgments.loadJudgments(argp.getString("judgments"), true, true);
 
+    final boolean appendSummaryFeatures = argp.get("summaryFeatures", true);
+
     Set<String> featureNames = new HashSet<>();
     for (String inputName : argp.getAsList("input", String.class)) {
       // load each trecrun file:
@@ -33,6 +35,10 @@ public class TrecRunReranker {
         String doc = cols[2];
         int rank = Integer.parseInt(cols[3]);
         double score = Double.parseDouble(cols[4]);
+
+        if(!judgments.containsKey(qid)) {
+          continue;
+        }
 
         Map<String, Map<String, Double>> queryInfo = queryToDocumentToFeatures.get(qid);
         if(queryInfo == null) {
@@ -48,6 +54,30 @@ public class TrecRunReranker {
         featureNames.add(inputName);
       }
     }
+
+    // calculate minimums:
+    for (Map.Entry<String, Map<String, Map<String, Double>>> stringMapEntry : queryToDocumentToFeatures.entrySet()) {
+      String qid = stringMapEntry.getKey();
+      System.err.println(qid);
+      Map<String, Map<String, Double>> byQuery = stringMapEntry.getValue();
+
+      // for each query:
+      Map<String, Double> minFeatures = new HashMap<>();
+      for (Map<String, Double> features : byQuery.values()) {
+        for (Map.Entry<String, Double> feature : features.entrySet()) {
+          String fname = feature.getKey();
+          double value = feature.getValue();
+
+          Double score = minFeatures.get(fname);
+          if(score == null || score > value) {
+            minFeatures.put(fname, value);
+          }
+        }
+      }
+
+      byQuery.computeIfAbsent("__MIN__", ignored -> new HashMap<>()).putAll(minFeatures);
+    }
+
 
     System.err.println("Loaded " + featureNames + " as trecrun features...");
 
@@ -124,10 +154,12 @@ public class TrecRunReranker {
     try (PrintWriter out = IO.openPrintWriter(outputFileName)) {
       for (Map.Entry<String, Map<String, Map<String, Double>>> qidToRest : queryToDocumentToFeatures.entrySet()) {
         String qid = qidToRest.getKey();
+        Map<String, Map<String, Double>> docToFeaturesMap = qidToRest.getValue();
         QueryJudgments queryJudgments = judgments.get(qid);
 
-        for (Map.Entry<String, Map<String, Double>> docToFeatures : qidToRest.getValue().entrySet()) {
+        for (Map.Entry<String, Map<String, Double>> docToFeatures : docToFeaturesMap.entrySet()) {
           String doc = docToFeatures.getKey();
+          Map<String, Double> docFeatures = docToFeatures.getValue();
 
           int rel = 0;
           if (queryJudgments != null) {
@@ -136,22 +168,34 @@ public class TrecRunReranker {
 
           StringBuilder featureBuilder = new StringBuilder();
           TDoubleArrayList scores = new TDoubleArrayList();
-          for (Map.Entry<String, Double> kv : docToFeatures.getValue().entrySet()) {
-            String feature = kv.getKey();
+
+
+          for (String feature : featureNames) {
             int featureNum = featureNumTable.indexOf(feature);
-            double value = kv.getValue();
-            scores.add(value);
-            featureBuilder.append(' ').append(featureNum).append(":").append(value);
+            try {
+              double value = docFeatures.getOrDefault(feature,
+                  Objects.requireNonNull(
+                      Objects.requireNonNull(docToFeaturesMap.get("__MIN__"))
+                          .get(feature)));
+              scores.add(value);
+              featureBuilder.append(' ').append(featureNum).append(":").append(value);
+            } catch (NullPointerException npe) {
+              System.err.println(qid+" "+feature);
+              System.err.println(qid+" "+docToFeaturesMap.get("__MIN__"));
+              throw npe;
+            }
           }
 
-          int MAX_FEATURE = featureNumTable.size();
-          int MIN_FEATURE = MAX_FEATURE + 1;
-          int SUM_FEATURE = MIN_FEATURE + 1;
-          int AVG_FEATURE = SUM_FEATURE + 1;
-          featureBuilder.append(' ').append(MAX_FEATURE).append(":").append(scores.max());
-          featureBuilder.append(' ').append(MIN_FEATURE).append(":").append(scores.min());
-          featureBuilder.append(' ').append(SUM_FEATURE).append(":").append(scores.sum());
-          featureBuilder.append(' ').append(AVG_FEATURE).append(":").append(scores.sum() / ((double) scores.size()));
+          if(appendSummaryFeatures) {
+            int MAX_FEATURE = featureNumTable.size();
+            int MIN_FEATURE = MAX_FEATURE + 1;
+            int SUM_FEATURE = MIN_FEATURE + 1;
+            int AVG_FEATURE = SUM_FEATURE + 1;
+            featureBuilder.append(' ').append(MAX_FEATURE).append(":").append(scores.max());
+            featureBuilder.append(' ').append(MIN_FEATURE).append(":").append(scores.min());
+            featureBuilder.append(' ').append(SUM_FEATURE).append(":").append(scores.sum());
+            featureBuilder.append(' ').append(AVG_FEATURE).append(":").append(scores.sum() / ((double) scores.size()));
+          }
 
           out.printf("%d qid:%s %s # %s\n", rel, qid, StrUtil.compactSpaces(featureBuilder.toString()), doc);
         }

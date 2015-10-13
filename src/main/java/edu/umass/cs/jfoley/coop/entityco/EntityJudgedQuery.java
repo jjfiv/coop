@@ -9,7 +9,7 @@ import java.util.Map;
  * @author jfoley
  */
 public class EntityJudgedQuery {
-  final String qid;
+  public final String qid;
   String text;
   final Map<String, Double> judgments;
 
@@ -36,5 +36,9 @@ public class EntityJudgedQuery {
       parsed.judgments.put(eid, entities.getDouble(eid));
     }
     return parsed;
+  }
+
+  public String getText() {
+    return text;
   }
 }
