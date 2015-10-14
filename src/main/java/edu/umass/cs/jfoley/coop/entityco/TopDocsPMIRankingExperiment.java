@@ -6,7 +6,6 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
-import ciir.jfoley.chai.io.LinesIterable;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
@@ -34,54 +33,18 @@ public class TopDocsPMIRankingExperiment {
     Parameters argp = Parameters.parseArgs(args);
 
     String dataset = "robust04";
-    Map<String, Set<String>> lauraDocsByQuery = new HashMap<>();
+    Map<String, Set<String>> topDocsByQuery = new HashMap<>();
 
     String index = "/tmp/";
 
     int depth = argp.get("docDepth", 20);
 
-    if(argp.isString("baselineQuery")) {
-      QuerySetResults results = new QuerySetResults(argp.getString("baselineQuery"));
-
-      for (String qid : results.getQueryIterator()) {
-        for (EvalDoc evalDoc : results.get(qid).getIterator()) {
-          if(evalDoc.getRank() <= depth) {
-            MapFns.extendSetInMap(lauraDocsByQuery, qid, evalDoc.getName());
-          }
+    QuerySetResults results = new QuerySetResults(argp.getString("baselineQuery"));
+    for (String qid : results.getQueryIterator()) {
+      for (EvalDoc evalDoc : results.get(qid).getIterator()) {
+        if(evalDoc.getRank() <= depth) {
+          MapFns.extendSetInMap(topDocsByQuery, qid, evalDoc.getName());
         }
-      }
-
-    } else {
-      switch (dataset) {
-        case "robust04": {
-          try (LinesIterable lines = LinesIterable.fromFile("rob_document_mentions.data")) {
-            List<String> header = Arrays.asList(lines.readLine().split("\t"));
-            int docIndex = header.indexOf("rob04_doc");
-            int qidIndex = header.indexOf("rob04_qid");
-            for (String line : lines) {
-              String[] row = line.split("\t");
-              String doc = row[docIndex];
-              String qid = row[qidIndex];
-              MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
-            }
-          }
-          index = "robust.ints";
-        }
-        break;
-        case "clue12": {
-          try (LinesIterable lines = LinesIterable.fromFile("clueweb_sdm_top20docs.data")) {
-            for (String line : lines) {
-              String[] row = line.split("\t");
-              String qid = row[0];
-              String doc = row[2];
-              MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
-            }
-          }
-          index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
-        }
-        break;
-        default:
-          throw new UnsupportedOperationException("dataset=" + dataset);
       }
     }
 
@@ -103,12 +66,12 @@ public class TopDocsPMIRankingExperiment {
     try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".top20.logpmi.m" + minEntityFrequency + ".trecrun"))) {
       for (EntityJudgedQuery query : queries) {
         String qid = query.qid;
-        Set<String> maybeTopDocs = lauraDocsByQuery.get(qid);
+        Set<String> maybeTopDocs = topDocsByQuery.get(qid);
         if(maybeTopDocs == null) {
           System.err.println("No topdocs for query: "+qid+" "+query.text);
           continue;
         }
-        List<String> topDocs = new ArrayList<>();
+        List<String> topDocs = new ArrayList<>(maybeTopDocs);
         System.out.println(qid + " " + query.text+" topDocs: "+topDocs.size());
 
         IntList topDocIds = new IntList();
