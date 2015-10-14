@@ -103,8 +103,12 @@ public class TopDocsPMIRankingExperiment {
     try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".top20.logpmi.m" + minEntityFrequency + ".trecrun"))) {
       for (EntityJudgedQuery query : queries) {
         String qid = query.qid;
-
-        List<String> topDocs = new ArrayList<>(lauraDocsByQuery.get(qid));
+        Set<String> maybeTopDocs = lauraDocsByQuery.get(qid);
+        if(maybeTopDocs == null) {
+          System.err.println("No topdocs for query: "+qid+" "+query.text);
+          continue;
+        }
+        List<String> topDocs = new ArrayList<>();
         System.out.println(qid + " " + query.text+" topDocs: "+topDocs.size());
 
         IntList topDocIds = new IntList();
