@@ -61,9 +61,6 @@ public class PMIRankingExperiment {
       case "robust04":
         index = "robust.ints";
         break;
-      case "clue12":
-        index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
-        break;
       default: throw new UnsupportedOperationException("dataset="+dataset);
     }
 
@@ -73,24 +70,17 @@ public class PMIRankingExperiment {
     TermPositionsIndex tpos = target.getPositionsIndex("lemmas");
     PhrasePositionsIndex eIndex = target.getEntitiesIndex();
 
-    int numEntities = argp.get("requested", 200);
+    int numEntities = argp.get("requested", 1000);
     int minEntityFrequency = argp.get("minEntityFrequency", 2);
 
     IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
     assert(ambiguous != null);
 
-    int passageSize = argp.get("passageSize", 250);
+    int passageSize = argp.get("passageSize", 100);
     long start, end;
-    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".dbpedia.wiki-pmi.m"+minEntityFrequency+".p"+passageSize+".trecrun"))) {
+    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".dbpedia.any-wiki-pmi.m"+minEntityFrequency+".p"+passageSize+".trecrun"))) {
       for (EntityJudgedQuery query : queries) {
         String qid = query.qid;
-        if(Objects.equals(qid, "302")) {
-          query.text = "poliomyelitis";
-        } else if(Objects.equals(qid, "316")) {
-          query.text = "polygamy";
-        } else if(Objects.equals(qid, "326")) {
-          query.text = "ferry sinking";
-        }
 
         System.out.println(qid + " " + query.text);
         Parameters queryP = Parameters.create();
@@ -105,6 +95,7 @@ public class PMIRankingExperiment {
         NearbyTermFinder termFinder = new NearbyTermFinder(target, argp, infoP, passageSize);
         IOMap<Integer, PhraseHitList> documentHits = eIndex.getPhraseHits().getDocumentHits();
 
+        // merges slices here:
         HashMap<Integer, List<TermSlice>> slicesByDocument = termFinder.slicesByDocument(termFinder.hitsToSlices(hits));
         TIntIntHashMap ecounts = new TIntIntHashMap();
 
