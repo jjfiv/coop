@@ -70,13 +70,13 @@ public class PMIRankingExperiment {
     TermPositionsIndex tpos = target.getPositionsIndex("lemmas");
     PhrasePositionsIndex eIndex = target.getEntitiesIndex();
 
-    int numEntities = argp.get("requested", 1000);
+    int numEntities = argp.get("requested", 200);
     int minEntityFrequency = argp.get("minEntityFrequency", 2);
 
     IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
     assert(ambiguous != null);
 
-    int passageSize = argp.get("passageSize", 100);
+    int passageSize = argp.get("passageSize", 250);
     long start, end;
     try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", dataset + ".dbpedia.any-wiki-pmi.m"+minEntityFrequency+".p"+passageSize+".trecrun"))) {
       for (EntityJudgedQuery query : queries) {
