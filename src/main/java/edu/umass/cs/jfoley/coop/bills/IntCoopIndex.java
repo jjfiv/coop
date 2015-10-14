@@ -83,6 +83,9 @@ public class IntCoopIndex implements CoopIndex {
     List<QueryEngine.QCNode<Double>> pnodes = new ArrayList<>();
     IntList termIds = index.translateFromTerms(terms);
     for (int termId : termIds) {
+      if(termId < 0) {
+        continue;
+      }
       QueryEngine.QCNode<Integer> countNode = index.getUnigram(termId);
       if(countNode == null) {
         countNode = QueryEngine.MissingTermNode.instance;
