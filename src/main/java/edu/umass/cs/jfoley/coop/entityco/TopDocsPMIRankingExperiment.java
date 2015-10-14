@@ -7,7 +7,6 @@ import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
-import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
@@ -16,6 +15,8 @@ import edu.umass.cs.jfoley.coop.phrases.PhraseHit;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
+import org.lemurproject.galago.core.eval.EvalDoc;
+import org.lemurproject.galago.core.eval.QuerySetResults;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.lists.Ranked;
@@ -35,37 +36,53 @@ public class TopDocsPMIRankingExperiment {
     String dataset = "robust04";
     Map<String, Set<String>> lauraDocsByQuery = new HashMap<>();
 
-    String index;
+    String index = "/tmp/";
 
-    switch(dataset) {
-      case "robust04": {
-        try (LinesIterable lines = LinesIterable.fromFile("rob_document_mentions.data")) {
-          List<String> header = Arrays.asList(lines.readLine().split("\t"));
-          int docIndex = header.indexOf("rob04_doc");
-          int qidIndex = header.indexOf("rob04_qid");
-          for (String line : lines) {
-            String[] row = line.split("\t");
-            String doc = row[docIndex];
-            String qid = row[qidIndex];
-            MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
+    int depth = argp.get("docDepth", 20);
+
+    if(argp.isString("baselineQuery")) {
+      QuerySetResults results = new QuerySetResults(argp.getString("baselineQuery"));
+
+      for (String qid : results.getQueryIterator()) {
+        for (EvalDoc evalDoc : results.get(qid).getIterator()) {
+          if(evalDoc.getRank() <= depth) {
+            MapFns.extendSetInMap(lauraDocsByQuery, qid, evalDoc.getName());
           }
         }
-        index = "robust.ints";
       }
-      break;
-      case "clue12": {
-        try (LinesIterable lines = LinesIterable.fromFile("clueweb_sdm_top20docs.data")) {
-          for (String line : lines) {
-            String[] row = line.split("\t");
-            String qid = row[0];
-            String doc = row[2];
-            MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
+
+    } else {
+      switch (dataset) {
+        case "robust04": {
+          try (LinesIterable lines = LinesIterable.fromFile("rob_document_mentions.data")) {
+            List<String> header = Arrays.asList(lines.readLine().split("\t"));
+            int docIndex = header.indexOf("rob04_doc");
+            int qidIndex = header.indexOf("rob04_qid");
+            for (String line : lines) {
+              String[] row = line.split("\t");
+              String doc = row[docIndex];
+              String qid = row[qidIndex];
+              MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
+            }
           }
+          index = "robust.ints";
         }
-        index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
+        break;
+        case "clue12": {
+          try (LinesIterable lines = LinesIterable.fromFile("clueweb_sdm_top20docs.data")) {
+            for (String line : lines) {
+              String[] row = line.split("\t");
+              String qid = row[0];
+              String doc = row[2];
+              MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
+            }
+          }
+          index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
+        }
+        break;
+        default:
+          throw new UnsupportedOperationException("dataset=" + dataset);
       }
-      break;
-      default: throw new UnsupportedOperationException("dataset="+dataset);
     }
 
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
@@ -168,8 +185,8 @@ public class TopDocsPMIRankingExperiment {
             if(docId == null) {
               continue;
             }
-            IntList terms = new IntList(dbpedia.getCorpus().getDocument(docId));
-            System.out.println("\t\t"+ StrUtil.join(dbpedia.translateToTerms(terms)));
+            //IntList terms = new IntList(dbpedia.getCorpus().getDocument(docId));
+            //System.out.println("\t\t"+ StrUtil.join(dbpedia.translateToTerms(terms)));
           }
           trecrun.println(entity.toTRECformat(qid, "jfoley-topdocs-pmi"));
         }

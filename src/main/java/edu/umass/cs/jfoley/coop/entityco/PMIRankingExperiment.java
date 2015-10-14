@@ -6,7 +6,6 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.math.StreamingStats;
-import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.PMITerm;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
@@ -223,8 +222,8 @@ public class PMIRankingExperiment {
             if(docId == null) {
               continue;
             }
-            IntList terms = new IntList(dbpedia.getCorpus().getDocument(docId));
-            System.out.println("\t\t"+ StrUtil.join(dbpedia.translateToTerms(terms)));
+            //IntList terms = new IntList(dbpedia.getCorpus().getDocument(docId));
+            //System.out.println("\t\t"+ StrUtil.join(dbpedia.translateToTerms(terms)));
           }
           trecrun.println(entity.toTRECformat(qid, "jfoley-pmi"));
         }
