@@ -11,7 +11,7 @@ import java.util.Map;
 public class EntityJudgedQuery {
   public final String qid;
   String text;
-  final Map<String, Double> judgments;
+  public final Map<String, Double> judgments;
 
   public EntityJudgedQuery(String qid, String text) {
     this.qid = qid;

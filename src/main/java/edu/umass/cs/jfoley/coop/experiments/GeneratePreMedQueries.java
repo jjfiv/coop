@@ -5,6 +5,7 @@ import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.string.StrUtil;
+import edu.umass.cs.jfoley.coop.entityco.EntityJudgedQuery;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.StringPooler;
@@ -17,7 +18,7 @@ import java.util.*;
 /**
  * @author jfoley
  */
-public class GeneratePreMedFeatures {
+public class GeneratePreMedQueries {
   public static class FactQueryObject {
     YFQServer.YearFact fact;
     List<String> tokens;
@@ -37,6 +38,8 @@ public class GeneratePreMedFeatures {
     int qNum = 0;
     int numFacts = 0;
 
+    List<EntityJudgedQuery> pseudoQuery = new ArrayList<>();
+
     for (Parameters factJ : facts) {
       YFQServer.YearFact fact = YFQServer.YearFact.parseJSON(factJ);
 
@@ -46,6 +49,7 @@ public class GeneratePreMedFeatures {
         if (usq.user.contains("jfoley")) continue; // throw out my queries, not scientific
         relQueries.add(usq);
       }
+
 
       if(!relQueries.isEmpty()) {
         numFacts++;
@@ -67,10 +71,20 @@ public class GeneratePreMedFeatures {
             users.add(query.user);
           }
           int index = qNum++;
+
+          EntityJudgedQuery ejq = new EntityJudgedQuery("B"+index, pair.getValue().get(0).query);
+          for (YFQServer.UserRelevanceJudgment judgment : fact.getJudgments()) {
+            ejq.judgments.put(judgment.item, 1.0);
+          }
+          pseudoQuery.add(ejq);
+
           System.err.println("\tfact["+numFacts+"]"+"q["+index+"]=\t"+oldest.id+"\t"+ StrUtil.join(pair.getKey()) + "\t--\t" + StrUtil.join(new ArrayList<>(users)));
           System.err.println("\t\t"+ ListFns.map(fact.getJudgments(), j -> j.item));
+          System.err.println(fact.getJudgments());
         }
       }
     }
+
+    IO.spit(Parameters.parseArray("queries", ListFns.map(pseudoQuery, EntityJudgedQuery::toJSON)).toPrettyString(), new File("coop/data/books-human.json"));
   }
 }
