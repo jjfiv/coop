@@ -163,11 +163,10 @@ public class TrecRunReranker {
 
           for (String feature : featureNames) {
             int featureNum = featureNumTable.indexOf(feature);
+            Double min = docToFeaturesMap.get("__MIN__").get(feature);
+            if(min == null) continue;
             try {
-              double value = docFeatures.getOrDefault(feature,
-                  Objects.requireNonNull(
-                      Objects.requireNonNull(docToFeaturesMap.get("__MIN__"))
-                          .get(feature)));
+              double value = docFeatures.getOrDefault(feature, min);
               scores.add(value);
               featureBuilder.append(' ').append(featureNum+1).append(":").append(value);
             } catch (NullPointerException npe) {
