@@ -32,11 +32,11 @@ public class CLIJudgmentInterface {
     Map<String, Map<String, Double>> judgments = new HashMap<>();
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "dbpedia.ints")));
 
-    String dataset = "robust04";
+    String dataset = "clue12";
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
     int rankCutoff = argp.get("depth", 5);
 
-    try (LinesIterable lines = LinesIterable.fromFile(argp.get("load", "coop/ecir2016runs/qrels/robust04.x.ent.qrel"))) {
+    try (LinesIterable lines = LinesIterable.fromFile(argp.get("load", "coop/ecir2016runs/qrels/"+dataset+".ent.qrel"))) {
       for (String line : lines) {
         String[] row = line.split("\\s+");
         String qid = row[0];
@@ -47,11 +47,10 @@ public class CLIJudgmentInterface {
     }
 
     List<String> runs = new ArrayList<>();
-    runs.add("coop/ecir2016runs/robust04runs/robust04.wikisdm.raw.trecrun");
-    runs.add("robust04.dbpedia.pmi.m2.p100.trecrun");
-    runs.add("robust04.dbpedia.wiki-pmi.m2.p250.trecrun");
-    runs.add("robust04.top20.logpmi.m2.trecrun");
-    runs.add("robust04.top20pmi.m2.trecrun");
+    runs.add("output/"+dataset+"/wikisdm.ent.trecrun");
+    runs.add("output/"+dataset+"/pmi.2.200.100.ent.trecrun");
+    runs.add("output/"+dataset+"/sdm.top20Docs.wpmi.2.200.ent.trecrun");
+    runs.add("output/"+dataset+"/sdm.top20Docs.even_pmi.2.200.ent.trecrun");
     runs.addAll(argp.getAsList("runs", String.class));
 
     Map<String, HashMap<String, Integer>> topRetrieved = new HashMap<>();
