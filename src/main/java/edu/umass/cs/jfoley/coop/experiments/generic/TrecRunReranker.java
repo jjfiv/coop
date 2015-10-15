@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.experiments;
+package edu.umass.cs.jfoley.coop.experiments.generic;
 
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;

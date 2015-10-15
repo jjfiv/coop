@@ -89,10 +89,15 @@ public class PMIRankingExperiment {
         FindHitsMethod hitsFinder = new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
         ArrayList<DocumentResult<Integer>> hits = hitsFinder.computeTimed();
         int queryFrequency = hits.size();
+        if(queryFrequency == 0) {
+          System.err.println("# no results found for query="+query.qid+" "+query.text);
+          continue;
+        }
 
         long startEntites = System.currentTimeMillis();
         NearbyTermFinder termFinder = new NearbyTermFinder(target, argp, infoP, passageSize);
         IOMap<Integer, PhraseHitList> documentHits = eIndex.getPhraseHits().getDocumentHits();
+
 
         // merges slices here:
         HashMap<Integer, List<TermSlice>> slicesByDocument = termFinder.slicesByDocument(termFinder.hitsToSlices(hits));
@@ -134,10 +139,12 @@ public class PMIRankingExperiment {
         end = System.currentTimeMillis();
         System.out.println("Pull efrequencies: " + (end - start) + "ms.");
 
+        int reasonableMinEntityFrequency = Math.min(hits.size()-1, minEntityFrequency);
+
         TopKHeap<PMITerm<Integer>> pmiEntities = new TopKHeap<>(numEntities);
         double collectionLength = target.getCollectionLength();
         ecounts.forEachEntry((eid, frequency) -> {
-          if (frequency >= minEntityFrequency) {
+          if (frequency >= reasonableMinEntityFrequency) {
             int cf = 1;
             cf = freq.get(eid);
             if (cf == freq.getNoEntryValue()) {
@@ -173,6 +180,10 @@ public class PMIRankingExperiment {
             System.out.println(sterms + "\t" + pmiEntity.logPMI() + "\t" + names + "\t" + ids);
           }
           entities.addAll(names);
+        }
+
+        if(entities.isEmpty()) {
+          System.err.println("# couldn't predict any entities for qid="+query.qid);
         }
 
         Parameters qp = Parameters.create();

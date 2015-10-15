@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.front.eval;
 
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.ListFns;
+import ciir.jfoley.chai.random.ReservoirSampler;
 import edu.umass.cs.ciir.waltz.dociter.movement.AllOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.AnyOfMover;
 import edu.umass.cs.ciir.waltz.dociter.movement.PostingMover;
@@ -18,6 +19,7 @@ import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -72,9 +74,9 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
       if(m != null) movers.add(m);
     }
 
-    ArrayList<DocumentResult<Integer>> output = new ArrayList<>();
+    ReservoirSampler<DocumentResult<Integer>> output = new ReservoirSampler<>(500_000);
 
-    if(movers.size() == 0) return output;
+    if(movers.size() == 0) return new ArrayList<>();
     if(movers.size() == 1) {
       PostingMover<PositionsList> m = movers.get(0);
       for (m.start(); !m.isDone(); m.next()) {
@@ -98,32 +100,48 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
         }
       }
 
-      // fall-back to soft-computation
-      if(output.isEmpty()) {
-        System.err.println("# AND returned no results, fall back to OR.");
-        // reset!
-        for (PostingMover<PositionsList> mover : movers) {
-          mover.reset();
-        }
+      int size = movers.size();
 
-        AnyOfMover<?> mOR = new AnyOfMover<>(movers);
-        for (mOR.start(); !mOR.isDone(); mOR.next()) {
-          int doc = mOR.currentKey();
-          ArrayList<SpanIterator> iters = new ArrayList<>();
+      // fall-back to soft-computation
+      if(output.size() < 10) {
+        System.err.println("# AND returned no results, fall back to OR.");
+
+        for (int threshold = size - 1; threshold >= 1; threshold--) {
+          System.err.println("# fall back to OR"+threshold+"/"+size+".");
+          // reset!
           for (PostingMover<PositionsList> mover : movers) {
-            if(mover.matches(doc)) {
-              iters.add(mover.getPosting(doc).getSpanIterator());
+            mover.reset();
+          }
+
+          AnyOfMover<?> mOR = new AnyOfMover<>(movers);
+          for (mOR.start(); !mOR.isDone(); mOR.next()) {
+            int doc = mOR.currentKey();
+            ArrayList<SpanIterator> iters = new ArrayList<>();
+            for (PostingMover<PositionsList> mover : movers) {
+              if(mover.matches(doc)) {
+                iters.add(mover.getPosting(doc).getSpanIterator());
+              }
+            }
+            if(iters.size() >= threshold) {
+              for (Span span : UnorderedWindow.calculateSpans(iters, passageSize)) {
+                output.add(new DocumentResult<>(doc, span.begin));
+              }
             }
           }
-          for (int begin : calculateAnySpans(iters)) {
-            output.add(new DocumentResult<>(doc, begin));
-          }
+
+          if(output.size() >= 10) break;
         }
       }
 
     }
 
-    return output;
+    ArrayList<DocumentResult<Integer>> sampledSorted = new ArrayList<>(output);
+    Collections.sort(sampledSorted, (lhs, rhs) -> {
+      int cmp = Integer.compare(lhs.document, rhs.document);
+      if(cmp == 0) return Integer.compare(lhs.value, rhs.value);
+      return cmp;
+    });
+    return sampledSorted;
   }
 
   public static IntList calculateAnySpans(List<SpanIterator> iters) {
