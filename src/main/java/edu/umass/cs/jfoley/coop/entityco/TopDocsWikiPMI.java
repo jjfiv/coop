@@ -6,7 +6,6 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
-import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.PMITerm;
@@ -16,6 +15,8 @@ import edu.umass.cs.jfoley.coop.phrases.PhraseHit;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
+import org.lemurproject.galago.core.eval.EvalDoc;
+import org.lemurproject.galago.core.eval.QuerySetResults;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.retrieval.LocalRetrieval;
 import org.lemurproject.galago.core.retrieval.Results;
@@ -37,42 +38,22 @@ public class TopDocsWikiPMI {
     Parameters argp = Parameters.parseArgs(args);
 
     String dataset = "robust04";
-    Map<String, Set<String>> lauraDocsByQuery = new HashMap<>();
+    Map<String, Set<String>> topDocsByQuery = new HashMap<>();
 
     // for mention->entity probs:
     LocalRetrieval jeffWiki = PMIRankingExperiment.openJeffWiki(argp);
 
-    String index;
+    String index = "/tmp/";
 
-    switch(dataset) {
-      case "robust04": {
-        try (LinesIterable lines = LinesIterable.fromFile("rob_document_mentions.data")) {
-          List<String> header = Arrays.asList(lines.readLine().split("\t"));
-          int docIndex = header.indexOf("rob04_doc");
-          int qidIndex = header.indexOf("rob04_qid");
-          for (String line : lines) {
-            String[] row = line.split("\t");
-            String doc = row[docIndex];
-            String qid = row[qidIndex];
-            MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
-          }
+    int depth = argp.get("docDepth", 20);
+
+    QuerySetResults baseline = new QuerySetResults(argp.getString("baselineQuery"));
+    for (String qid : baseline.getQueryIterator()) {
+      for (EvalDoc evalDoc : baseline.get(qid).getIterator()) {
+        if(evalDoc.getRank() <= depth) {
+          MapFns.extendSetInMap(topDocsByQuery, qid, evalDoc.getName());
         }
-        index = "robust.ints";
       }
-      break;
-      case "clue12": {
-        try (LinesIterable lines = LinesIterable.fromFile("clueweb_sdm_top20docs.data")) {
-          for (String line : lines) {
-            String[] row = line.split("\t");
-            String qid = row[0];
-            String doc = row[2];
-            MapFns.extendSetInMap(lauraDocsByQuery, qid, doc);
-          }
-        }
-        index = "/mnt/scratch/jfoley/clue12a.sdm.ints";
-      }
-      break;
-      default: throw new UnsupportedOperationException("dataset="+dataset);
     }
 
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
@@ -94,7 +75,7 @@ public class TopDocsWikiPMI {
       for (EntityJudgedQuery query : queries) {
         String qid = query.qid;
 
-        List<String> topDocs = new ArrayList<>(lauraDocsByQuery.get(qid));
+        List<String> topDocs = new ArrayList<>(topDocsByQuery.get(qid));
         System.out.println(qid + " " + query.text+" topDocs: "+topDocs.size());
 
         IntList topDocIds = new IntList();
@@ -144,6 +125,7 @@ public class TopDocsWikiPMI {
         TObjectDoubleHashMap<String> entityScores = new TObjectDoubleHashMap<>();
 
         HashSet<String> entities = new HashSet<>();
+
         int items = 0;
         for (PMITerm<Integer> pmiEntity : pmiEntities.getSorted()) {
           int eid = pmiEntity.term;
@@ -161,6 +143,10 @@ public class TopDocsWikiPMI {
             System.out.println(sterms + "\t" + pmiEntity.logPMI() + "\t" + names);
           }
           entities.addAll(names);
+        }
+
+        if(entities.isEmpty()) {
+          System.err.println("# couldn't predict any entities for qid="+query.qid);
         }
 
         Parameters qp = Parameters.create();
@@ -213,7 +199,7 @@ public class TopDocsWikiPMI {
             IntList terms = new IntList(dbpedia.getCorpus().getDocument(docId));
             System.out.println("\t\t"+ StrUtil.join(dbpedia.translateToTerms(terms)));
           }
-          trecrun.println(entity.toTRECformat(qid, "jfoley-topdocs-pmi"));
+          trecrun.println(entity.toTRECformat(qid, "jfoley-topdocs-wpmi"));
         }
       }
     }
