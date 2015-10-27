@@ -25,12 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author jfoley
  */
-public class JSONServer implements WebHandler {
+public class CoopDemoFrontEnd implements WebHandler {
   public final CoopIndex coopIndex;
   public final Directory htmlDir;
   private Map<String, ServerFn> apiMethods;
 
-  public JSONServer(Directory coopDir, Directory htmlDir) throws IOException {
+  public CoopDemoFrontEnd(Directory coopDir, Directory htmlDir) throws IOException {
     this.coopIndex = new IntCoopIndex(coopDir);
     this.htmlDir = htmlDir;
 
@@ -47,7 +47,7 @@ public class JSONServer implements WebHandler {
     Directory input = Directory.Read(argp.get("input", defaultIndex));
     Directory htmlDir = Directory.Read(argp.get("html", "coop/front_html"));
 
-    JSONServer server = new JSONServer(input, htmlDir);
+    CoopDemoFrontEnd server = new CoopDemoFrontEnd(input, htmlDir);
     WebServer ws = WebServer.start(argp.get("port", 2347), server);
 
 
