@@ -353,7 +353,7 @@ public class IntCoopIndex implements CoopIndex {
       return Parameters.parseArray(
           "uniqueWords", vocab.size(),
           "documentCount", names.size(),
-          "tokenizer", getTokenizer().getClass(),
+          "tokenizer", getTokenizer().getClass().toString(),
           "collectionLength", getCollectionLength()
           );
     } catch (IOException e) {

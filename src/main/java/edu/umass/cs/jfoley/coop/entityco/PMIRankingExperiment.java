@@ -43,7 +43,7 @@ public class PMIRankingExperiment {
     jeffWikiP.put("uniw", 0.29);
     jeffWikiP.put("odw", 0.21);
     jeffWikiP.put("uww", 0.5);
-    return new LocalRetrieval("/mnt/scratch/jfoley/jeff-wiki.galago/full-wiki-stanf3_context_g351");
+    return new LocalRetrieval("/mnt/scratch3/jfoley/jeff-wiki.galago/full-wiki-stanf3_context_g351");
   }
 
   public static void main(String[] args) throws IOException {
