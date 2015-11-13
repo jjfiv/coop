@@ -87,7 +87,7 @@ public class PMIRankingExperiment {
         queryP.put("passageSize", passageSize);
         Parameters infoP = Parameters.create();
         FindHitsMethod hitsFinder = new EvaluateBagOfWordsMethod(queryP, infoP, tpos);
-        ArrayList<DocumentResult<Integer>> hits = hitsFinder.computeTimed();
+        List<DocumentResult<Integer>> hits = hitsFinder.computeTimed();
         int queryFrequency = hits.size();
         if(queryFrequency == 0) {
           System.err.println("# no results found for query="+query.qid+" "+query.text);

@@ -35,7 +35,7 @@ public class LookupSinglePhraseMethod extends FindHitsMethod {
   }
 
   @Override
-  public ArrayList<DocumentResult<Integer>> compute() throws IOException {
+  public List<DocumentResult<Integer>> compute() throws IOException {
     ArrayList<DocumentResult<Integer>> hits = new ArrayList<>();
     if (mover == null) return hits;
     mover.execute((docId) -> {

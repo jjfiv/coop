@@ -41,6 +41,8 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
     }
   }
 
+  private final boolean sampled;
+
   public EvaluateBagOfWordsMethod(Parameters input, Parameters output, TermPositionsIndex index) throws IOException {
     super(input, output);
     this.index = index;
@@ -57,6 +59,7 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
     if(!nonStopword.isEmpty()) {
       query = nonStopword;
     }
+    this.sampled = input.get("sampled", false);
 
     output.put("queryTerms", query);
     this.passageSize = input.get("passageSize", 32);
@@ -67,14 +70,14 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
   }
 
   @Override
-  public ArrayList<DocumentResult<Integer>> compute() throws IOException {
+  public List<DocumentResult<Integer>> compute() throws IOException {
     List<PostingMover<PositionsList>> movers = new ArrayList<>(queryIds.size());
     for (int term : queryIds) {
       PostingMover<PositionsList> m = index.getPositionsMover(term);
       if(m != null) movers.add(m);
     }
 
-    ReservoirSampler<DocumentResult<Integer>> output = new ReservoirSampler<>(500_000);
+    List<DocumentResult<Integer>> output = (sampled) ? new ReservoirSampler<>(500_000) : new ArrayList<>(400_000);
 
     if(movers.size() == 0) return new ArrayList<>();
     if(movers.size() == 1) {
@@ -135,6 +138,9 @@ public class EvaluateBagOfWordsMethod extends FindHitsMethod {
 
     }
 
+    if(!sampled) {
+      return output;
+    }
     ArrayList<DocumentResult<Integer>> sampledSorted = new ArrayList<>(output);
     Collections.sort(sampledSorted, (lhs, rhs) -> {
       int cmp = Integer.compare(lhs.document, rhs.document);

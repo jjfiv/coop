@@ -8,7 +8,6 @@ import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,7 +28,7 @@ public class EvaluatePhraseMethod extends FindHitsMethod {
   }
 
   @Override
-  public ArrayList<DocumentResult<Integer>> compute() throws IOException {
+  public List<DocumentResult<Integer>> compute() throws IOException {
     return index.locatePhrase(queryIds);
   }
 

@@ -44,6 +44,10 @@ public class NearbyTermFinder {
       return slice;
     });
   }
+  public Iterable<TermSlice> hitsToMergedSlices(Iterable<DocumentResult<Integer>> items) {
+    Iterable<TermSlice> termSlices = hitsToSlices(items);
+    return IterableFns.lazyReduce(termSlices, mergeSlicesFn);
+  }
 
   public Iterable<Pair<TermSlice, IntList>> pullSlicesForTermScoring(Iterable<TermSlice> input) {
     Iterable<TermSlice> mergedSlices = IterableFns.lazyReduce(input, mergeSlicesFn);
@@ -88,7 +92,7 @@ public class NearbyTermFinder {
     }
   };
 
-  public Iterable<Pair<TermSlice, IntList>> pullSlicesForSnippets(ArrayList<DocumentResult<Integer>> hits) {
+  public Iterable<Pair<TermSlice, IntList>> pullSlicesForSnippets(List<DocumentResult<Integer>> hits) {
     return index.pullTermSlices(hitsToSlices(hits));
   }
 }

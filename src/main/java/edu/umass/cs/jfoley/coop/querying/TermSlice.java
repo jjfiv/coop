@@ -1,11 +1,12 @@
 package edu.umass.cs.jfoley.coop.querying;
 
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 
 /**
  * @author jfoley
  */
-public class TermSlice implements Comparable<TermSlice> {
+public class TermSlice implements Comparable<TermSlice>, Serializable {
   public final int document;
   public final int start;
   public final int end;

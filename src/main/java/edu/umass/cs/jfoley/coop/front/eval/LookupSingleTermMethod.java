@@ -8,6 +8,7 @@ import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author jfoley
@@ -34,7 +35,7 @@ public class LookupSingleTermMethod extends FindHitsMethod {
   }
 
   @Override
-  public ArrayList<DocumentResult<Integer>> compute() throws IOException {
+  public List<DocumentResult<Integer>> compute() throws IOException {
     ArrayList<DocumentResult<Integer>> hits = new ArrayList<>();
     if (mover == null) return hits;
     mover.execute((docId) -> {

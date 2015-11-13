@@ -74,7 +74,7 @@ public class FindPhrase extends CoopIndexServerFn {
       default: throw new IllegalArgumentException("method="+method);
     }
 
-    ArrayList<DocumentResult<Integer>> hits = hitFinder.computeTimed();
+    List<DocumentResult<Integer>> hits = hitFinder.computeTimed();
     List<DocumentResult<Integer>> topHits = ListFns.slice(hits, 0, 200);
 
     final TIntObjectHashMap<Parameters> hitInfos = new TIntObjectHashMap<>();

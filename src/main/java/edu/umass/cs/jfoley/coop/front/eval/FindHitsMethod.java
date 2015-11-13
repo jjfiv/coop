@@ -4,7 +4,7 @@ import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author jfoley
@@ -16,11 +16,11 @@ public abstract class FindHitsMethod {
     this.output = output;
   }
 
-  public abstract ArrayList<DocumentResult<Integer>> compute() throws IOException;
+  public abstract List<DocumentResult<Integer>> compute() throws IOException;
 
-  public ArrayList<DocumentResult<Integer>> computeTimed() throws IOException {
+  public List<DocumentResult<Integer>> computeTimed() throws IOException {
     long startTime = System.currentTimeMillis();
-    ArrayList<DocumentResult<Integer>> hits = compute();
+    List<DocumentResult<Integer>> hits = compute();
     long endTime = System.currentTimeMillis();
     int queryFrequency = hits.size();
     System.err.println("Found " +hits.size()+" hits in "+(endTime-startTime)+"ms.");
