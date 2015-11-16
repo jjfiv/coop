@@ -29,7 +29,6 @@ import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.tokenization.GalagoTokenizer;
-import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
@@ -245,27 +244,12 @@ public class IntCoopIndex implements CoopIndex {
 
   @Override
   public IntList translateFromTerms(List<String> query) throws IOException {
-    TObjectIntHashMap<String> translator = termIdTranslator(query);
-    IntList output = new IntList(query.size());
-    for (String q : query) {
-      int id = translator.get(q);
-      if(id == translator.getNoEntryValue()) {
-        output.add(-1);
-      } else {
-        output.add(translator.get(q));
-      }
-    }
-    return output;
+    return vocab.translateReverse(query, -1);
   }
 
   @Override
   public List<String> translateToTerms(IntList termIds) throws IOException {
-    TIntObjectHashMap<String> translator = termTranslator(termIds);
-    ArrayList<String> terms = new ArrayList<>(termIds.size());
-    for (int termId : termIds) {
-      terms.add(translator.get(termId));
-    }
-    return terms;
+    return vocab.translateForward(termIds, null);
   }
 
   @Override
@@ -318,21 +302,6 @@ public class IntCoopIndex implements CoopIndex {
   @Override
   public long getCollectionLength() throws IOException {
     return corpus.numberOfTermOccurrences();
-  }
-
-  public TIntObjectHashMap<String> termTranslator(IntList termIds) throws IOException {
-    TIntObjectHashMap<String> data = new TIntObjectHashMap<>();
-    for (Pair<Integer, String> kv : lookupTerms(termIds)) {
-      data.put(kv.getKey(), kv.getValue());
-    }
-    return data;
-  }
-  public TObjectIntHashMap<String> termIdTranslator(List<String> termIds) throws IOException {
-    TObjectIntHashMap<String> data = new TObjectIntHashMap<>();
-    for (Pair<String, Integer> kv : vocab.getReverse(termIds)) {
-      data.put(kv.getKey(), kv.getValue());
-    }
-    return data;
   }
 
   public int getTermId(String term) throws IOException {
