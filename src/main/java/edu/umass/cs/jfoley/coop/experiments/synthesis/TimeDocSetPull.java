@@ -34,7 +34,7 @@ public class TimeDocSetPull {
       String dataset = "clue12";
 
       Map<String, String> queries = new HashMap<>();
-      for (String tsvLine : LinesIterable.fromFile("/home/jfoley/code/queries/web2013.topics.txt").slurp()) {
+      for (String tsvLine : LinesIterable.fromFile("/home/jfoley/code/queries/clue12/web2014.topics.txt").slurp()) {
         String col[] = tsvLine.trim().split("\t");
         queries.put(col[0], col[1]);
       }
@@ -79,7 +79,7 @@ public class TimeDocSetPull {
 
       System.err.println(queryTimes);
 
-      try (ObjectOutputStream oos = new ObjectOutputStream(IO.openOutputStream("clue12.docHits.javaser.gz"))) {
+      try (ObjectOutputStream oos = new ObjectOutputStream(IO.openOutputStream("clue12.topics14.docHits.javaser.gz"))) {
         oos.writeObject(docHits);
       }
 
@@ -88,7 +88,7 @@ public class TimeDocSetPull {
 
   @SuppressWarnings("unchecked")
   static Map<String, List<TermSlice>> load() throws IOException, ClassNotFoundException {
-    try (ObjectInputStream oos = new ObjectInputStream(IO.openInputStream("clue12.docHits.javaser.gz"))) {
+    try (ObjectInputStream oos = new ObjectInputStream(IO.openInputStream("clue12.topics14.docHits.javaser.gz"))) {
       return (Map<String, List<TermSlice>>) oos.readObject();
     }
   }
@@ -97,7 +97,7 @@ public class TimeDocSetPull {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
       IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch3/jfoley/clue12a.sdm.ints"));
       Map<String, List<TermSlice>> docHits = load();
-      try (PrintWriter pw = IO.openPrintWriter("clue12a.sdm.dochits.tsv.gz")) {
+      try (PrintWriter pw = IO.openPrintWriter("clue12a.sdm.topics14.dochits.tsv.gz")) {
         docHits.forEach((qid, hits) -> {
           System.err.println("# "+qid);
           try {
