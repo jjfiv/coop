@@ -18,13 +18,13 @@ import java.util.List;
  * @author jfoley
  */
 public class PhrasePositionsIndex {
-  final IdMaps.Reader<String> termVocab;
-  final IdMaps.Reader<IntList> phraseVocab;
+  final IdMaps.IdReader<String> termVocab;
+  final IdMaps.IdReader<IntList> phraseVocab;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
   private final PhraseHitsReader phraseHits;
   HashMap<Integer, PositionsCountMetadata> pmeta;
 
-  public PhrasePositionsIndex(PhraseHitsReader entities, IdMaps.Reader<String> termVocab, IdMaps.Reader<IntList> phraseVocab, IOMap<Integer, PostingMover<PositionsList>> positions) throws IOException {
+  public PhrasePositionsIndex(PhraseHitsReader entities, IdMaps.IdReader<String> termVocab, IdMaps.Reader<IntList> phraseVocab, IOMap<Integer, PostingMover<PositionsList>> positions) throws IOException {
     this.phraseHits = entities;
     this.termVocab = termVocab;
     this.phraseVocab = phraseVocab;
@@ -68,7 +68,7 @@ public class PhrasePositionsIndex {
     return pmeta.get(phraseId);
   }
 
-  public IdMaps.Reader<IntList> getPhraseVocab() {
+  public IdMaps.IdReader<IntList> getPhraseVocab() {
     return phraseVocab;
   }
 

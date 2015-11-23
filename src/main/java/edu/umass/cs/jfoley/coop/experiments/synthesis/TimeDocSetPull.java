@@ -7,6 +7,7 @@ import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.math.StreamingStats;
+import ciir.jfoley.chai.string.StrUtil;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import edu.umass.cs.jfoley.coop.front.eval.EvaluateBagOfWordsMethod;
@@ -20,9 +21,8 @@ import org.lemurproject.galago.utility.Parameters;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.PrintWriter;
+import java.util.*;
 
 /**
  * @author jfoley
@@ -86,6 +86,38 @@ public class TimeDocSetPull {
     }
   }
 
+  @SuppressWarnings("unchecked")
+  static Map<String, List<TermSlice>> load() throws IOException, ClassNotFoundException {
+    try (ObjectInputStream oos = new ObjectInputStream(IO.openInputStream("clue12.docHits.javaser.gz"))) {
+      return (Map<String, List<TermSlice>>) oos.readObject();
+    }
+  }
+
+  public static class PullToTextFormat {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+      IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch3/jfoley/clue12a.sdm.ints"));
+      Map<String, List<TermSlice>> docHits = load();
+      try (PrintWriter pw = IO.openPrintWriter("clue12a.sdm.dochits.tsv.gz")) {
+        docHits.forEach((qid, hits) -> {
+          System.err.println("# "+qid);
+          try {
+            for (TermSlice hit : hits) {
+              String docId = target.getNames().getForward(hit.document);
+              List<String> tokens = new ArrayList<>();
+              for (Pair<TermSlice, IntList> pair : target.pullTermSlices(Collections.singletonList(hit))) {
+                List<String> terms = target.getTermVocabulary().translateForward(pair.right, null);
+                tokens.addAll(terms);
+              }
+              pw.printf("%s\t%s\t%d,%d\t%s\n", qid, docId, hit.start, hit.end, StrUtil.join(tokens));
+            }
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
+      }
+    }
+  }
+
   public static class RunDocSetPullsIntCorpus {
 
 
@@ -119,11 +151,5 @@ public class TimeDocSetPull {
 
     }
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, List<TermSlice>> load() throws IOException, ClassNotFoundException {
-      try (ObjectInputStream oos = new ObjectInputStream(IO.openInputStream("clue12.docHits.javaser.gz"))) {
-        return (Map<String, List<TermSlice>>) oos.readObject();
-      }
-    }
   }
 }

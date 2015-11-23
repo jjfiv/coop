@@ -31,7 +31,7 @@ import java.util.concurrent.ForkJoinPool;
  * @author jfoley
  */
 public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
-  final IdMaps.Reader<String> vocab;
+  final IdMaps.IdReader<String> vocab;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
   private final CoopTokenizer tokenizer;
   private final IntVocabBuilder.IntVocabReader corpus;
@@ -40,7 +40,7 @@ public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
   private final int numberOfDocuments;
   LoadingCache<Integer, KeyMetadata<?>> pmeta;
 
-  public TermPositionsIndex(IdMaps.Reader<String> vocab, IOMap<Integer, PostingMover<Integer>> counts, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer, IntVocabBuilder.IntVocabReader corpus) throws IOException {
+  public TermPositionsIndex(IdMaps.IdReader<String> vocab, IOMap<Integer, PostingMover<Integer>> counts, IOMap<Integer, PostingMover<PositionsList>> positions, CoopTokenizer tokenizer, IntVocabBuilder.IntVocabReader corpus) throws IOException {
     this.vocab = vocab;
     this.counts = counts;
     this.positions = positions;
