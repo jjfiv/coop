@@ -34,13 +34,12 @@ public class TimeDocSetPull {
       String dataset = "clue12";
 
       Map<String, String> queries = new HashMap<>();
-      for (String tsvLine : LinesIterable.fromFile("/home/jfoley/code/queries/clue12/web2014.topics.txt").slurp()) {
+      for (String tsvLine : LinesIterable.fromFile("/home/jfoley/code/queries/robust04/rob04.titles.tsv").slurp()) {
         String col[] = tsvLine.trim().split("\t");
         queries.put(col[0], col[1]);
       }
 
-      //List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
-      IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", "/mnt/scratch3/jfoley/clue12a.sdm.ints")));
+      IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", "/mnt/scratch3/jfoley/robust.ints")));
       TermPositionsIndex tpos = target.getPositionsIndex("lemmas");
       int passageSize = argp.get("passageSize", 50);
 
@@ -79,7 +78,7 @@ public class TimeDocSetPull {
 
       System.err.println(queryTimes);
 
-      try (ObjectOutputStream oos = new ObjectOutputStream(IO.openOutputStream("clue12.topics14.docHits.javaser.gz"))) {
+      try (ObjectOutputStream oos = new ObjectOutputStream(IO.openOutputStream("robust.docHits.javaser.gz"))) {
         oos.writeObject(docHits);
       }
 
@@ -88,16 +87,16 @@ public class TimeDocSetPull {
 
   @SuppressWarnings("unchecked")
   static Map<String, List<TermSlice>> load() throws IOException, ClassNotFoundException {
-    try (ObjectInputStream oos = new ObjectInputStream(IO.openInputStream("clue12.topics14.docHits.javaser.gz"))) {
+    try (ObjectInputStream oos = new ObjectInputStream(IO.openInputStream("robust.docHits.javaser.gz"))) {
       return (Map<String, List<TermSlice>>) oos.readObject();
     }
   }
 
   public static class PullToTextFormat {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-      IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch3/jfoley/clue12a.sdm.ints"));
+      IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch3/jfoley/robust.ints"));
       Map<String, List<TermSlice>> docHits = load();
-      try (PrintWriter pw = IO.openPrintWriter("clue12a.sdm.topics14.dochits.tsv.gz")) {
+      try (PrintWriter pw = IO.openPrintWriter("robust.dochits.tsv.gz")) {
         docHits.forEach((qid, hits) -> {
           System.err.println("# "+qid);
           try {
