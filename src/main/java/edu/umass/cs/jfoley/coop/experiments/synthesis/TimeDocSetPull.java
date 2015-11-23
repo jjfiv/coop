@@ -3,6 +3,7 @@ package edu.umass.cs.jfoley.coop.experiments.synthesis;
 import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.IterableFns;
+import ciir.jfoley.chai.collections.util.ListFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
@@ -16,7 +17,12 @@ import edu.umass.cs.jfoley.coop.front.eval.NearbyTermFinder;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.querying.eval.DocumentResult;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
+import org.lemurproject.galago.core.parse.Document;
+import org.lemurproject.galago.core.retrieval.LocalRetrieval;
 import org.lemurproject.galago.utility.Parameters;
+import org.lemurproject.galago.utility.StringPooler;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -86,8 +92,8 @@ public class TimeDocSetPull {
   }
 
   @SuppressWarnings("unchecked")
-  static Map<String, List<TermSlice>> load() throws IOException, ClassNotFoundException {
-    try (ObjectInputStream oos = new ObjectInputStream(IO.openInputStream("robust.docHits.javaser.gz"))) {
+  static Map<String, List<TermSlice>> load(String what) throws IOException, ClassNotFoundException {
+    try (ObjectInputStream oos = new ObjectInputStream(IO.openInputStream(what))) {
       return (Map<String, List<TermSlice>>) oos.readObject();
     }
   }
@@ -95,7 +101,7 @@ public class TimeDocSetPull {
   public static class PullToTextFormat {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
       IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch3/jfoley/robust.ints"));
-      Map<String, List<TermSlice>> docHits = load();
+      Map<String, List<TermSlice>> docHits = load("robust.docHits.javaser.gz");
       try (PrintWriter pw = IO.openPrintWriter("robust.dochits.tsv.gz")) {
         docHits.forEach((qid, hits) -> {
           System.err.println("# "+qid);
@@ -117,14 +123,14 @@ public class TimeDocSetPull {
     }
   }
 
+
+
   public static class RunDocSetPullsIntCorpus {
-
-
     public static void main(String[] args) throws IOException, ClassNotFoundException {
       boolean flash = false;
       IntCoopIndex target = new IntCoopIndex(Directory.Read(flash ? "/mnt/scratch3/jfoley/clue12a.sdm.ints" : "/mnt/scratch/jfoley/clue12a.sdm.ints"));
 
-      Map<String, List<TermSlice>> docHits = load();
+      Map<String, List<TermSlice>> docHits = load("clue12.docHits.javaser.gz");
 
       for (int iter = 0; iter < 3; iter++) {
         for (Map.Entry<String, List<TermSlice>> kv : docHits.entrySet()) {
@@ -147,8 +153,59 @@ public class TimeDocSetPull {
           System.err.println("\t"+(endTime - startTime));
         }
       }
-
     }
+  }
 
+  public static class PullSnippetsGalagoBased {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+      boolean flash = true;
+      IntCoopIndex ic = new IntCoopIndex(Directory.Read("/mnt/scratch3/jfoley/clue12a.sdm.ints"));
+      LocalRetrieval target = new LocalRetrieval(flash ? "/mnt/scratch3/jfoley/Clue12A.subset.galago/Clue12A-Subindex-FULL" : "/mnt/scratch/jfoley/Clue12A.subset.galago/Clue12A-Subindex-FULL");
+
+      StringPooler.disable();
+
+      TIntObjectHashMap<String> names = new TIntObjectHashMap<>();
+      Map<String, List<TermSlice>> docHits = load("clue12.docHits.javaser.gz");
+      docHits.forEach((qid, slices) -> {
+        for (TermSlice slice : slices) {
+          try {
+            String docId = ic.getNames().getForward(slice.document);
+            names.put(slice.document, docId);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      });
+
+      for (int iter = 0; iter < 3; iter++) {
+        for (Map.Entry<String, List<TermSlice>> kv : docHits.entrySet()) {
+          System.err.print(kv.getKey()+"\t"+kv.getValue().size());
+          TObjectIntHashMap<String> termCounts = new TObjectIntHashMap<>(kv.getValue().size()*4);
+          int totalOccurrences = 0;
+          long startTime = System.currentTimeMillis();
+
+          List<String> namesForSlices = new ArrayList<>();
+          for (TermSlice slice : kv.getValue()) {
+            String docId = names.get(slice.document);
+            namesForSlices.add(docId);
+          }
+          Map<String, Document> documents = target.getDocuments(namesForSlices, Document.DocumentComponents.All);
+
+          for (TermSlice slice : kv.getValue()) {
+            String docId = names.get(slice.document);
+            Document gdoc = documents.get(docId);
+            List<String> terms = ListFns.slice(gdoc.terms, slice.start, slice.end);
+            for (String term : terms) {
+              termCounts.adjustOrPutValue(term, 1, 1);
+            }
+          }
+          long endTime = System.currentTimeMillis();
+
+          System.err.print("\t"+totalOccurrences);
+          System.err.print("\t"+termCounts.size());
+          System.err.println("\t"+(endTime - startTime));
+        }
+      }
+    }
   }
 }
