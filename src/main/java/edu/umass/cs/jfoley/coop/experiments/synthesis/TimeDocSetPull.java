@@ -9,6 +9,9 @@ import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.string.StrUtil;
+import ciir.jfoley.chai.time.Debouncer;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.front.TermPositionsIndex;
 import edu.umass.cs.jfoley.coop.front.eval.EvaluateBagOfWordsMethod;
@@ -29,6 +32,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author jfoley
@@ -206,6 +210,68 @@ public class TimeDocSetPull {
           System.err.println("\t"+(endTime - startTime));
         }
       }
+    }
+  }
+  public static class PullRawSnippetsRobustGalagoBased {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+
+      String dataset = "robust";
+      LocalRetrieval ret = new LocalRetrieval("/mnt/scratch3/jfoley/robust04.galago");
+      Cache<String, Document> docCache = Caffeine.newBuilder().maximumSize(50_000).build();
+
+      Debouncer msg = new Debouncer();
+      try (PrintWriter rawSnippet = IO.openPrintWriter("/mnt/scratch3/jfoley/snippets/"+dataset+".rawsnippets.tsv.gz")) {
+        try (LinesIterable snippetLines = LinesIterable.fromFile("/mnt/scratch3/jfoley/snippets/" + dataset + ".snippets.tsv.gz")) {
+          for (String snippetLine : snippetLines) {
+            String[] cols = snippetLine.split("\t");
+            String qid = cols[0];
+            String docId = cols[1];
+            int begin = Math.max(0, Integer.parseInt(StrUtil.takeBefore(cols[2], ",")));
+            int end = Integer.parseInt(StrUtil.takeAfter(cols[2], ","));
+
+
+            Document doc = docCache.get(docId, (id) -> {
+              try {
+                return ret.getDocument(docId, Document.DocumentComponents.All);
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              }
+            });
+
+            int real_end = Math.min(end, doc.terms.size() - 1);
+
+            int rawStart = doc.termCharBegin.get(begin);
+            int rawEnd = doc.termCharEnd.get(real_end);
+
+            // highly-robust specific for now...
+            String rawText =
+                StrUtil.compactSpaces(
+                    StrUtil.transformBetween(
+                        StrUtil.transformBetween(
+                            doc.text.substring(rawStart, rawEnd), Pattern.compile("<!--"), Pattern.compile("-->"), (input) -> " ")
+                        , Pattern.compile("</?"), Pattern.compile(">"), (input) -> " "))
+                    .replaceAll("&hyph;", "-")
+                    .replaceAll("&mdash;", "-")
+                    .replaceAll("&ndash;", "-")
+                    .replaceAll("&amp;", "&")
+                    .replaceAll("&lt;", "<")
+                    .replaceAll("&gt;", ">");
+
+            if(msg.ready()) {
+              System.err.println(qid + ", " + docId + ", " + begin + ", " + end);
+              System.err.println(rawText);
+              System.err.println(StrUtil.join(ListFns.slice(doc.terms, begin, end), " "));
+              System.err.println();
+            }
+
+            rawSnippet.printf("%s\t%s\t%d,%d\t%d,%d\t%s\n", qid, docId, begin, real_end, rawStart, rawEnd, rawText);
+          }
+        }
+      }
+
+
+
+
     }
   }
 }
