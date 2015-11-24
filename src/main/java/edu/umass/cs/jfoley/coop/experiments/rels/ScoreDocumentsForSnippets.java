@@ -18,16 +18,33 @@ import java.util.*;
  * @author jfoley
  */
 public class ScoreDocumentsForSnippets {
+  static Map<String,String> loadQueries(String dataset) throws IOException {
+    Map<String, String> queries = new HashMap<>();
+    switch (dataset.toLowerCase()) {
+      case "robust":
+        for (String tsvLine : LinesIterable.fromFile("/home/jfoley/code/queries/robust04/rob04.titles.tsv").slurp()) {
+          String col[] = tsvLine.trim().split("\t");
+          queries.put(col[0], col[1]);
+        }
+        break;
+      case "clue12a.sdm":
+        for (String tsvLine : LinesIterable.fromFile("/home/jfoley/code/queries/clue12/web1314.queries.tsv").slurp()) {
+          String col[] = tsvLine.trim().split("\t");
+          queries.put(col[0], col[1]);
+        }
+        break;
+      default: throw new IllegalArgumentException("No such dataset for loadQueries: "+dataset);
+    }
+    return queries;
+  }
+
   public static void main(String[] args) throws IOException {
     //String dataset = "clue12a.sdm";
-    String dataset = "robust";
+    //String dataset = "robust";
+    String dataset = "clue12a.sdm";
     LocalRetrieval ret = new LocalRetrieval("/mnt/scratch3/jfoley/"+dataset+".galago");
 
-    Map<String, String> queries = new HashMap<>();
-    for (String tsvLine : LinesIterable.fromFile("/home/jfoley/code/queries/robust04/rob04.titles.tsv").slurp()) {
-      String col[] = tsvLine.trim().split("\t");
-      queries.put(col[0], col[1]);
-    }
+    Map<String, String> queries = loadQueries(dataset);
 
     Map<String, Set<String>> workingSetByQuery = new TreeMap<>();
 
