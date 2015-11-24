@@ -68,6 +68,17 @@
     </dependency>
 
     <dependency>
+      <groupId>edu.washington.cs.knowitall</groupId>
+      <artifactId>reverb-core</artifactId>
+      <version>1.4.3</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.washington.cs.knowitall</groupId>
+      <artifactId>reverb-models</artifactId>
+      <version>1.4.0</version>
+    </dependency>
+
+    <dependency>
       <groupId>jfoley.waltz</groupId>
       <artifactId>waltz-full</artifactId>
       <version>${waltzVersion}</version>
