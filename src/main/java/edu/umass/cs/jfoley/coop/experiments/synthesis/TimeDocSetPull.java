@@ -212,12 +212,14 @@ public class TimeDocSetPull {
       }
     }
   }
+
   public static class PullRawSnippetsRobustGalagoBased {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
-      String dataset = "robust";
-      LocalRetrieval ret = new LocalRetrieval("/mnt/scratch3/jfoley/robust04.galago");
-      Cache<String, Document> docCache = Caffeine.newBuilder().maximumSize(50_000).build();
+      String dataset = "clue12a.sdm";
+      LocalRetrieval ret = new LocalRetrieval("/mnt/scratch3/jfoley/"+dataset+".galago");
+      StringPooler.disable();
+      Cache<String, Document> docCache = Caffeine.<String,Document>newBuilder().maximumWeight(2_000_000).weigher((k,v) -> ((Document) v).terms.size()+1).build();
 
       Debouncer msg = new Debouncer();
       try (PrintWriter rawSnippet = IO.openPrintWriter("/mnt/scratch3/jfoley/snippets/"+dataset+".rawsnippets.tsv.gz")) {
@@ -246,16 +248,9 @@ public class TimeDocSetPull {
             // highly-robust specific for now...
             String rawText =
                 StrUtil.compactSpaces(
-                    StrUtil.transformBetween(
                         StrUtil.transformBetween(
                             doc.text.substring(rawStart, rawEnd), Pattern.compile("<!--"), Pattern.compile("-->"), (input) -> " ")
-                        , Pattern.compile("</?"), Pattern.compile(">"), (input) -> " "))
-                    .replaceAll("&hyph;", "-")
-                    .replaceAll("&mdash;", "-")
-                    .replaceAll("&ndash;", "-")
-                    .replaceAll("&amp;", "&")
-                    .replaceAll("&lt;", "<")
-                    .replaceAll("&gt;", ">");
+                        );
 
             if(msg.ready()) {
               System.err.println(qid + ", " + docId + ", " + begin + ", " + end);
