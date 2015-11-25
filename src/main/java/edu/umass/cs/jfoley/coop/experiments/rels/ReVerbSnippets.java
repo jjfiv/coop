@@ -2,6 +2,7 @@ package edu.umass.cs.jfoley.coop.experiments.rels;
 
 import ciir.jfoley.chai.collections.TopKHeap;
 import ciir.jfoley.chai.io.LinesIterable;
+import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.time.Debouncer;
 import edu.washington.cs.knowitall.extractor.HtmlSentenceExtractor;
 import edu.washington.cs.knowitall.extractor.ReVerbExtractor;
@@ -10,10 +11,14 @@ import edu.washington.cs.knowitall.extractor.conf.ReVerbOpenNlpConfFunction;
 import edu.washington.cs.knowitall.nlp.ChunkedSentence;
 import edu.washington.cs.knowitall.nlp.OpenNlpSentenceChunker;
 import edu.washington.cs.knowitall.nlp.extraction.ChunkedBinaryExtraction;
+import org.lemurproject.galago.core.eval.EvalDoc;
+import org.lemurproject.galago.core.eval.QueryResults;
+import org.lemurproject.galago.core.eval.QuerySetResults;
 import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -24,10 +29,15 @@ public class ReVerbSnippets {
   public static class ReVerbExtraction implements Comparable<ReVerbExtraction> {
     final double confidence;
     final ChunkedBinaryExtraction extraction;
+    final double docScore;
+    private final double score;
 
-    public ReVerbExtraction(double confidence, ChunkedBinaryExtraction extraction) {
+    public ReVerbExtraction(double docScore, double confidence, ChunkedBinaryExtraction extraction) {
+      this.docScore = docScore;
       this.confidence = confidence;
       this.extraction = extraction;
+
+      this.score = docScore + Math.log(confidence);
     }
 
     public String getSubject() {
@@ -60,12 +70,12 @@ public class ReVerbSnippets {
 
     @Override
     public String toString() {
-      return String.format("%1.3f ``%s`` ``%s`` ``%s``", confidence, getSubject(), getRelation(), getObject());
+      return String.format("%1.3f:%1.3f ``%s`` ``%s`` ``%s``", confidence,docScore, getSubject(), getRelation(), getObject());
     }
 
     @Override
     public int compareTo(@Nonnull ReVerbExtraction o) {
-      return Double.compare(confidence, o.confidence);
+      return Double.compare(score, o.score);
     }
   }
 
@@ -79,12 +89,15 @@ public class ReVerbSnippets {
 
     ReVerbExtractor reverb = new ReVerbExtractor();
 
+    QuerySetResults qresults = new QuerySetResults("/mnt/scratch3/jfoley/snippets/"+dataset+".sdm.trecrun");
+
     ConfidenceFunction confFunc = //(ignored) -> 1.0;
         new ReVerbOpenNlpConfFunction();
 
     int K = 50;
     Debouncer msg = new Debouncer();
     Map<String, TopKHeap<ReVerbExtraction>> topExtr = new TreeMap<>();
+    Map<String, StreamingStats> scoreStatsByQuery = new HashMap<>();
 
     try (LinesIterable snippetLines = LinesIterable.fromFile("/mnt/scratch3/jfoley/snippets/" + dataset + ".rawsnippets.tsv.gz")) {
       for (String snippetLine : snippetLines) {
@@ -96,6 +109,20 @@ public class ReVerbSnippets {
           System.err.println(qid+" "+docId);
         }
 
+        QueryResults data = qresults.get(qid);
+
+        // compute stats for this query if not done so already:
+        StreamingStats stats = scoreStatsByQuery.computeIfAbsent(qid, (ignored) -> {
+          StreamingStats statsBuilder = new StreamingStats();
+          for (EvalDoc evalDoc : data) {
+            statsBuilder.push(evalDoc.getScore());
+          }
+          return statsBuilder;
+        });
+
+        // collect the document score for passages in this document:
+        double documentScore = data.stream().filter((x) -> x.getName().equals(docId)).findAny().map(EvalDoc::getScore).orElse(stats.getMin());
+
         TopKHeap<ReVerbExtraction> queryExtractions = topExtr.computeIfAbsent(qid, ignored -> new TopKHeap<>(K));
 
         for (String sentence : sentenceExtractor.extract(rawText)) {
@@ -103,7 +130,7 @@ public class ReVerbSnippets {
           ChunkedSentence sent = chunker.chunkSentence(sentence);
           for (ChunkedBinaryExtraction extr : reverb.extract(sent)) {
             double conf = confFunc.getConf(extr);
-            queryExtractions.add(new ReVerbExtraction(conf, extr));
+            queryExtractions.add(new ReVerbExtraction(documentScore, conf, extr));
           }
         }
         //if(snippetLines.getLineNumber()>10) break;
