@@ -7,8 +7,16 @@ import ciir.jfoley.chai.string.StrUtil;
 import ciir.jfoley.chai.web.WebServer;
 import ciir.jfoley.chai.web.json.JSONAPI;
 import ciir.jfoley.chai.web.json.JSONMethod;
+import edu.washington.cs.knowitall.extractor.HtmlSentenceExtractor;
+import edu.washington.cs.knowitall.extractor.ReVerbExtractor;
+import edu.washington.cs.knowitall.extractor.conf.ConfidenceFunction;
+import edu.washington.cs.knowitall.extractor.conf.ReVerbOpenNlpConfFunction;
+import edu.washington.cs.knowitall.nlp.ChunkedSentence;
+import edu.washington.cs.knowitall.nlp.OpenNlpSentenceChunker;
+import edu.washington.cs.knowitall.nlp.extraction.ChunkedBinaryExtraction;
 import org.lemurproject.galago.core.eval.EvalDoc;
 import org.lemurproject.galago.core.eval.QuerySetResults;
+import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.utility.Parameters;
 
 import java.io.IOException;
@@ -88,11 +96,40 @@ public class SnippetServer {
       return outp;
     });
 
+    // Looks on the classpath for the default model files.
+    HtmlSentenceExtractor sentenceExtractor = new HtmlSentenceExtractor();
+    OpenNlpSentenceChunker chunker = new OpenNlpSentenceChunker();
+    ReVerbExtractor reverb = new ReVerbExtractor();
+    ConfidenceFunction confFunc = new ReVerbOpenNlpConfFunction();
+
     methods.put("/snippets", (p) -> {
       String qid = p.getAsString("qid");
       int offset = p.get("offset", 0);
       int pageSize = p.get("size", 30);
-      return Parameters.parseArray("snippets", ListFns.map(ListFns.slice(snippetsByQuery.get(qid), offset, offset+pageSize), QuerySnippet::toJSON));
+      List<Parameters> snippets = new ArrayList<>();
+
+      TagTokenizer tok = new TagTokenizer();
+      for (QuerySnippet snippet : ListFns.slice(snippetsByQuery.get(qid), offset, offset + pageSize)) {
+        Parameters sp = snippet.toJSON();
+        sp.put("terms", tok.tokenize(sp.getString("text")).terms);
+
+        List<Parameters> extractions = new ArrayList<>();
+        for (String sentence : sentenceExtractor.extract(sp.getString("text"))) {
+          //System.err.println("\t"+sentence);
+          ChunkedSentence sent = chunker.chunkSentence(sentence);
+          for (ChunkedBinaryExtraction extr : reverb.extract(sent)) {
+            Parameters extP = Parameters.create();
+            extP.put("confidence", confFunc.getConf(extr));
+            extP.put("subject", extr.getArgument1().getText());
+            extP.put("relation", extr.getRelation().getText());
+            extP.put("object", extr.getArgument2().getText());
+            extractions.add(extP);
+          }
+        }
+        sp.put("reverb_extractions", extractions);
+        snippets.add(sp);
+      }
+      return Parameters.parseArray("snippets", snippets);
     });
 
     WebServer start = JSONAPI.start(1234, methods);
