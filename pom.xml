@@ -104,14 +104,20 @@
     </dependency>
 
     <dependency>
-      <groupId>edu.umass.cs.ciir.jfoley</groupId>
-      <artifactId>chai-core</artifactId>
-      <version>${chaiVersion}</version>
+      <groupId>net.sf.trove4j</groupId>
+      <artifactId>trove4j</artifactId>
+      <version>3.0.3</version>
     </dependency>
 
     <dependency>
       <groupId>edu.umass.cs.ciir.jfoley</groupId>
       <artifactId>chai-xml</artifactId>
+      <version>${chaiVersion}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>edu.umass.cs.ciir.jfoley</groupId>
+      <artifactId>chai-web</artifactId>
       <version>${chaiVersion}</version>
     </dependency>
 

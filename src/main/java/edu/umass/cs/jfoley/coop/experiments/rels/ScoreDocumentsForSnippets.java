@@ -40,8 +40,8 @@ public class ScoreDocumentsForSnippets {
 
   public static void main(String[] args) throws IOException {
     //String dataset = "clue12a.sdm";
-    //String dataset = "robust";
-    String dataset = "clue12a.sdm";
+    String dataset = "robust";
+    //String dataset = "clue12a.sdm";
     LocalRetrieval ret = new LocalRetrieval("/mnt/scratch3/jfoley/"+dataset+".galago");
 
     Map<String, String> queries = loadQueries(dataset);
@@ -71,6 +71,7 @@ public class ScoreDocumentsForSnippets {
         }
         Parameters qp = Parameters.create();
         qp.put("working", ws);
+        qp.put("requested", ws.size());
 
         System.err.println("# "+qid+" " +msg.estimate(i++, workingSetByQuery.size())+" ND:"+ws.size());
         for (ScoredDocument scoredDocument : ret.transformAndExecuteQuery(sdm, qp).scoredDocuments) {
