@@ -18,8 +18,8 @@ import java.util.*;
  * @author jfoley
  */
 public class ScoreDocumentsForSnippets {
-  static Map<String,String> loadQueries(String dataset) throws IOException {
-    Map<String, String> queries = new HashMap<>();
+  public static Map<String,String> loadQueries(String dataset) throws IOException {
+    Map<String, String> queries = new TreeMap<>();
     switch (dataset.toLowerCase()) {
       case "robust":
         for (String tsvLine : LinesIterable.fromFile("/home/jfoley/code/queries/robust04/rob04.titles.tsv").slurp()) {

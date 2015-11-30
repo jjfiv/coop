@@ -265,9 +265,11 @@ public class IntCoopIndex implements CoopIndex {
   }
 
 
+  public TermPositionsIndex getPositionsIndex() {
+    return positionsIndex;
+  }
   @Override
   public TermPositionsIndex getPositionsIndex(String termKind) {
-    if(!termKind.equals("lemmas")) return null;
     return positionsIndex;
   }
 
