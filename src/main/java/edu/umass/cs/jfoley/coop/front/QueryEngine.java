@@ -76,6 +76,16 @@ public class QueryEngine {
         output.process(new edu.umass.cs.jfoley.coop.querying.eval.DocumentResult<>(doc, position));
       }
     }
+
+    public int count(int doc, ArrayList<PostingMover<PositionsList>> iters) {
+      for (int i = 0; i < termIdMapping.size(); i++) {
+        int trueTerm = termIdMapping.getQuick(i);
+        PostingMover<PositionsList> mover = iters.get(trueTerm);
+        PositionsList pl = mover.getPosting(doc);
+        posIters.set(i, pl.getSpanIterator());
+      }
+      return OrderedWindow.countIter(posIters, 1);
+    }
   }
 
   interface MoverNode {

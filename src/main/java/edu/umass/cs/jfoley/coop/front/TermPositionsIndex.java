@@ -141,6 +141,40 @@ public class TermPositionsIndex implements QueryEngine.QueryEvaluationContext {
     return output;
   }
 
+  // as fast as possible:
+  public int countPhrase(IntList queryIds) throws IOException {
+    int output = 0;
+
+    QueryEngine.QueryRepr repr = new QueryEngine.QueryRepr();
+    QueryEngine.PhraseNode phrase = new QueryEngine.PhraseNode(queryIds, repr);
+
+    System.out.println("query: "+queryIds);
+    System.out.println("unique: "+repr.getUniqueTerms());
+    System.out.println("mapping: "+phrase.termIdMapping);
+
+    if(queryIds.size() == 0) {
+      return output;
+    }
+    if(queryIds.size() == 1) {
+      PostingMover<PositionsList> only = IterableFns.first(repr.getMovers(this));
+      for(only.start(); !only.isDone(); only.next()) {
+        int doc = only.currentKey();
+        PositionsList positions = only.getPosting(doc);
+        output += positions.size();
+      }
+      return output;
+    }
+
+    ArrayList<PostingMover<PositionsList>> iters = repr.getMovers(this);
+    AllOfMover<?> andMover = new AllOfMover<>(iters);
+
+    for(andMover.start(); !andMover.isDone(); andMover.next()) {
+      int doc = andMover.currentKey();
+      output += phrase.count(doc, iters);
+    }
+    return output;
+  }
+
   public CoopTokenizer getTokenizer() {
     return tokenizer;
   }
