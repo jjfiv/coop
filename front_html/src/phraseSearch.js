@@ -59,6 +59,7 @@ class PhraseSearchInterface extends ReactSingleAjax {
         let scoreTerms = this.state.scoreTerms;
         let findEntities = this.state.findEntities;
 
+        let findPhraseMethod = {"EvaluatePhrase": "Phrase Match", "EvaluateBagOfWords": "Bag Match"};
         return <UIWindow title="Phrase Search Interface">
             <label>Query
                 <input
@@ -69,7 +70,8 @@ class PhraseSearchInterface extends ReactSingleAjax {
                     onKeyPress={(evt) => { if(evt.which == 13) this.onFind(evt); }}
                     /></label>
 
-            <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(x) => this.setState({termKind: x})} />
+            <SelectWidget opts={findPhraseMethod} selected={this.state.method} onChange={method => this.setState({method})} />
+            <SelectWidget opts={TermKindOpts} selected={this.state.termKind} onChange={(termKind) => this.setState({termKind})} />
             <div>
                 <label>
                     <input type="checkbox"

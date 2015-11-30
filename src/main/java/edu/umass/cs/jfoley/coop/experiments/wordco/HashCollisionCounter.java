@@ -31,7 +31,7 @@ public class HashCollisionCounter {
     for (String key : target.getTermVocabulary().values()) {
       int hash = key.hashCode();
       hashToNumKeys.adjustOrPutValue(hash, 1, 1);
-      long uhash = sjhHash.hash(key) & 0xffffffffL;
+      long uhash = (sjhHash.hash(key)) & 0xffffffffL;
       uhashToNumKeys.adjustOrPutValue(uhash, 1, 1);
       processed++;
       if(msg.ready()) {
