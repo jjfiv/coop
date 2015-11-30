@@ -128,6 +128,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.lemurproject.galago</groupId>
+      <artifactId>contrib</artifactId>
+      <version>${galagoVersion}</version>
+    </dependency>
+
+    <dependency>
       <groupId>edu.stanford.nlp</groupId>
       <artifactId>stanford-corenlp</artifactId>
       <version>${nlpVersion}</version>

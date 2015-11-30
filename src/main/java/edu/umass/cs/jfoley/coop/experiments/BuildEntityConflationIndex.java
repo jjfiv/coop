@@ -29,9 +29,10 @@ import static edu.umass.cs.jfoley.coop.bills.IntCoopIndex.parseDBPediaTitle;
 public class BuildEntityConflationIndex {
   public static void main(String[] args) throws IOException {
     //IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/clue12a.sdm.ints"));
-    IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/inex-page-djvu.ints"));
+    //IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch/jfoley/inex-page-djvu.ints"));
+    IntCoopIndex target = new IntCoopIndex(Directory.Read("/mnt/scratch3/jfoley/dbpedia.ints"));
     //IntCoopIndex target = new IntCoopIndex(Directory.Read("robust.ints"));
-    IntCoopIndex index = new IntCoopIndex(Directory.Read("dbpedia.ints"));
+    IntCoopIndex index = new IntCoopIndex(Directory.Read("/mnt/scratch3/jfoley/dbpedia.ints"));
 
     int N = 10;
 

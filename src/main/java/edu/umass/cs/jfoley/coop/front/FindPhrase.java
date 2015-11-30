@@ -33,7 +33,7 @@ public class FindPhrase extends CoopIndexServerFn {
   protected FindPhrase(CoopIndex index) throws IOException {
     super(index);
     this.dbpedia = null;
-    this.dbpedia = new IntCoopIndex(new Directory("dbpedia.ints"));
+    this.dbpedia = new IntCoopIndex(new Directory("/mnt/scratch3/jfoley/dbpedia.ints"));
     //if(!indexedEntities) {
       //this.dbpediaFinder = dbpedia.loadPhraseDetector(20, (IntCoopIndex) index);
     //}

@@ -75,6 +75,7 @@ public class RobustEnd2End {
 
         Parameters ewqp = Parameters.create();
         ewqp.put("working", entities);
+        ewqp.put("requested", entities.size());
         ewqp.put("warnMissingDocuments", false);
         Map<String, Double> scoredEntities = jeffWiki.transformAndExecuteQuery(sdmQuery, ewqp).asDocumentFeatures();
 

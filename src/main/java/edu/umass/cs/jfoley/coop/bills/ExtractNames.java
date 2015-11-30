@@ -13,8 +13,8 @@ import java.io.IOException;
  */
 public class ExtractNames {
   public static void main(String[] args) throws IOException {
-    IntCoopIndex target = new IntCoopIndex(new Directory("/mnt/scratch/jfoley/inex-page-djvu.ints"));
-    IntCoopIndex index = new IntCoopIndex(new Directory("dbpedia.ints"));
+    IntCoopIndex target = new IntCoopIndex(new Directory("/mnt/scratch3/jfoley/dbpedia.ints"));
+    IntCoopIndex index = new IntCoopIndex(new Directory("/mnt/scratch3/jfoley/dbpedia.ints"));
 
     int N = 10;
     PhraseDetector detector = index.loadPhraseDetector(N, target);
