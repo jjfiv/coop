@@ -77,18 +77,21 @@ public class PassagePMIPhraseExpansion {
         int queryFrequency = hits.size();
         NearbyTermFinder termFinder = new NearbyTermFinder(target, argp, info, phraseWidth);
 
+        //TIntIntHashMap termProxCounts = termFinder.termCounts(hits);
+        //PMITermScorer termScorer = new PMITermScorer(index, minTermFrequency, queryFrequency, index.getCollectionLength());
+
+        //IntList interestingUnigrams = new IntList(termScorer.scoreTerms(termProxCounts, 50).stream().mapToInt(x -> x.term).toArray());
+
         // collect bigrams:
         TLongIntHashMap bigramPhraseCounts = new TLongIntHashMap();
         for (Pair<TermSlice, IntList> regions : termFinder.pullSlicesForTermScoring(termFinder.hitsToSlices(hits))) {
           IntList termV = regions.right;
-          for (int i = 0; i < termV.size(); i++) {
+          for (int i = 0; i < termV.size()-1; i++) {
             int lhs = termV.getQuick(i);
-            for (int j = i+1; j < termV.size(); j++) {
-              int rhs = termV.getQuick(j);
-              if(lhs == rhs) continue;
-              long key = IntCorpusSDMIndex.Bigram.toLong(lhs, rhs);
-              bigramPhraseCounts.adjustOrPutValue(key, 1, 1);
-            }
+            int rhs = termV.getQuick(i+1);
+            if(lhs == rhs) continue;
+            long key = IntCorpusSDMIndex.Bigram.toLong(lhs, rhs);
+            bigramPhraseCounts.adjustOrPutValue(key, 1, 1);
           }
         }
 
@@ -119,8 +122,6 @@ public class PassagePMIPhraseExpansion {
           return true;
         });
 
-        //TIntIntHashMap termProxCounts = termFinder.termCounts(hits);
-        //PMITermScorer termScorer = new PMITermScorer(index, minTermFrequency, queryFrequency, index.getCollectionLength());
 
         IntList termIds = new IntList();
         for (PMITerm<IntList> topTerm : pmiTerms) {
@@ -149,6 +150,11 @@ public class PassagePMIPhraseExpansion {
         total.add(expansion);
         total.getNodeParameters().set("0", expansionWeight);
         total.getNodeParameters().set("1", (1.0 - expansionWeight));
+
+        // don't expand if nothing found:
+        if(expansion.isEmpty()) {
+          total = sdm;
+        }
 
         Parameters qp = Parameters.create();
         qp.put("workingSet", workingSet);
