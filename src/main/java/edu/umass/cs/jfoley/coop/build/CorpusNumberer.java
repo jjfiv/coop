@@ -1,7 +1,6 @@
-package edu.umass.cs.jfoley.coop.experiments;
+package edu.umass.cs.jfoley.coop.build;
 
 import ciir.jfoley.chai.IntMath;
-import ciir.jfoley.chai.collections.maps.StringIntHashMap;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.time.Debouncer;
@@ -42,11 +41,10 @@ public class CorpusNumberer {
     IdMaps.Writer<String> docNames; // index points to docOffsetWriter
     IdMaps.Writer<String> vocabulary;
 
-    int nextDocId = 0;
+    public int nextDocId = 0;
     // reserve zero just in case
     int nextTermId = 1;
     TObjectIntHashMap<String> memVocab;
-    StringIntHashMap fastVocab;
 
     public IntCorpusWriter(Directory output) throws IOException {
       corpusWriter = new FileSink(output.child("intCorpus"));
@@ -63,7 +61,6 @@ public class CorpusNumberer {
       );
 
       memVocab = new TObjectIntHashMap<>();
-      fastVocab = new StringIntHashMap(32);
     }
 
     public void process(Document gdoc) throws IOException {
@@ -91,27 +88,16 @@ public class CorpusNumberer {
     }
 
     public int getTermId(String term) throws IOException {
+      int tid = memVocab.get(term);
+      // allocate new term:
+      if (tid == memVocab.getNoEntryValue()) {
+        tid = nextTermId++;
 
-      if(fastVocab != null) {
-        return fastVocab.getOrAssign(term, (id) -> {
-          try {
-            vocabulary.put(id, term);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        });
-      } else {
-        int tid = memVocab.get(term);
-        // allocate new term:
-        if (tid == memVocab.getNoEntryValue()) {
-          tid = nextTermId++;
-
-          // add to memory and disk vocab:
-          memVocab.put(term, tid);
-          vocabulary.put(tid, term);
-        }
-        return tid;
+        // add to memory and disk vocab:
+        memVocab.put(term, tid);
+        vocabulary.put(tid, term);
       }
+      return tid;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.experiments;
+package edu.umass.cs.jfoley.coop.build.special;
 
 import ciir.jfoley.chai.collections.list.AChaiList;
 import ciir.jfoley.chai.io.IO;

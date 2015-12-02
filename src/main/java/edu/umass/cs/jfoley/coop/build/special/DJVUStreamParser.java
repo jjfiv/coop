@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.experiments;
+package edu.umass.cs.jfoley.coop.build.special;
 
 import org.lemurproject.galago.core.parse.Document;
 import org.lemurproject.galago.core.parse.DocumentStreamParser;

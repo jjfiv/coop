@@ -97,7 +97,7 @@ public class NewswireTiming2 {
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read("dbpedia.ints"));
     TagTokenizer tokenizer = new TagTokenizer();
     StringPooler.disable();
-    IdMaps.Reader<String> names = dbpedia.getNames();
+    IdMaps.IdReader<String> names = dbpedia.getNames();
     System.err.println("Total: " + names.size());
     int count = IntMath.fromLong(names.size());
     Debouncer msg = new Debouncer(500);

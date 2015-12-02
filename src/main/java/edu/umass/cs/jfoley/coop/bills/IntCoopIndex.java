@@ -49,7 +49,7 @@ public class IntCoopIndex implements CoopIndex {
   public static final String positionsFileName = "positions.waltz";
   public final Directory baseDir;
   final IntVocabBuilder.IntVocabReader corpus;
-  final IdMaps.Reader<String> names;
+  final IdMaps.IdReader<String> names;
   final IdMaps.IdReader<String> vocab;
   IOMap<Integer, PostingMover<Integer>> counts;
   IOMap<Integer, PostingMover<PositionsList>> positions;
@@ -207,7 +207,12 @@ public class IntCoopIndex implements CoopIndex {
     tryBuildNames();
     tryBuildVocab();
     this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8);
-    this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8).getCached(200_000);
+
+    if(baseDir.child("hashVocab").exists()) {
+      this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8).getCached(200_000);
+    } else {
+      this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8).getCached(200_000);
+    }
 
     if(baseDir.child("counts.keys").exists()) {
       this.counts = IndexedSDMQuery.SDMPartReaders.countIndexCfg.openReader(baseDir, "counts");
@@ -414,7 +419,7 @@ public class IntCoopIndex implements CoopIndex {
     return detector;
   }
 
-  public IdMaps.Reader<String> getNames() {
+  public IdMaps.IdReader<String> getNames() {
     return names;
   }
 }

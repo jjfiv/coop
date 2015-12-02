@@ -58,7 +58,7 @@ public class FastSDM {
   }
   public static class Efficiency {
     public static void main(String[] args) throws Exception {
-      String op = "sdm2";
+      String op = "sdm";
       String queryset = "mq";
       int queryIter = 2;
 

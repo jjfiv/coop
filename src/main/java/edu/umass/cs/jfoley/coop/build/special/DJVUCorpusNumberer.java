@@ -1,4 +1,4 @@
-package edu.umass.cs.jfoley.coop.experiments;
+package edu.umass.cs.jfoley.coop.build.special;
 
 import ciir.jfoley.chai.collections.util.IterableFns;
 import ciir.jfoley.chai.io.Directory;
@@ -8,6 +8,7 @@ import ciir.jfoley.chai.io.inputs.InputStreamable;
 import ciir.jfoley.chai.math.StreamingStats;
 import ciir.jfoley.chai.time.Debouncer;
 import edu.umass.cs.ciir.waltz.coders.files.FileSink;
+import edu.umass.cs.jfoley.coop.build.CorpusNumberer;
 import gnu.trove.list.array.TShortArrayList;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.StringPooler;
