@@ -29,7 +29,6 @@ import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import edu.umass.cs.jfoley.coop.querying.TermSlice;
 import edu.umass.cs.jfoley.coop.tokenization.CoopTokenizer;
 import edu.umass.cs.jfoley.coop.tokenization.GalagoTokenizer;
-import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.parse.TagTokenizer;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
 import org.lemurproject.galago.utility.Parameters;
@@ -205,12 +204,12 @@ public class IntCoopIndex implements CoopIndex {
 
     this.corpus = new IntVocabBuilder.IntVocabReader(baseDir);
     tryBuildNames();
-    tryBuildVocab();
     this.names = GalagoIO.openIdMapsReader(baseDir.childPath("names"), FixedSize.ints, CharsetCoders.utf8);
 
     if(baseDir.child("hashVocab").exists()) {
-      this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8).getCached(200_000);
+      this.vocab = (new IdMaps.HashedReader<>(GalagoIO.openIOMap(baseDir, "hashVocab", FixedSize.ints, CharsetCoders.utf8))).getCached(200_000);
     } else {
+      tryBuildVocab();
       this.vocab = GalagoIO.openIdMapsReader(baseDir.childPath("vocab"), FixedSize.ints, CharsetCoders.utf8).getCached(200_000);
     }
 
@@ -372,13 +371,13 @@ public class IntCoopIndex implements CoopIndex {
     Debouncer msg = new Debouncer(500);
     PhraseDetector detector = new PhraseDetector(N);
 
-    long start = System.currentTimeMillis();
+    /*long start = System.currentTimeMillis();
     TObjectIntHashMap<String> vocabLookup = new TObjectIntHashMap<>(IntMath.fromLong(target.vocab.size()));
     for (Pair<Integer, String> kv : target.vocab.items()) {
       vocabLookup.put(StrUtil.collapseSpecialMarks(kv.getValue()), kv.getKey());
     }
     long end = System.currentTimeMillis();
-    System.err.println("# preload vocab: "+(end-start)+"ms.");
+    System.err.println("# preload vocab: "+(end-start)+"ms.");*/
     int docNameIndex = 0;
     int ND = corpus.numberOfDocuments();
     for (Pair<Integer,String> pair : names.items()) {
@@ -393,8 +392,8 @@ public class IntCoopIndex implements CoopIndex {
       if(size == 0 || size > N) continue;
       IntList qIds = new IntList(query.size());
       for (String str : query) {
-        int tid = vocabLookup.get(str);
-        if(tid == vocabLookup.getNoEntryValue()) {
+        Integer tid = target.vocab.getReverse(str);
+        if(tid == null) {
           qIds = null;
           break;
         }
