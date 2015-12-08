@@ -50,13 +50,20 @@ public class ExtractNames234 {
 
   public static class CorpusProcessor {
     public final IntVocabBuilder.IntVocabReader corpus;
-    int ND;
+    public int ND;
     AtomicInteger completed = new AtomicInteger(0);
     AtomicLong termsCompleted = new AtomicLong(0);
 
     public CorpusProcessor(IntVocabBuilder.IntVocabReader corpus) throws IOException {
       this.corpus = corpus;
       this.ND = corpus.numberOfDocuments();
+    }
+
+    public int getCompleted() {
+      return completed.get();
+    }
+    public long getTermsCompleted() {
+      return termsCompleted.get();
     }
 
     public interface DocumentListener {

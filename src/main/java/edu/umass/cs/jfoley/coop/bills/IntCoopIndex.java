@@ -20,6 +20,7 @@ import edu.umass.cs.ciir.waltz.postings.positions.PositionsList;
 import edu.umass.cs.ciir.waltz.sys.positions.PositionsIndexFile;
 import edu.umass.cs.jfoley.coop.document.CoopDoc;
 import edu.umass.cs.jfoley.coop.experiments.IndexedSDMQuery;
+import edu.umass.cs.jfoley.coop.experiments.synthesis.Tagger;
 import edu.umass.cs.jfoley.coop.front.CoopIndex;
 import edu.umass.cs.jfoley.coop.front.PhrasePositionsIndex;
 import edu.umass.cs.jfoley.coop.front.QueryEngine;
@@ -50,6 +51,7 @@ public class IntCoopIndex implements CoopIndex {
   final IntVocabBuilder.IntVocabReader corpus;
   final IdMaps.IdReader<String> names;
   final IdMaps.IdReader<String> vocab;
+  public IOMap<Integer, PostingMover<Integer>> entCounts;
   IOMap<Integer, PostingMover<Integer>> counts;
   IOMap<Integer, PostingMover<PositionsList>> positions;
 
@@ -112,6 +114,13 @@ public class IntCoopIndex implements CoopIndex {
 
     return sorted;
   }
+
+  public QueryEngine.QCNode<Integer> getEntityCounts(int lhs) throws IOException {
+    PostingMover<Integer> mover = this.entCounts.get(lhs);
+    if(mover == null) return null;
+    return new QueryEngine.IndexedCountsNode(mover);
+  }
+
   public static Parameters searchQL(IntCoopIndex target, Parameters p) throws IOException {
     TermPositionsIndex index = target.getPositionsIndex("lemmas");
 
@@ -215,6 +224,10 @@ public class IntCoopIndex implements CoopIndex {
 
     if(baseDir.child("counts.keys").exists()) {
       this.counts = IndexedSDMQuery.SDMPartReaders.countIndexCfg.openReader(baseDir, "counts");
+    }
+
+    if(baseDir.child("entcounts.keys").exists()) {
+      this.entCounts = Tagger.phraseIdToCounts.openReader(baseDir, "entcounts");
     }
 
     if(baseDir.child(positionsFileName+".keys").exists()) {
