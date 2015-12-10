@@ -23,6 +23,7 @@ import java.util.TreeMap;
  */
 public class RobustFDM {
   public static void main(String[] args) throws Exception {
+    Parameters argp = Parameters.parseArgs(args);
     LocalRetrieval ret = new LocalRetrieval("/mnt/scratch3/jfoley/robust.galago");
 
     Map<String, String> qidToDesc = new TreeMap<>();
@@ -31,7 +32,7 @@ public class RobustFDM {
       qidToDesc.put(data[0].trim(), data[1].trim());
     }
 
-    String model = "fdm";
+    String model = argp.get("model", "combine");
 
     long maxDocument = ret.getIndex().getLengthsIterator().totalEntries();
 
@@ -43,7 +44,10 @@ public class RobustFDM {
       System.err.println(qid);
       try (PrintWriter scores = IO.openPrintWriter("robust."+qid+"."+model+".tsv")) {
         String query = kv.getValue();
-        List<String> tokens = tok.tokenize(query).terms;
+        List<String> tokens;
+        synchronized(tok) {
+          tokens = tok.tokenize(query).terms;
+        }
         Node qNode = new Node(model);
         qNode.addTerms(tokens);
 
@@ -53,10 +57,16 @@ public class RobustFDM {
         ScoreIterator iterator = (ScoreIterator) ret.createIterator(qp, xqNode);
         Debouncer msg = new Debouncer();
         iterator.forEach(ctx -> {
-          if(msg.ready()) {
-            System.err.println("\t"+msg.estimate(ctx.document, maxDocument));
+          try {
+            iterator.syncTo(ctx.document);
+            double score = iterator.score(ctx);
+            if("301".equals(qid) && ctx.document == 105783) {
+              System.err.println(qid+"\tFR940425-2-00078\t"+score);
+            }
+            scores.println(ctx.document+"\t"+score);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
           }
-          scores.println(ctx.document+"\t"+iterator.score(ctx));
         });
       } catch (Exception e) {
         throw new RuntimeException(e);
