@@ -137,7 +137,7 @@ public class RobustLCE {
                 double lenmu = lengths.getQuick(docIndex) + expansionMu;
                 double count = docVs.get(docIndex).get(tid);
                 double unigramScore = (count + bgmu) / lenmu;
-                scoreSum += sdmScore + Math.log(unigramScore) + termDiscount;
+                scoreSum += Math.exp(sdmScore + Math.log(unigramScore) + termDiscount);
               }
               scoredTerms.offer(new TopKHeap.Weighted<>(scoreSum, tid));
             }
