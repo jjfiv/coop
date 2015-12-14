@@ -61,7 +61,7 @@ public class EntityRelevanceModel {
 
     HashMap<String, Results> resultsForQuery = new HashMap<>();
 
-    for (String method : Arrays.asList("pmi", "binary-pmi", "set-pmi", "rm", "and-rm", "and-lce", "lce", "bayes-lce")) {
+    for (String method : Arrays.asList("binary-pmi", "pmi", "set-pmi", "rm", "and-rm", "and-lce", "lce", "bayes-lce")) {
       long start, end;
       try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", method+"."+dataset + ".n"+fbDocs+".trecrun"))) {
         for (EntityJudgedQuery query : queries) {
@@ -114,12 +114,31 @@ public class EntityRelevanceModel {
           end = System.currentTimeMillis();
           System.out.println("Pull efrequencies: " + (end - start) + "ms.");
 
+          TIntObjectHashMap<List<String>> mentionIdToStringNames = new TIntObjectHashMap<>();
+          for (int eid : allEntities) {
+            IntList ids = ambiguous.get(eid);
+            if (ids == null) {
+              ids = new IntList();
+              ids.push(eid);
+            }
+            List<String> names = new ArrayList<>();
+            for (String dbpediaName: dbpedia.getNames().getForwardMap(ids).values()) {
+              List<String> terms = tok.tokenize(IntCoopIndex.parseDBPediaTitle(dbpediaName)).terms;
+              if(terms.size() == 1) {
+                if(stopwords.contains(terms.get(0))) break;
+              }
+              names.add(dbpediaName);
+            }
+            if(names.isEmpty()) continue;
+            mentionIdToStringNames.put(eid, names);
+          }
           double clen = eIndex.getCollectionLength();
           double numDocs = eIndex.getNumDocuments();
 
-          TopKHeap<TopKHeap.Weighted<Integer>> topEntities = new TopKHeap<>(1000);
+          TopKHeap<ScoredDocument> topEntities = new TopKHeap<>(1000);
 
-          for (int eid : allEntities) {
+          mentionIdToStringNames.forEachEntry((eid, names) -> {
+            Map<String, Double> scores = new HashMap<>();
             double score = 0;
             int relDocFreq = 0;
             int relDocCount = 0;
@@ -139,6 +158,7 @@ public class EntityRelevanceModel {
                   // relevance model:
                   // mAP = .02
                   score += docProb * (count / length);
+                  assert(Double.isFinite(score));
                   break;
                 case "lce":
                   // LCE:
@@ -146,18 +166,22 @@ public class EntityRelevanceModel {
                   //score += docProb * (count / length) / (cf / clen);
                   double odds = (clen * count) / (length * cf);
                   score += docProb * odds;
+                  assert(Double.isFinite(score));
                   break;
                 case "and-rm":
                   score += Math.log(docProb) + Math.log(count / length);
+                  assert(Double.isFinite(score));
                   break;
                 case "and-lce":
                   // mAP = .09
                   score += Math.log(docProb) + Math.log(count / length) - Math.log(cf / clen);
+                  assert(Double.isFinite(score));
                   break;
                 case "pmi":
                   // reduced-PMI:
                   // mAP = .03
                   score += Math.log(count / length) - Math.log(cf / clen); // leaving out constant p(q) which would be in denominator
+                  assert(Double.isFinite(score));
                   break;
                 case "binary-pmi":
                 case "set-pmi":
@@ -172,6 +196,7 @@ public class EntityRelevanceModel {
                     // LCE:
                     //score += docProb * (count / length) / (cf / clen);
                     score += docProb * Math.exp(logOdds);
+                    assert(Double.isFinite(score));
                   }
                   break;
                 default:
@@ -179,49 +204,49 @@ public class EntityRelevanceModel {
               }
             }
 
+
             switch (method) {
               case "binary-pmi": {
-                double probEQ = relDocFreq / fbDocs;
+                if(relDocFreq == 0 || eIndex.getDF(eid) == 0) return true;
+                double probEQ = relDocFreq / (double) fbDocs;
                 double probE = eIndex.getDF(eid) / numDocs;
                 //double probQ = fbDocs / numDocs;
                 score = Math.log(probEQ) - Math.log(probE); // - Math.log(probQ);
+                assert(probEQ > 0) : Parameters.parseArray("probEQ", probEQ, "relDocFreq", relDocFreq, "relDocCount", topDocIds.size(), "fbDocs", fbDocs).toString();
+                assert(probE > 0);
+                assert(Double.isFinite(Math.log(probE)));
+                assert(Double.isFinite(Math.log(probEQ)));
+                assert(Double.isFinite(Math.log(probE)));
+                assert(Double.isFinite(score));
               } break;
               case "set-pmi": {
-                double probEQ = relDocCount / relDocLength;
+                if(relDocCount == 0 || freq.get(eid) == 0) return true;
+                double probEQ = relDocCount / (double) relDocLength;
                 double probE = freq.get(eid) / clen;
-                double probQ = relDocLength / clen;
-                score = Math.log(probEQ) - Math.log(probE) - Math.log(probQ);
+                //double probQ = relDocLength / clen;
+                score = Math.log(probEQ) - Math.log(probE); // - Math.log(probQ);
+                assert(Double.isFinite(score));
               } break;
               default: break;
             }
 
-            if(Double.isFinite(score)) {
-              topEntities.offer(new TopKHeap.Weighted<>(score, eid));
-            }
-          }
-
-          List<ScoredDocument> scoredEntities = new ArrayList<>();
-          for (TopKHeap.Weighted<Integer> wteid : topEntities.getSorted()) {
-            int eid = wteid.getKey();
-            double score = wteid.getValue();
-
-            IntList ids = ambiguous.get(eid);
-            if (ids == null) {
-              ids = new IntList();
-              ids.push(eid);
-            }
-            for (String dbpediaName: dbpedia.getNames().getForwardMap(ids).values()) {
-              List<String> terms = tok.tokenize(IntCoopIndex.parseDBPediaTitle(dbpediaName)).terms;
-              if(terms.size() == 1) {
-                if(stopwords.contains(terms.get(0))) continue;
+            if(scores.isEmpty()) {
+              for (String name : names) {
+                topEntities.offer(new ScoredDocument(name, -1, score));
               }
-              scoredEntities.add(new ScoredDocument(dbpediaName, -1, score));
+            } else {
+              for (Map.Entry<String, Double> kv : scores.entrySet()) {
+                topEntities.offer(new ScoredDocument(kv.getKey(), -1, kv.getValue()));
+              }
             }
-          }
+
+            return true;
+          });
+
+          List<ScoredDocument> scoredEntities = topEntities.getSorted();
           Ranked.setRanksByScore(scoredEntities);
 
           for (ScoredDocument entity : scoredEntities) {
-            if(entity.rank > 1000) break;
             if(entity.rank < 4) {
               System.out.println("\t"+entity.documentName+" "+entity.score);
             }
