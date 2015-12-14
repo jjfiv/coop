@@ -22,6 +22,7 @@ public class PhrasePositionsIndex {
   final IdMaps.IdReader<IntList> phraseVocab;
   final IOMap<Integer, PostingMover<PositionsList>> positions;
   private final PhraseHitsReader phraseHits;
+  private final double collectionLength;
   HashMap<Integer, PositionsCountMetadata> pmeta;
 
   public PhrasePositionsIndex(PhraseHitsReader entities, IdMaps.IdReader<String> termVocab, IdMaps.Reader<IntList> phraseVocab, IOMap<Integer, PostingMover<PositionsList>> positions) throws IOException {
@@ -30,13 +31,21 @@ public class PhrasePositionsIndex {
     this.phraseVocab = phraseVocab;
     this.positions = positions;
 
+    double clen = 0;
     long start = System.currentTimeMillis();
     pmeta = new HashMap<>();
     for (Pair<Integer, PostingMover<PositionsList>> kv : this.positions.items()) {
-      pmeta.put(kv.getKey(), (PositionsCountMetadata) kv.getValue().getMetadata());
+      PositionsCountMetadata pcm = (PositionsCountMetadata) kv.getValue().getMetadata();
+      clen += pcm.totalCount;
+      pmeta.put(kv.getKey(), pcm);
     }
     long end = System.currentTimeMillis();
     System.out.println("Caching metadata: " + (end - start) + "ms.");
+    this.collectionLength = clen;
+  }
+
+  public double getCollectionLength() {
+    return collectionLength;
   }
 
   public PhraseHitsReader getPhraseHits() {
@@ -81,5 +90,13 @@ public class PhrasePositionsIndex {
       }
     }
     return cf;
+  }
+
+  public double getNumDocuments() {
+    return phraseHits.getDocumentHits().keyCount();
+  }
+
+  public double getDF(int eid) {
+    return pmeta.get(eid).totalDocuments();
   }
 }
