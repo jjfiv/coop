@@ -10,6 +10,7 @@ import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.entityco.ConvertEntityJudgmentData;
 import edu.umass.cs.jfoley.coop.entityco.EntityJudgedQuery;
+import edu.umass.cs.jfoley.coop.entityco.PMIRankingExperiment;
 import edu.umass.cs.jfoley.coop.front.PhrasePositionsIndex;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHit;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
@@ -59,28 +60,33 @@ public class EntityRelevanceModel {
 
     TagTokenizer tok = new TagTokenizer();
 
-    HashMap<String, Results> resultsForQuery = new HashMap<>();
+    // for mention->entity probs:
+    LocalRetrieval jeffWiki = PMIRankingExperiment.openJeffWiki(argp);
 
-    for (String method : Arrays.asList("binary-pmi", "pmi", "set-pmi", "rm", "and-rm", "and-lce", "lce", "bayes-lce")) {
+    HashMap<String, Results> resultsForQuery = new HashMap<>();
+    HashMap<String, Results> entityPriorResultsForQuery = new HashMap<>();
+
+    //for (String method : Arrays.asList("binary-pmi", "pmi", "set-pmi", "rm", "and-rm", "and-lce", "lce", "bayes-lce", "lce-prior")) {
+    for (String method : Arrays.asList("and-lce", "lce", "and-lce-prior", "lce-prior")) {
       long start, end;
       try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", method+"."+dataset + ".n"+fbDocs+".trecrun"))) {
         for (EntityJudgedQuery query : queries) {
           String qid = query.qid;
 
-          System.out.println(qid);
+          // generate query:
+          List<String> tokens = tok.tokenize(query.getText()).terms;
+          Node sdm = new Node("sdm");
+          sdm.addTerms(tokens);
+
+          System.out.println(qid+" "+tokens);
 
           Results res = resultsForQuery.computeIfAbsent(qid, missing -> {
-            List<String> tokens = tok.tokenize(query.getText()).terms;
-
-            Node sdm = new Node("sdm");
-            sdm.addTerms(tokens);
             Parameters qp = argp.clone();
             qp.put("requested", fbDocs);
             return galagoRet.transformAndExecuteQuery(sdm, qp); // mu, uniw, odw, uww
           });
 
           Map<String, Double> logstoposteriors = MapFns.mapKeys(RelevanceModel1.logstoposteriors(res.scoredDocuments), ScoredDocument::getName);
-
 
           TIntObjectHashMap<String> idToName = new TIntObjectHashMap<>();
           IntList topDocIds = new IntList();
@@ -115,6 +121,7 @@ public class EntityRelevanceModel {
           System.out.println("Pull efrequencies: " + (end - start) + "ms.");
 
           TIntObjectHashMap<List<String>> mentionIdToStringNames = new TIntObjectHashMap<>();
+          Set<String> allWikiEntities = new HashSet<>();
           for (int eid : allEntities) {
             IntList ids = ambiguous.get(eid);
             if (ids == null) {
@@ -130,12 +137,22 @@ public class EntityRelevanceModel {
               names.add(dbpediaName);
             }
             if(names.isEmpty()) continue;
+            allWikiEntities.addAll(names);
             mentionIdToStringNames.put(eid, names);
           }
           double clen = eIndex.getCollectionLength();
           double numDocs = eIndex.getNumDocuments();
 
           TopKHeap<ScoredDocument> topEntities = new TopKHeap<>(1000);
+
+          Results eRes = entityPriorResultsForQuery.computeIfAbsent(qid, missing -> {
+            Parameters eqp = Parameters.create();
+            eqp.put("working", new ArrayList<>(allWikiEntities));
+            eqp.put("warnMissingDocuments", false);
+            return jeffWiki.transformAndExecuteQuery(sdm, eqp);
+          });
+
+          Map<String, Double> ePosterior = MapFns.mapKeys(RelevanceModel1.logstoposteriors(eRes.scoredDocuments), ScoredDocument::getName);
 
           mentionIdToStringNames.forEachEntry((eid, names) -> {
             Map<String, Double> scores = new HashMap<>();
@@ -156,13 +173,11 @@ public class EntityRelevanceModel {
               switch (method) {
                 case "rm":
                   // relevance model:
-                  // mAP = .02
                   score += docProb * (count / length);
                   assert(Double.isFinite(score));
                   break;
                 case "lce":
                   // LCE:
-                  // mAP = .05
                   //score += docProb * (count / length) / (cf / clen);
                   double odds = (clen * count) / (length * cf);
                   score += docProb * odds;
@@ -173,13 +188,31 @@ public class EntityRelevanceModel {
                   assert(Double.isFinite(score));
                   break;
                 case "and-lce":
-                  // mAP = .09
                   score += Math.log(docProb) + Math.log(count / length) - Math.log(cf / clen);
                   assert(Double.isFinite(score));
                   break;
+                case "lce-prior": {
+                  for (String name : names) {
+                    Double namePosterior = ePosterior.get(name);
+                    if(namePosterior == null) continue;
+                    double nameScore = scores.computeIfAbsent(name, missing -> 0.0);
+                    nameScore += Math.exp(Math.log(docProb) + Math.log(count / length) - Math.log(cf / clen) + Math.log(namePosterior));
+                    assert (Double.isFinite(nameScore)) : "name: "+name;
+                    scores.put(name, nameScore);
+                  }
+                } break;
+                case "and-lce-prior": {
+                  for (String name : names) {
+                    Double namePosterior = ePosterior.get(name);
+                    if(namePosterior == null) continue;
+                    double nameScore = scores.computeIfAbsent(name, missing -> 0.0);
+                    nameScore += Math.log(docProb) + Math.log(count / length) - Math.log(cf / clen) + Math.log(namePosterior);
+                    assert (Double.isFinite(nameScore)) : "name: "+name;
+                    scores.put(name, nameScore);
+                  }
+                } break;
                 case "pmi":
                   // reduced-PMI:
-                  // mAP = .03
                   score += Math.log(count / length) - Math.log(cf / clen); // leaving out constant p(q) which would be in denominator
                   assert(Double.isFinite(score));
                   break;
@@ -190,7 +223,6 @@ public class EntityRelevanceModel {
                   break;
                 case "bayes-lce":
                   // filtered LCE:
-                  // mAP = .05
                   double logOdds = Math.log(count / length) - Math.log(cf / clen);
                   if(logOdds > 0) {
                     // LCE:
@@ -212,11 +244,6 @@ public class EntityRelevanceModel {
                 double probE = eIndex.getDF(eid) / numDocs;
                 //double probQ = fbDocs / numDocs;
                 score = Math.log(probEQ) - Math.log(probE); // - Math.log(probQ);
-                assert(probEQ > 0) : Parameters.parseArray("probEQ", probEQ, "relDocFreq", relDocFreq, "relDocCount", topDocIds.size(), "fbDocs", fbDocs).toString();
-                assert(probE > 0);
-                assert(Double.isFinite(Math.log(probE)));
-                assert(Double.isFinite(Math.log(probEQ)));
-                assert(Double.isFinite(Math.log(probE)));
                 assert(Double.isFinite(score));
               } break;
               case "set-pmi": {
@@ -247,9 +274,9 @@ public class EntityRelevanceModel {
           Ranked.setRanksByScore(scoredEntities);
 
           for (ScoredDocument entity : scoredEntities) {
-            if(entity.rank < 4) {
+            /*if(entity.rank < 4) {
               System.out.println("\t"+entity.documentName+" "+entity.score);
-            }
+            }*/
             trecrun.println(entity.toTRECformat(qid, "jfoley-entrm"));
           }
         }
