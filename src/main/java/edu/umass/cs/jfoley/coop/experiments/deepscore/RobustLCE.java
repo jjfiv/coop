@@ -52,7 +52,13 @@ public class RobustLCE {
 
     final int numTerms = 100;
     //int numDocuments = argp.get("numDocs", 25);
-    double expansionMu = argp.get("expansionMu", 1500);
+    double expansionMu = argp.get("expansionMu", 1000);
+
+   // oracle values for SDM from Huston and Croft "Parameters Learned in the Computation of Retrieval Models using Term Dependencies"
+    double mu = argp.get("mu", 885);
+    double uniw = argp.get("uniw", 0.86);
+    double odw = argp.get("uniw", 0.0786);
+    double uww = argp.get("uniw", 0.0612);
 
     TagTokenizer tok = new TagTokenizer();
     StringPooler.disable();
@@ -72,6 +78,12 @@ public class RobustLCE {
 
         Parameters qp = Parameters.create();
         qp.put("requested", 10000);
+        // general mu param
+        qp.put("mu", mu);
+        // sdm params
+        qp.put("uniw", uniw);
+        qp.put("odw", odw);
+        qp.put("uww", uww);
         Node xNode = ret.transformQuery(qNode, qp);
 
         Results res = ret.executeQuery(xNode, qp);
@@ -82,7 +94,7 @@ public class RobustLCE {
           workingSet.add(res.scoredDocuments.get(i).getName());
         }
 
-        Arrays.asList(10,25,50,100,150,200).parallelStream().forEach(numDocuments -> {
+        Arrays.asList(10,25,50,100).parallelStream().forEach(numDocuments -> {
           try {
             List<String> names = new ArrayList<>(numDocuments);
             DoubleList sdmScores = new DoubleList(numDocuments);
@@ -122,7 +134,7 @@ public class RobustLCE {
               return true;
             });
             System.err.println("\tTrying "+exciting.size()+" features for LCE!");
-            TopKHeap<TopKHeap.Weighted<Integer>> scoredTerms = new TopKHeap<>(numTerms);
+            TopKHeap<TopKHeap.Weighted<Integer>> scoredTerms = new TopKHeap<>(numTerms*2);
 
             for (int termIndex = 0; termIndex < exciting.size(); termIndex++) {
               int tid = exciting.getQuick(termIndex);
@@ -137,18 +149,18 @@ public class RobustLCE {
                 double lenmu = lengths.getQuick(docIndex) + expansionMu;
                 double count = docVs.get(docIndex).get(tid);
                 double unigramScore = (count + bgmu) / lenmu;
-                scoreSum += Math.exp(sdmScore + Math.log(unigramScore) + termDiscount);
+                scoreSum += sdmScore + Math.log(unigramScore) + termDiscount;
               }
               scoredTerms.offer(new TopKHeap.Weighted<>(scoreSum, tid));
             }
 
             List<TopKHeap.Weighted<Integer>> sorted = scoredTerms.getSorted();
 
-            Arrays.asList(1, 5, 10, 15, 20, 25, 30).parallelStream().forEach(depth -> {
+            Arrays.asList(60,70,80,90,100,150,200).parallelStream().forEach(depth -> {
               System.err.println("\t"+qid+" Eval depth: " + depth+" numDocs: "+numDocuments+" numCandidates: "+exciting.size());
               Node full = new Node("combine");
-              full.getNodeParameters().set("0", 0.7);
-              full.getNodeParameters().set("1", 0.3);
+              full.getNodeParameters().set("0", 0.25);
+              full.getNodeParameters().set("1", 0.75);
               Node combine = new Node("combine");
               full.addChild(qNode.clone());
               full.addChild(combine);
@@ -170,10 +182,15 @@ public class RobustLCE {
 
               Parameters fqp = Parameters.create();
               fqp.put("working", workingSet);
+              fqp.put("mu", mu);
+              // sdm params
+              fqp.put("uniw", uniw);
+              fqp.put("odw", odw);
+              fqp.put("uww", uww);
               Results fres = ret.transformAndExecuteQuery(full, fqp);
               PrintWriter pw = trecruns.computeIfAbsent(Pair.of(numDocuments, depth), missing -> {
                 try {
-                  return IO.openPrintWriter("robust.lce.n"+numDocuments+".x" + depth + ".trecrun");
+                  return IO.openPrintWriter("robust.llce.n"+numDocuments+".x" + depth + ".trecrun");
                 } catch (IOException e) {
                   throw new RuntimeException(e);
                 }
