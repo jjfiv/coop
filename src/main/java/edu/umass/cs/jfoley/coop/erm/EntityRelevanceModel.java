@@ -6,6 +6,7 @@ import ciir.jfoley.chai.collections.list.IntList;
 import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.Directory;
 import ciir.jfoley.chai.io.IO;
+import ciir.jfoley.chai.io.LinesIterable;
 import edu.umass.cs.ciir.waltz.coders.map.IOMap;
 import edu.umass.cs.jfoley.coop.bills.IntCoopIndex;
 import edu.umass.cs.jfoley.coop.entityco.ConvertEntityJudgmentData;
@@ -35,6 +36,23 @@ import java.util.*;
  * @author jfoley
  */
 public class EntityRelevanceModel {
+
+  public static HashMap<String, Double> staticPrior(String fileName) {
+    HashMap<String, Double> vals = new HashMap<>();
+
+    try (LinesIterable lines = LinesIterable.fromFile(fileName)) {
+      for (String line : lines) {
+        String[] data = line.split("\t");
+        String id = data[0];
+        double score = Double.parseDouble(data[1]);
+        vals.put(id, score);
+      }
+    } catch (IOException e) {
+      throw new IllegalArgumentException(e);
+    }
+    return vals;
+  }
+
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
 
@@ -45,6 +63,10 @@ public class EntityRelevanceModel {
     Set<String> stopwords = WordLists.getWordListOrDie("inquery");
 
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
+
+    Map<String, Map<String, Double>> staticPriors = new HashMap<>();
+    staticPriors.put("pagerank", staticPrior("wikipagerank.tsv.gz"));
+    staticPriors.put("facc", staticPrior("facc_09_ecounts.tsv.gz"));
 
     assert(queries.size() > 0);
 
@@ -67,7 +89,8 @@ public class EntityRelevanceModel {
     HashMap<String, Results> entityPriorResultsForQuery = new HashMap<>();
 
     //for (String method : Arrays.asList("binary-pmi", "pmi", "set-pmi", "rm", "and-rm", "and-lce", "lce", "bayes-lce", "lce-prior")) {
-    for (String method : Arrays.asList("and-lce", "lce", "and-lce-prior", "lce-prior")) {
+    //for (String method : Arrays.asList("and-lce", "lce", "and-lce-prior", "lce-prior", "lce-priors")) {
+    for (String method : Arrays.asList("lce-priors")) {
       long start, end;
       try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", method+"."+dataset + ".n"+fbDocs+".trecrun"))) {
         for (EntityJudgedQuery query : queries) {
@@ -211,6 +234,20 @@ public class EntityRelevanceModel {
                     scores.put(name, nameScore);
                   }
                 } break;
+                case "lce-priors": {
+                  for (String name : names) {
+                    Double namePosterior = ePosterior.get(name);
+                    if(namePosterior == null) continue;
+                    Double pagerank = staticPriors.get("pagerank").get(name);
+                    Double facc09prob = staticPriors.get("facc").get(name);
+                    if(pagerank == null || facc09prob == null) continue;
+
+                    double nameScore = scores.computeIfAbsent(name, missing -> 0.0);
+                    nameScore += Math.exp(Math.log(docProb) + Math.log(count / length) - Math.log(cf / clen) + Math.log(namePosterior) + facc09prob + pagerank);
+                    assert (Double.isFinite(nameScore)) : "name: "+name;
+                    scores.put(name, nameScore);
+                  }
+                } break;
                 case "pmi":
                   // reduced-PMI:
                   score += Math.log(count / length) - Math.log(cf / clen); // leaving out constant p(q) which would be in denominator
@@ -263,7 +300,12 @@ public class EntityRelevanceModel {
               }
             } else {
               for (Map.Entry<String, Double> kv : scores.entrySet()) {
-                topEntities.offer(new ScoredDocument(kv.getKey(), -1, kv.getValue()));
+                double raw = kv.getValue();
+                if(raw > 0) {
+                  topEntities.offer(new ScoredDocument(kv.getKey(), -1, Math.log(raw)));
+                } else {
+                  topEntities.offer(new ScoredDocument(kv.getKey(), -1, raw));
+                }
               }
             }
 
