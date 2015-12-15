@@ -2,7 +2,9 @@ package edu.umass.cs.jfoley.coop.experiments.generic;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import ciir.jfoley.chai.collections.Pair;
 import ciir.jfoley.chai.collections.util.IterableFns;
+import ciir.jfoley.chai.collections.util.MapFns;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.random.ReservoirSampler;
@@ -11,6 +13,8 @@ import ciir.jfoley.chai.xml.ChaiXML;
 import ciir.jfoley.chai.xml.XNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 import org.lemurproject.galago.core.eval.QuerySetResults;
 import org.lemurproject.galago.core.parse.Document;
 import org.lemurproject.galago.core.retrieval.LocalRetrieval;
@@ -252,6 +256,135 @@ public class PoolJudgmentsToCSV {
           writer.writeNext(job);
         }
       }
+    }
+  }
+
+  public static class MturkJudgment {
+    final String qid;
+    final String entity;
+    final int label;
+    final double approximateWorkTimeInSeconds;
+    final String workerId;
+
+    public MturkJudgment(String qid, String entity, int label, double approximateWorkTimeInSeconds, String workerId) {
+      this.qid = qid;
+      this.entity = entity;
+      this.label = label;
+      this.approximateWorkTimeInSeconds = approximateWorkTimeInSeconds;
+      this.workerId = workerId;
+    }
+
+    @Override
+    public String toString() {
+      return workerId+": "+label;
+    }
+
+    public boolean binarize() {
+      switch (label) {
+        default:
+        case -1:
+        case 0:
+          return false;
+        case 1:
+        case 2:
+          return true;
+      }
+    }
+
+    public boolean unsure() {
+      return label == -1;
+    }
+  }
+  public static class ProcessRobustResults {
+    public static void main(String[] args) throws IOException {
+      Map<String, String> rtitles = new HashMap<>();
+
+      LinesIterable.fromFile("coop/ecir2016runs/mturk/rob04.titles.tsv").slurp().forEach((line) -> {
+        String[] col = line.split("\t");
+        rtitles.put(col[1], col[0]);
+      });
+
+      List<Parameters> entries = new ArrayList<>();
+      try (CSVReader reader = new CSVReader(IO.openReader("coop/ecir2016runs/mturk/mturk_robust_results.csv"))) {
+        String[] header = reader.readNext();
+        while(true) {
+          String[] row = reader.readNext();
+          if(row == null) break;
+
+          Parameters entry = Parameters.create();
+          for (int i = 0; i < row.length; i++) {
+            entry.put(header[i], row[i]);
+          }
+          entries.add(entry);
+        }
+      }
+
+      List<MturkJudgment> judgments = new ArrayList<>();
+
+      for (Parameters entry : entries) {
+        String queryText = entry.getString("Input.query");
+        String qid = rtitles.get(queryText);
+
+        double time = Double.parseDouble(entry.getString("WorkTimeInSeconds")) / 5.0;
+        String worker = entry.getString("WorkerId");
+
+        for (int i = 0; i < 5; i++) {
+          int n = i+1;
+          String ent = entry.getString("Input.e"+n+"title");
+          String labelS = entry.getString("Answer.e"+n+"j");
+          if(labelS.isEmpty()) {
+            labelS = "-1";
+          }
+          int label = Integer.parseInt(labelS);
+          judgments.add(new MturkJudgment(qid, ent, label, time, worker));
+        }
+      }
+
+      int skipped = 0;
+      double totalTime = 0.0;
+      TIntIntHashMap labelFreqs = new TIntIntHashMap();
+      TObjectIntHashMap<String> uniqueWorkers = new TObjectIntHashMap<>();
+      Map<Pair<String,String>, List<MturkJudgment>> joinedJudgments = new HashMap<>();
+      for (MturkJudgment j : judgments) {
+        if(j.label == -1) skipped++;
+        uniqueWorkers.adjustOrPutValue(j.workerId, 1, 1);
+        totalTime+=j.approximateWorkTimeInSeconds;
+        labelFreqs.adjustOrPutValue(j.label, 1, 1);
+        MapFns.extendListInMap(joinedJudgments, Pair.of(j.qid, j.entity), j);
+      }
+
+      int agree = 0;
+      int total = 0;
+      for (Map.Entry<Pair<String, String>, List<MturkJudgment>> prjs : joinedJudgments.entrySet()) {
+        List<MturkJudgment> js = prjs.getValue();
+        if(js.size() == 1) continue;
+        System.out.println(js);
+
+        int voteTrue = 0;
+        int voteFalse = 0;
+        for (MturkJudgment jm : js) {
+          if(jm.unsure()) continue;
+          if(jm.binarize()) {
+            voteTrue++;
+          } else voteFalse++;
+        }
+
+        if(voteTrue == 0 || voteFalse == 0) {
+          agree++;
+        }
+        total++;
+
+        System.out.println("T: "+voteTrue+"F: "+voteFalse);
+      }
+
+      System.out.println(uniqueWorkers);
+      System.out.println(labelFreqs);
+      System.out.println("Agreement: "+agree+"/"+total+" "+(agree / (double) total));
+      System.out.println("Skipped: "+skipped);
+      System.out.println("Total Time: "+totalTime+"s");
+      System.out.println("Total Time: "+(totalTime/60.0)+"m");
+      System.out.println("Total Time: "+(totalTime/3600.0)+"h");
+
     }
   }
 
