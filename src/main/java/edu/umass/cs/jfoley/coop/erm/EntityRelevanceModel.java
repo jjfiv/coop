@@ -325,9 +325,10 @@ public class EntityRelevanceModel {
             }
 
             if(!multiScore) {
-              assert(!method.equals("wrm"));
               assert(score != 0);
               for (String name : names) {
+                Double namePosterior = ePosterior.get(name);
+                if (namePosterior == null) continue;
                 topEntities.offer(new ScoredDocument(name, -1, score));
               }
             } else {
