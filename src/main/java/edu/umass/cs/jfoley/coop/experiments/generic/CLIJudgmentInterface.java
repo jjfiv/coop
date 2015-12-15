@@ -27,14 +27,20 @@ import java.util.*;
 public class CLIJudgmentInterface {
 
   public static void main(String[] args) throws IOException {
-    Parameters argp = Parameters.create();
+    Parameters argp = Parameters.parseArgs(args);
 
     Map<String, Map<String, Double>> judgments = new HashMap<>();
-    IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "dbpedia.ints")));
+    IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "/mnt/scratch3/jfoley/dbpedia.ints")));
 
-    String dataset = "clue12";
+    String dataset = "robust04";
+
+    Map<String, String> qidToText = new TreeMap<>();
+    for (String line : LinesIterable.fromFile("/home/jfoley/code/queries/robust04/rob04.titles.tsv").slurp()) {
+      String[] data = line.split("\t");
+      qidToText.put(data[0].trim(), data[1].trim());
+    }
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
-    int rankCutoff = argp.get("depth", 5);
+    int rankCutoff = argp.get("depth", 2);
 
     try (LinesIterable lines = LinesIterable.fromFile(argp.get("load", "coop/ecir2016runs/qrels/"+dataset+".ent.qrel"))) {
       for (String line : lines) {
@@ -47,10 +53,11 @@ public class CLIJudgmentInterface {
     }
 
     List<String> runs = new ArrayList<>();
-    runs.add("output/"+dataset+"/wikisdm.ent.trecrun");
-    runs.add("output/"+dataset+"/pmi.2.200.100.ent.trecrun");
-    runs.add("output/"+dataset+"/sdm.top20Docs.wpmi.2.200.ent.trecrun");
-    runs.add("output/"+dataset+"/sdm.top20Docs.even_pmi.2.200.ent.trecrun");
+    runs.add("wikisdm.full.ent.trecrun");
+    //runs.add("output/"+dataset+"/wikisdm.ent.trecrun");
+    //runs.add("output/"+dataset+"/pmi.2.200.100.ent.trecrun");
+    //runs.add("output/"+dataset+"/sdm.top20Docs.wpmi.2.200.ent.trecrun");
+    //runs.add("output/"+dataset+"/sdm.top20Docs.even_pmi.2.200.ent.trecrun");
     runs.addAll(argp.getAsList("runs", String.class));
 
     Map<String, HashMap<String, Integer>> topRetrieved = new HashMap<>();
@@ -69,10 +76,9 @@ public class CLIJudgmentInterface {
 
     Map<String, Map<String, Double>> scored = new HashMap<>();
 
-    for (EntityJudgedQuery query : queries) {
-      String qid = query.qid;
-      String text = query.getText();
-      Map<String,Double> judgedForQuery = judgments.get(qid);
+    for (String qid : qidToText.keySet()) {
+      String text = qidToText.get(qid);
+      Map<String,Double> judgedForQuery = judgments.computeIfAbsent(qid, missing -> new HashMap<>());
       List<ScoredDocument> topForThis = new ArrayList<>();
 
       for (Map.Entry<String, Integer> freqEnt : topRetrieved.get(qid).entrySet()) {

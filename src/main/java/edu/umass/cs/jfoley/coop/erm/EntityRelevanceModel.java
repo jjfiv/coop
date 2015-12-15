@@ -56,17 +56,17 @@ public class EntityRelevanceModel {
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
 
-    String dataset = "robust04";
-    int fbDocs = argp.get("fbDocs", 50);
+    String dataset = argp.get("dataset", "robust04");
+    int fbDocs = argp.get("fbDocs", 100);
 
     String index = "/mnt/scratch3/jfoley/robust.ints";
     Set<String> stopwords = WordLists.getWordListOrDie("inquery");
 
     List<EntityJudgedQuery> queries = ConvertEntityJudgmentData.parseQueries(new File(argp.get("queries", "coop/data/" + dataset + ".json")));
 
-    Map<String, Map<String, Double>> staticPriors = new HashMap<>();
-    staticPriors.put("pagerank", staticPrior("wikipagerank.tsv.gz"));
-    staticPriors.put("facc", staticPrior("facc_09_ecounts.tsv.gz"));
+    //Map<String, Map<String, Double>> staticPriors = new HashMap<>();
+    //staticPriors.put("pagerank", staticPrior("wikipagerank.tsv.gz"));
+    //staticPriors.put("facc", staticPrior("facc_09_ecounts.tsv.gz"));
 
     assert(queries.size() > 0);
 
@@ -88,9 +88,8 @@ public class EntityRelevanceModel {
     HashMap<String, Results> resultsForQuery = new HashMap<>();
     HashMap<String, Results> entityPriorResultsForQuery = new HashMap<>();
 
-    //for (String method : Arrays.asList("binary-pmi", "pmi", "set-pmi", "rm", "and-rm", "and-lce", "lce", "bayes-lce", "lce-prior")) {
-    //for (String method : Arrays.asList("and-lce", "lce", "and-lce-prior", "lce-prior", "lce-priors")) {
-    for (String method : Arrays.asList("lce-priors")) {
+    //for (String method : Arrays.asList("wrm")) {
+    for (String method : Arrays.asList("rm", "wrm", "wpmi", "and-lce", "lce", "lce-prior", "and-lce-prior")) {
       long start, end;
       try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", method+"."+dataset + ".n"+fbDocs+".trecrun"))) {
         for (EntityJudgedQuery query : queries) {
@@ -172,6 +171,8 @@ public class EntityRelevanceModel {
             Parameters eqp = Parameters.create();
             eqp.put("working", new ArrayList<>(allWikiEntities));
             eqp.put("warnMissingDocuments", false);
+            eqp.put("requested", allWikiEntities.size());
+            System.out.println("Score "+allWikiEntities.size()+" wiki pages.");
             return jeffWiki.transformAndExecuteQuery(sdm, eqp);
           });
 
@@ -179,6 +180,7 @@ public class EntityRelevanceModel {
 
           mentionIdToStringNames.forEachEntry((eid, names) -> {
             Map<String, Double> scores = new HashMap<>();
+            boolean multiScore = false;
             double score = 0;
             int relDocFreq = 0;
             int relDocCount = 0;
@@ -199,6 +201,19 @@ public class EntityRelevanceModel {
                   score += docProb * (count / length);
                   assert(Double.isFinite(score));
                   break;
+                case "wrm": {
+                  multiScore = true;
+                  for (String name : names) {
+                    Double namePosterior = ePosterior.get(name);
+                    if(namePosterior == null) {
+                      continue;
+                    }
+                    double nameScore = scores.getOrDefault(name, 0.0);
+                    nameScore += Math.exp(Math.log(docProb) +Math.log(count / length) + Math.log(namePosterior));
+                    assert(nameScore != 0);
+                    scores.put(name, nameScore);
+                  }
+                } break;
                 case "lce":
                   // LCE:
                   //score += docProb * (count / length) / (cf / clen);
@@ -214,7 +229,8 @@ public class EntityRelevanceModel {
                   score += Math.log(docProb) + Math.log(count / length) - Math.log(cf / clen);
                   assert(Double.isFinite(score));
                   break;
-                case "lce-prior": {
+                case "lce-prior": { // wlce
+                  multiScore = true;
                   for (String name : names) {
                     Double namePosterior = ePosterior.get(name);
                     if(namePosterior == null) continue;
@@ -224,7 +240,8 @@ public class EntityRelevanceModel {
                     scores.put(name, nameScore);
                   }
                 } break;
-                case "and-lce-prior": {
+                case "and-lce-prior": { //wandlce
+                  multiScore = true;
                   for (String name : names) {
                     Double namePosterior = ePosterior.get(name);
                     if(namePosterior == null) continue;
@@ -234,7 +251,8 @@ public class EntityRelevanceModel {
                     scores.put(name, nameScore);
                   }
                 } break;
-                case "lce-priors": {
+                /*case "lce-priors": {
+                  multiScore = true;
                   for (String name : names) {
                     Double namePosterior = ePosterior.get(name);
                     if(namePosterior == null) continue;
@@ -247,6 +265,18 @@ public class EntityRelevanceModel {
                     assert (Double.isFinite(nameScore)) : "name: "+name;
                     scores.put(name, nameScore);
                   }
+                } break;*/
+                case "wpmi": {
+                  multiScore = true;
+                  for (String name : names) {
+                    Double namePosterior = ePosterior.get(name);
+                    if (namePosterior == null) continue;
+                    double nameScore = scores.computeIfAbsent(name, missing -> 0.0);
+                    nameScore += Math.log(namePosterior) - Math.log(cf / clen); // leaving out constant p(q) which would be in denominator
+                    assert (Double.isFinite(nameScore)) : "name: " + name;
+                    scores.put(name, nameScore);
+                  }
+                  assert (Double.isFinite(score));
                 } break;
                 case "pmi":
                   // reduced-PMI:
@@ -294,7 +324,9 @@ public class EntityRelevanceModel {
               default: break;
             }
 
-            if(scores.isEmpty()) {
+            if(!multiScore) {
+              assert(!method.equals("wrm"));
+              assert(score != 0);
               for (String name : names) {
                 topEntities.offer(new ScoredDocument(name, -1, score));
               }
