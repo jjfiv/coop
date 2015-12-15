@@ -301,7 +301,7 @@ public class PoolJudgmentsToCSV {
       Parameters argp = Parameters.parseArgs(args);
       Map<String, String> rtitles = new HashMap<>();
 
-      boolean robustNotClue = argp.get("robust", true);
+      boolean robustNotClue = argp.get("robust", false);
       String titleQueries = robustNotClue ? "coop/ecir2016runs/mturk/rob04.titles.tsv" : "coop/ecir2016runs/mturk/clue12.titles.tsv";
 
       LinesIterable.fromFile(titleQueries).slurp().forEach((line) -> {
@@ -310,10 +310,16 @@ public class PoolJudgmentsToCSV {
       });
 
       String existingJudgmentFile = robustNotClue ?
-          "coop/ecir2016runs/qrels/robust04.ent.qrel" :
-          "coop/ecir2016runs/qrels/clue12.ent.qrel";
+          "coop/ecir2016runs/qrels/robust04.x.ent.qrel" :
+          "coop/ecir2016runs/qrels/clue12.x.ent.qrel";
 
+      Map<Pair<String,String>, List<Boolean>> binarized = new HashMap<>();
       QuerySetJudgments qrel = new QuerySetJudgments(existingJudgmentFile, true, true);
+      qrel.forEach((qid, qj) -> {
+        qj.forEach((ent, wt) -> {
+          MapFns.extendListInMap(binarized, Pair.of(qid,ent), wt > 0);
+        });
+      });
 
       List<Parameters> entries = new ArrayList<>();
       try (CSVReader reader = new CSVReader(IO.openReader("coop/ecir2016runs/mturk/mturk_"+(robustNotClue ? "robust" : "clue12") +"_results.csv"))) {
@@ -355,12 +361,6 @@ public class PoolJudgmentsToCSV {
         }
       }
 
-      Map<Pair<String,String>, List<Boolean>> binarized = new HashMap<>();
-      qrel.forEach((qid, qj) -> {
-        qj.forEach((ent, wt) -> {
-          MapFns.extendListInMap(binarized, Pair.of(qid,ent), wt > 0);
-        });
-      });
 
       int skipped = 0;
       double totalTime = 0.0;
@@ -397,23 +397,33 @@ public class PoolJudgmentsToCSV {
         total++;
       }
 
+      Map<String, Map<String, Boolean>> finalQrel = new HashMap<>();
       int xagree = 0;
       int xtotal = 0;
-      for (List<Boolean> js : binarized.values()) {
-        if(js.size() == 1) continue;
+      for (Map.Entry<Pair<String, String>,List<Boolean>> prjs : binarized.entrySet()) {
+        Pair<String,String> pr = prjs.getKey();
+        String qid = pr.getKey();
+        String ent = pr.getValue();
+        List<Boolean> js = prjs.getValue();
+        Map<String, Boolean> pqj = finalQrel.computeIfAbsent(qid, missing -> new HashMap<>());
+        if(js.size() == 1) {
+          pqj.put(ent, js.get(0));
+        } else {
+          int voteTrue = 0;
+          int voteFalse = 0;
+          for (boolean jm : js) {
+            if (jm) {
+              voteTrue++;
+            } else voteFalse++;
+          }
 
-        int voteTrue = 0;
-        int voteFalse = 0;
-        for (boolean jm : js) {
-          if(jm) {
-            voteTrue++;
-          } else voteFalse++;
+          // break ties toward relevance.
+          pqj.put(ent, voteTrue >= voteFalse);
+          if (voteTrue == 0 || voteFalse == 0) {
+            xagree++;
+          }
+          xtotal++;
         }
-
-        if(voteTrue == 0 || voteFalse == 0) {
-          xagree++;
-        }
-        xtotal++;
       }
 
       System.out.println(uniqueWorkers);
@@ -425,6 +435,13 @@ public class PoolJudgmentsToCSV {
       System.out.println("Total Time: "+(totalTime/60.0)+"m");
       System.out.println("Total Time: "+(totalTime/3600.0)+"h");
 
+      try (PrintWriter pw = IO.openPrintWriter(robustNotClue ? "robust.mturk.qrel" : "clue12.mturk.qrel")) {
+        finalQrel.forEach((qid, pqdata) -> {
+          pqdata.forEach((ent, truthy) -> {
+            pw.println(qid+" 0 "+ent+" "+ (truthy ? "1" : "0"));
+          });
+        });
+      }
     }
   }
 
