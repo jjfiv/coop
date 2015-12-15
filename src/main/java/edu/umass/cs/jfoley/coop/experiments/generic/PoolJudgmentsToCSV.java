@@ -15,6 +15,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import org.lemurproject.galago.core.eval.QuerySetJudgments;
 import org.lemurproject.galago.core.eval.QuerySetResults;
 import org.lemurproject.galago.core.parse.Document;
 import org.lemurproject.galago.core.retrieval.LocalRetrieval;
@@ -297,15 +298,25 @@ public class PoolJudgmentsToCSV {
   }
   public static class ProcessRobustResults {
     public static void main(String[] args) throws IOException {
+      Parameters argp = Parameters.parseArgs(args);
       Map<String, String> rtitles = new HashMap<>();
 
-      LinesIterable.fromFile("coop/ecir2016runs/mturk/rob04.titles.tsv").slurp().forEach((line) -> {
+      boolean robustNotClue = argp.get("robust", true);
+      String titleQueries = robustNotClue ? "coop/ecir2016runs/mturk/rob04.titles.tsv" : "coop/ecir2016runs/mturk/clue12.titles.tsv";
+
+      LinesIterable.fromFile(titleQueries).slurp().forEach((line) -> {
         String[] col = line.split("\t");
-        rtitles.put(col[1], col[0]);
+        rtitles.put(col[1].trim(), col[0]);
       });
 
+      String existingJudgmentFile = robustNotClue ?
+          "coop/ecir2016runs/qrels/robust04.ent.qrel" :
+          "coop/ecir2016runs/qrels/clue12.ent.qrel";
+
+      QuerySetJudgments qrel = new QuerySetJudgments(existingJudgmentFile, true, true);
+
       List<Parameters> entries = new ArrayList<>();
-      try (CSVReader reader = new CSVReader(IO.openReader("coop/ecir2016runs/mturk/mturk_robust_results.csv"))) {
+      try (CSVReader reader = new CSVReader(IO.openReader("coop/ecir2016runs/mturk/mturk_"+(robustNotClue ? "robust" : "clue12") +"_results.csv"))) {
         String[] header = reader.readNext();
         while(true) {
           String[] row = reader.readNext();
@@ -322,8 +333,12 @@ public class PoolJudgmentsToCSV {
       List<MturkJudgment> judgments = new ArrayList<>();
 
       for (Parameters entry : entries) {
-        String queryText = entry.getString("Input.query");
+        String queryText = entry.getString("Input.query").trim();
         String qid = rtitles.get(queryText);
+        if(qid == null) {
+          System.err.println(queryText);
+          System.err.println(rtitles.keySet());
+        }
 
         double time = Double.parseDouble(entry.getString("WorkTimeInSeconds")) / 5.0;
         String worker = entry.getString("WorkerId");
@@ -340,6 +355,13 @@ public class PoolJudgmentsToCSV {
         }
       }
 
+      Map<Pair<String,String>, List<Boolean>> binarized = new HashMap<>();
+      qrel.forEach((qid, qj) -> {
+        qj.forEach((ent, wt) -> {
+          MapFns.extendListInMap(binarized, Pair.of(qid,ent), wt > 0);
+        });
+      });
+
       int skipped = 0;
       double totalTime = 0.0;
       TIntIntHashMap labelFreqs = new TIntIntHashMap();
@@ -351,6 +373,7 @@ public class PoolJudgmentsToCSV {
         totalTime+=j.approximateWorkTimeInSeconds;
         labelFreqs.adjustOrPutValue(j.label, 1, 1);
         MapFns.extendListInMap(joinedJudgments, Pair.of(j.qid, j.entity), j);
+        MapFns.extendListInMap(binarized, Pair.of(j.qid, j.entity), j.binarize());
       }
 
       int agree = 0;
@@ -358,7 +381,6 @@ public class PoolJudgmentsToCSV {
       for (Map.Entry<Pair<String, String>, List<MturkJudgment>> prjs : joinedJudgments.entrySet()) {
         List<MturkJudgment> js = prjs.getValue();
         if(js.size() == 1) continue;
-        System.out.println(js);
 
         int voteTrue = 0;
         int voteFalse = 0;
@@ -373,13 +395,31 @@ public class PoolJudgmentsToCSV {
           agree++;
         }
         total++;
+      }
 
-        System.out.println("T: "+voteTrue+"F: "+voteFalse);
+      int xagree = 0;
+      int xtotal = 0;
+      for (List<Boolean> js : binarized.values()) {
+        if(js.size() == 1) continue;
+
+        int voteTrue = 0;
+        int voteFalse = 0;
+        for (boolean jm : js) {
+          if(jm) {
+            voteTrue++;
+          } else voteFalse++;
+        }
+
+        if(voteTrue == 0 || voteFalse == 0) {
+          xagree++;
+        }
+        xtotal++;
       }
 
       System.out.println(uniqueWorkers);
       System.out.println(labelFreqs);
       System.out.println("Agreement: "+agree+"/"+total+" "+(agree / (double) total));
+      System.out.println("With-Expert Agreement: "+xagree+"/"+xtotal+" "+(xagree / (double) xtotal));
       System.out.println("Skipped: "+skipped);
       System.out.println("Total Time: "+totalTime+"s");
       System.out.println("Total Time: "+(totalTime/60.0)+"m");
