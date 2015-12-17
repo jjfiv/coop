@@ -89,7 +89,8 @@ public class EntityRelevanceModel {
     HashMap<String, Results> entityPriorResultsForQuery = new HashMap<>();
 
     //for (String method : Arrays.asList("wrm")) {
-    for (String method : Arrays.asList("rm", "wrm", "wpmi", "and-lce", "lce", "lce-prior", "and-lce-prior")) {
+    //for (String method : Arrays.asList("rm", "wrm", "wpmi", "and-lce", "lce", "lce-prior", "and-lce-prior")) {
+    for (String method : Arrays.asList("pmi", "wpmi")) {
       long start, end;
       try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", method+"."+dataset + ".n"+fbDocs+".trecrun"))) {
         for (EntityJudgedQuery query : queries) {
@@ -272,7 +273,7 @@ public class EntityRelevanceModel {
                     Double namePosterior = ePosterior.get(name);
                     if (namePosterior == null) continue;
                     double nameScore = scores.computeIfAbsent(name, missing -> 0.0);
-                    nameScore += Math.log(namePosterior) - Math.log(cf / clen); // leaving out constant p(q) which would be in denominator
+                    nameScore += Math.log(namePosterior) + Math.log(count / length) - Math.log(cf / clen); // leaving out constant p(q) which would be in denominator
                     assert (Double.isFinite(nameScore)) : "name: " + name;
                     scores.put(name, nameScore);
                   }
