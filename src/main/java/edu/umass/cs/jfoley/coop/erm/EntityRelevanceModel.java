@@ -75,6 +75,8 @@ public class EntityRelevanceModel {
     LocalRetrieval galagoRet = new LocalRetrieval(argp.get("galago", "/mnt/scratch3/jfoley/robust.galago"));
 
     IntCoopIndex dbpedia = new IntCoopIndex(Directory.Read(argp.get("dbpedia", "/mnt/scratch3/jfoley/dbpedia.ints")));
+    HashSet<String> validKB = new HashSet<>(LinesIterable.fromFile(argp.get("validKBNames", "validKB.names.gz")).slurp());
+    System.out.println("Size of ValidKB: "+validKB.size());
     IntCoopIndex target = new IntCoopIndex(Directory.Read(argp.get("target", index)));
     PhrasePositionsIndex eIndex = target.getEntitiesIndex();
     IOMap<Integer, IntList> ambiguous = eIndex.getPhraseHits().getAmbiguousPhrases();
@@ -83,16 +85,17 @@ public class EntityRelevanceModel {
     TagTokenizer tok = new TagTokenizer();
 
     // for mention->entity probs:
-    LocalRetrieval jeffWiki = PMIRankingExperiment.openJeffWiki(argp);
+    boolean fullWikiKB = argp.get("fullWikiKB", true);
+    LocalRetrieval jeffWiki = (fullWikiKB) ?
+        PMIRankingExperiment.openJeffWiki(argp) :
+        new LocalRetrieval("/mnt/scratch3/jfoley/dbpedia.galago");
 
     HashMap<String, Results> resultsForQuery = new HashMap<>();
     HashMap<String, Results> entityPriorResultsForQuery = new HashMap<>();
 
-    //for (String method : Arrays.asList("wrm")) {
-    //for (String method : Arrays.asList("rm", "wrm", "wpmi", "and-lce", "lce", "lce-prior", "and-lce-prior")) {
-    for (String method : Arrays.asList("pmi", "wpmi")) {
+    for (String method : Arrays.asList("pmi", "rm", "wrm", "wpmi", "and-lce", "lce", "lce-prior", "and-lce-prior")) {
       long start, end;
-      try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", method+"."+dataset + ".n"+fbDocs+".trecrun"))) {
+      try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", (fullWikiKB ? "wiki" : "abstract") +method+"."+dataset + ".n"+fbDocs+".trecrun"))) {
         for (EntityJudgedQuery query : queries) {
           String qid = query.qid;
 
@@ -153,6 +156,7 @@ public class EntityRelevanceModel {
             }
             List<String> names = new ArrayList<>();
             for (String dbpediaName: dbpedia.getNames().getForwardMap(ids).values()) {
+              if(!validKB.contains(dbpediaName)) continue;
               List<String> terms = tok.tokenize(IntCoopIndex.parseDBPediaTitle(dbpediaName)).terms;
               if(terms.size() == 1) {
                 if(stopwords.contains(terms.get(0))) break;
