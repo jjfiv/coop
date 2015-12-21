@@ -42,7 +42,8 @@ public class CoopDemoFrontEnd implements WebHandler {
   public static void main(String[] args) throws IOException, WebServerException {
     Parameters argp = Arguments.parse(args);
 
-    String defaultIndex = "/mnt/scratch3/jfoley/robust.ints";
+    //String defaultIndex = "/mnt/scratch3/jfoley/robust.ints";
+    String defaultIndex = "/mnt/scratch/jfoley/nyt-clinton.ints";
 
     Directory input = Directory.Read(argp.get("input", defaultIndex));
     Directory htmlDir = Directory.Read(argp.get("html", "coop/front_html"));
