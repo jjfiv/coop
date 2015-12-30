@@ -149,8 +149,8 @@ public class Tuning {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
-    String dataset = argp.get("dataset", "robust04");
-    String qrels = argp.get("qrels", "robust.mturk.qrel");
+    String dataset = argp.get("dataset", "clue12");
+    String qrels = argp.get("qrels", "clue12.mturk.qrel");
     String measure = argp.get("metric", "map");
     QueryEvaluator scorer = QueryEvaluatorFactory.create(measure, argp);
     QueryEvaluator p5scorer = QueryEvaluatorFactory.create("P5", argp);
