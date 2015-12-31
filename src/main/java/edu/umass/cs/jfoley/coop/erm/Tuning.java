@@ -118,10 +118,12 @@ public class Tuning {
       this.numDocuments = numDocuments;
     }
 
+    @Override
     public String toString() {
       return kb + "-"+PaperMethodFromNumber(method)+" k="+numDocuments;
     }
 
+    @Override
     public int compareTo(@Nonnull RunDescriptor other) {
       int cmp = this.kb.compareTo(other.kb);
       if(cmp != 0) return cmp;
@@ -131,12 +133,26 @@ public class Tuning {
       return cmp;
     }
 
+    @Override
+    public int hashCode() {
+      return kb.hashCode() ^ (method * numDocuments);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if(other instanceof RunDescriptor) {
+        RunDescriptor rhs = (RunDescriptor) other;
+        return method == method && numDocuments == numDocuments && rhs.kb.equals(kb);
+      }
+      return false;
+    }
+
     public Pair<String,Integer> getGroupKey() {
       return Pair.of(kb, method);
     }
   }
 
-  public static <K,V> List<V> select(Set<K> keys, Map<K,V> from) {
+  public static <K,V> List<V> select(Iterable<? extends K> keys, Map<K,V> from) {
     ArrayList<V> output = new ArrayList<>();
     for (K key : keys) {
       V what = from.get(key);
@@ -149,12 +165,14 @@ public class Tuning {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Parameters.parseArgs(args);
-    String dataset = argp.get("dataset", "clue12");
-    String qrels = argp.get("qrels", "clue12.mturk.qrel");
+    //String dataset = argp.get("dataset", "clue12");
+    //String qrels = argp.get("qrels", "clue12.mturk.qrel");
+    String dataset = argp.get("dataset", "robust04");
+    String qrels = argp.get("qrels", "robust.mturk.qrel");
     String measure = argp.get("metric", "map");
     QueryEvaluator scorer = QueryEvaluatorFactory.create(measure, argp);
     QueryEvaluator p5scorer = QueryEvaluatorFactory.create("P5", argp);
-    Directory runDir = Directory.Read(argp.get("runs", "coop/sigir-dec30/"));
+    Directory runDir = Directory.Read(argp.get("runs", "coop/ecir2016runs/sigir-dec30/raw/"));
 
     List<KCVSplit> splits = new ArrayList<>();
     switch (dataset) {
@@ -249,18 +267,23 @@ public class Tuning {
         }
         splitP5.push(micro.getMean());
 
-        String trainFile = String.format("%s.%s.split%d.train.trecrun", tts.obj.kb, PaperMethodFromNumber(tts.obj.method), i);
-        String testFile = String.format("%s.%s.split%d.test.trecrun", tts.obj.kb, PaperMethodFromNumber(tts.obj.method), i);
-        try (PrintWriter train = IO.openPrintWriter(trainFile)) {
-          for (QueryResults trainQuery : trainQueries) {
-            trainQuery.outputTrecrun(train, tts.obj.kb);
-          }
+        //String trainFile = String.format("%s.%s.split%d.train.trecrun", tts.obj.kb, PaperMethodFromNumber(tts.obj.method), i);
+        //String testFile = String.format("%s.%s.split%d.test.trecrun", tts.obj.kb, PaperMethodFromNumber(tts.obj.method), i);
+        String fullFile = String.format("%s.%s.split%d.trecrun", tts.obj.kb, PaperMethodFromNumber(tts.obj.method), i);
+        try (PrintWriter out = IO.openPrintWriter(fullFile)) {
+          for (QueryResults q : trainQueries) { q.outputTrecrun(out, tts.obj.kb); }
+          for (QueryResults q : testQueries) { q.outputTrecrun(out, tts.obj.kb); }
         }
-        try (PrintWriter test = IO.openPrintWriter(testFile)) {
-          for (QueryResults testQuery : testQueries) {
-            testQuery.outputTrecrun(test, tts.obj.kb);
-          }
-        }
+        //try (PrintWriter train = IO.openPrintWriter(trainFile)) {
+        //  for (QueryResults trainQuery : trainQueries) {
+        //    trainQuery.outputTrecrun(train, tts.obj.kb);
+        //  }
+        //}
+        //try (PrintWriter test = IO.openPrintWriter(testFile)) {
+        //  for (QueryResults testQuery : testQueries) {
+        //    testQuery.outputTrecrun(test, tts.obj.kb);
+        //  }
+        //}
       }
       System.out.printf("%s MAP: %1.3f P5: %1.3f\n", runDescriptors.get(0), splitMAP.getMean(), splitP5.getMean());
     }

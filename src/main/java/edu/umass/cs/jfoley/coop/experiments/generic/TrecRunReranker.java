@@ -1,5 +1,6 @@
 package edu.umass.cs.jfoley.coop.experiments.generic;
 
+import ciir.jfoley.chai.collections.util.SetFns;
 import ciir.jfoley.chai.io.IO;
 import ciir.jfoley.chai.io.LinesIterable;
 import ciir.jfoley.chai.string.StrUtil;
@@ -24,10 +25,15 @@ public class TrecRunReranker {
     Map<String, Map<String, Map<String, Double>>> queryToDocumentToFeatures = new HashMap<>();
     Map<String, QueryJudgments> judgments = QuerySetJudgments.loadJudgments(argp.getString("judgments"), true, true);
 
-    final boolean appendSummaryFeatures = argp.get("summaryFeatures", true);
+    final boolean appendSummaryFeatures = argp.get("summaryFeatures", false);
+    final boolean minQueries = argp.get("minQueries", false);
+
+    List<Set<String>> querySets = new ArrayList<>();
+    querySets.add(judgments.keySet());
 
     Set<String> featureNames = new HashSet<>();
     for (String inputName : argp.getAsList("input", String.class)) {
+      Set<String> qids = new HashSet<>();
       // load each trecrun file:
       for (String line : LinesIterable.fromFile(inputName).slurp()) {
         String[] cols = line.split("\\s+");
@@ -35,6 +41,8 @@ public class TrecRunReranker {
         String doc = cols[2];
         int rank = Integer.parseInt(cols[3]);
         double score = Double.parseDouble(cols[4]);
+
+        qids.add(qid);
 
         if(!judgments.containsKey(qid)) {
           continue;
@@ -53,7 +61,10 @@ public class TrecRunReranker {
         docFeatures.put(inputName, score);
         featureNames.add(inputName);
       }
+      querySets.add(qids);
     }
+
+    Set<String> minimalQueries = SetFns.intersection(querySets);
 
     System.err.println("Loaded " + featureNames + " as trecrun features...");
 
@@ -143,9 +154,13 @@ public class TrecRunReranker {
     List<String> featureNumTable = new ArrayList<>(featureNames);
 
     try (PrintWriter out = IO.openPrintWriter(outputFileName)) {
-      for (Map.Entry<String, Map<String, Map<String, Double>>> qidToRest : queryToDocumentToFeatures.entrySet()) {
-        String qid = qidToRest.getKey();
-        Map<String, Map<String, Double>> docToFeaturesMap = qidToRest.getValue();
+      Set<String> queriesToOutput = queryToDocumentToFeatures.keySet();
+      if(minQueries) {
+        queriesToOutput = minimalQueries;
+      }
+
+      for (String qid : queriesToOutput) {
+        Map<String, Map<String, Double>> docToFeaturesMap = queryToDocumentToFeatures.get(qid);
         QueryJudgments queryJudgments = judgments.get(qid);
 
         for (Map.Entry<String, Map<String, Double>> docToFeatures : docToFeaturesMap.entrySet()) {
