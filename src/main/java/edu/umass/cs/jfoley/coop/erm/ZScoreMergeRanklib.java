@@ -96,7 +96,7 @@ public class ZScoreMergeRanklib {
     try(PrintWriter output = IO.openPrintWriter(argp.get("output", "ZScoreMerge."+(existsFeatures ? "exists." : "") +"ranklib"))) {
       groupedForOutput.forEach((qid, pts) -> {
         pts.forEach((doc, pb) -> {
-          int maxFeature = outputDataset.getFeatureCount();
+          int maxFeature = outputDataset.getMaxFeaturePosition();
           if(!pb.hasFeature(maxFeature)) {
             pb.set(maxFeature, 0f);
           }

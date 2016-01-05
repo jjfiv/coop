@@ -48,18 +48,19 @@ public class Tuning {
   ));
 
   public static List<List<Integer>> ctrainQs = new ArrayList<>(Arrays.asList(
-      Arrays.asList(255, 299, 212, 234, 213, 279, 236, 216, 239, 241, 220, 242, 243, 201, 223, 300, 202, 224, 268, 203, 204, 205, 227, 249, 206, 228, 207, 229, 208, 209),
-      Arrays.asList(270, 230, 274, 297, 210, 211, 233, 216, 239, 241, 220, 242, 243, 201, 223, 300, 202, 224, 268, 203, 204, 205, 227, 249, 206, 228, 207, 229, 208, 209),
-      Arrays.asList(270, 230, 274, 297, 210, 211, 233, 255, 299, 212, 234, 213, 279, 236, 223, 300, 202, 224, 268, 203, 204, 205, 227, 249, 206, 228, 207, 229, 208, 209),
-      Arrays.asList(270, 230, 274, 297, 210, 211, 233, 255, 299, 212, 234, 213, 279, 236, 216, 239, 241, 220, 242, 243, 201, 205, 227, 249, 206, 228, 207, 229, 208, 209),
-      Arrays.asList(270, 230, 274, 297, 210, 211, 233, 255, 299, 212, 234, 213, 279, 236, 216, 239, 241, 220, 242, 243, 201, 223, 300, 202, 224, 268, 203, 204)
+      Arrays.asList(206, 208, 210, 212, 213, 216, 220, 223, 228, 234, 236, 249, 255, 268, 270, 279, 297, 300),
+      Arrays.asList(201, 202, 204, 205, 213, 216, 220, 223, 228, 234, 236, 249, 255, 268, 270, 279, 297, 300),
+      Arrays.asList(201, 202, 204, 205, 206, 208, 210, 212, 228, 234, 236, 249, 255, 268, 270, 279, 297, 300),
+      Arrays.asList(201, 202, 204, 205, 206, 208, 210, 212, 213, 216, 220, 223, 255, 268, 270, 279, 297, 300),
+      Arrays.asList(201, 202, 204, 205, 206, 208, 210, 212, 213, 216, 220, 223, 228, 234, 236, 249)
   ));
+
   public static List<List<Integer>> ctestQs = new ArrayList<>(Arrays.asList(
-      Arrays.asList(270, 230, 274, 297, 210, 211, 233),
-      Arrays.asList(255, 299, 212, 234, 213, 279, 236),
-      Arrays.asList(216, 239, 241, 220, 242, 243, 201),
-      Arrays.asList(223, 300, 202, 224, 268, 203, 204),
-      Arrays.asList(205, 227, 249, 206, 228, 207, 229, 208, 209)
+      Arrays.asList(201, 202, 204, 205),
+      Arrays.asList(206, 208, 210, 212),
+      Arrays.asList(213, 216, 220, 223),
+      Arrays.asList(228, 234, 236, 249),
+      Arrays.asList(255, 268, 270, 279, 297, 300)
   ));
 
   public static List<KCVSplit> clueSplits = new ArrayList<>(Arrays.asList(
@@ -142,7 +143,7 @@ public class Tuning {
     public boolean equals(Object other) {
       if(other instanceof RunDescriptor) {
         RunDescriptor rhs = (RunDescriptor) other;
-        return method == method && numDocuments == numDocuments && rhs.kb.equals(kb);
+        return method == rhs.method && numDocuments == rhs.numDocuments && rhs.kb.equals(kb);
       }
       return false;
     }
@@ -268,7 +269,6 @@ public class Tuning {
         splitP5.push(micro.getMean());
 
         //String trainFile = String.format("%s.%s.split%d.train.trecrun", tts.obj.kb, PaperMethodFromNumber(tts.obj.method), i);
-        //String testFile = String.format("%s.%s.split%d.test.trecrun", tts.obj.kb, PaperMethodFromNumber(tts.obj.method), i);
         String fullFile = String.format("%s.%s.split%d.trecrun", tts.obj.kb, PaperMethodFromNumber(tts.obj.method), i);
         try (PrintWriter out = IO.openPrintWriter(fullFile)) {
           for (QueryResults q : trainQueries) { q.outputTrecrun(out, tts.obj.kb); }
