@@ -185,7 +185,7 @@ public class ZipCodeTagger {
 
     System.out.println("# Ambiguity Index Size: "+ambiguityIndex.size());
 
-    try (IOMapWriter<Integer,IntList> writer = GalagoIO.getIOMapWriter(target.baseDir, "zipcode.pambiguous", FixedSize.ints, IntListCoder.instance).getSorting()) {
+    try (IOMapWriter<Integer,IntList> writer = GalagoIO.getIOMapWriter(target.baseDir, "zipcode.ambiguous", FixedSize.ints, IntListCoder.instance).getSorting()) {
       // phraseId -> entitiy ids:
       for (Map.Entry<Integer, HashSet<Integer>> sform : ambiguityIndex.entrySet()) {
         writer.put(sform.getKey(), new IntList(sform.getValue()));
