@@ -117,8 +117,20 @@
 
     <dependency>
       <groupId>edu.umass.cs.ciir.jfoley</groupId>
+      <artifactId>chai-xml</artifactId>
+      <version>${chaiVersion}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>edu.umass.cs.ciir.jfoley</groupId>
       <artifactId>chai-web</artifactId>
       <version>${chaiVersion}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.twitter4j</groupId>
+      <artifactId>twitter4j-core</artifactId>
+      <version>[4.0,)</version>
     </dependency>
 
     <dependency>

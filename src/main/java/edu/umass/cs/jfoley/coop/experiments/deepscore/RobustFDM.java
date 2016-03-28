@@ -39,10 +39,14 @@ public class RobustFDM {
     TagTokenizer tok = new TagTokenizer();
     StringPooler.disable();
 
+    Debouncer msg = new Debouncer();
     qidToDesc.entrySet().parallelStream().forEach((kv -> {
       String qid = kv.getKey();
       System.err.println(qid);
       try (PrintWriter scores = IO.openPrintWriter("robust."+qid+"."+model+".tsv")) {
+        if(msg.ready()) {
+          System.err.println(qid+"\t"+msg.estimate(0));
+        }
         String query = kv.getValue();
         List<String> tokens;
         synchronized(tok) {
@@ -55,14 +59,10 @@ public class RobustFDM {
         Node xqNode = ret.transformQuery(qNode, qp);
 
         ScoreIterator iterator = (ScoreIterator) ret.createIterator(qp, xqNode);
-        Debouncer msg = new Debouncer();
         iterator.forEach(ctx -> {
           try {
             iterator.syncTo(ctx.document);
             double score = iterator.score(ctx);
-            if("301".equals(qid) && ctx.document == 105783) {
-              System.err.println(qid+"\tFR940425-2-00078\t"+score);
-            }
             scores.println(ctx.document+"\t"+score);
           } catch (IOException e) {
             throw new RuntimeException(e);
@@ -72,6 +72,8 @@ public class RobustFDM {
         throw new RuntimeException(e);
       }
     }));
+
+    System.err.println(msg.estimate(0));
   }
 
   public static class DumpNameIds {
