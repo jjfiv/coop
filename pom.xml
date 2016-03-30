@@ -117,12 +117,6 @@
 
     <dependency>
       <groupId>edu.umass.cs.ciir.jfoley</groupId>
-      <artifactId>chai-xml</artifactId>
-      <version>${chaiVersion}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>edu.umass.cs.ciir.jfoley</groupId>
       <artifactId>chai-web</artifactId>
       <version>${chaiVersion}</version>
     </dependency>

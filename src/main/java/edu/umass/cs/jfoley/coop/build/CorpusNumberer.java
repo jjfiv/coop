@@ -70,7 +70,8 @@ public class CorpusNumberer {
     public void process(String docName, List<String> terms) throws IOException {
       int docId = IntMath.fromLong(docOffsetWriter.tell() / 8L);
       docNames.put(docId, docName);
-      assert(docId == nextDocId++);
+      nextDocId++;
+      assert(docId == nextDocId);
 
       long documentStart = corpusWriter.tell();
       docOffsetWriter.write(FixedSize.longs, documentStart);
@@ -111,16 +112,17 @@ public class CorpusNumberer {
 
   public static void main(String[] args) throws IOException {
     Parameters argp = Arguments.parse(args);
-    Directory output = new Directory(argp.get("output", "/mnt/scratch/jfoley/clue12a.sdm.ints"));
+    Directory output = new Directory(argp.get("output", "/mnt/scratch3/jfoley/w3c.ints"));
     //List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "inex_txt")), argp);
 
-    List<DocumentSplit> documentSplits = DocumentSource.processFile(new File(argp.get("input", "/mnt/scratch/jfoley/Clue12A.subset.galago/Clue12A-Subindex-FULL/corpus")), argp);
+    List<DocumentSplit> documentSplits = DocumentSource.processFile(new File(argp.get("input", "/mnt/scratch3/jfoley/w3c/")), argp);
     //Directory output = new Directory(argp.get("output", "dbpedia.ints"));
     //List<DocumentSplit> documentSplits = DocumentSource.processDirectory(new File(argp.get("input", "/mnt/scratch/jfoley/dbpedia.trectext")), argp);
 
     boolean namePrefix = argp.get("namePrefix", false);
 
     Debouncer msg = new Debouncer(3000);
+    final long total = 331_037; // w3c corpus
 
     HashSet<String> alreadySeenDocuments = new HashSet<>();
 
@@ -166,7 +168,7 @@ public class CorpusNumberer {
 
 
           if(msg.ready()) {
-            System.out.println(msg.estimate(writer.nextDocId, 1_962_807));
+            System.out.println(msg.estimate(writer.nextDocId, total));
             System.out.println("# "+doc.name+" "+writer.nextDocId);
             System.out.println("\t skipped     : "+skipped);
             System.out.println("\t parse     : "+parsingTime);
@@ -182,6 +184,7 @@ public class CorpusNumberer {
     }
 
     System.out.println("# Finished.");
+    System.out.println(msg.estimate(total, total));
     System.out.println("\t parse     : "+parsingTime);
     System.out.println("\t tokenizing: "+tokenizationTime);
     System.out.println("\t processing : "+processTime);
