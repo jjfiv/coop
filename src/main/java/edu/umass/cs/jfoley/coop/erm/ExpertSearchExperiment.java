@@ -17,6 +17,7 @@ import edu.umass.cs.jfoley.coop.phrases.PhraseHitList;
 import edu.umass.cs.jfoley.coop.phrases.PhraseHitsReader;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -26,7 +27,6 @@ import org.lemurproject.galago.core.retrieval.Results;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
 import org.lemurproject.galago.core.retrieval.prf.RelevanceModel1;
 import org.lemurproject.galago.core.retrieval.query.Node;
-import org.lemurproject.galago.core.util.WordLists;
 import org.lemurproject.galago.utility.Parameters;
 import org.lemurproject.galago.utility.lists.Ranked;
 
@@ -56,7 +56,8 @@ public class ExpertSearchExperiment {
     Parameters argp = Parameters.parseArgs(args);
     Directory indexDir = Directory.Read(argp.get("index", "/mnt/scratch3/jfoley/w3c.ints"));
 
-    final String method = argp.get("method", "gdrm");
+    final String method = argp.get("method", "drm");
+    final String year = "06";
 
     HashMap<Integer, ExpertCandidate> kb = new HashMap<>();
     for (String line : LinesIterable.fromFile("/home/jfoley/data/enterprise_track/ent05.expert.candidates").slurp()) {
@@ -75,22 +76,21 @@ public class ExpertSearchExperiment {
       kb.put(numericId, new ExpertCandidate(numericId, name, email, id));
     }
 
-    String topics = IO.slurp(new File("/home/jfoley/data/enterprise_track/ent05.expert.topics"));
+    String topics = IO.slurp(new File("/home/jfoley/data/enterprise_track/ent"+year+".expert.topics"));
     //System.out.println(topics);
     Document parse = Jsoup.parse(topics);
 
-    Set<String> stopwords = WordLists.getWordListOrDie("inquery");
     LocalRetrieval galagoRet = new LocalRetrieval(argp.get("galago", "/mnt/scratch3/jfoley/w3c.galago"));
     Map<String, String> queries = new HashMap<>();
     TagTokenizer tok = new TagTokenizer();
 
     for (Element top : parse.select("top")) {
-      String num = top.select("num").text().trim();
+      String num = StrUtil.takeAfter(top.select("num").text(), "Number:").trim();
       String title = top.select("title").text();
       String desc = top.select("desc").text();
+      System.out.println(num);
 
       queries.put(num, title);
-      System.out.println(num+"\t"+title+"\t"+desc);
     }
 
     int fbDocs = argp.get("fbDocs", 100);
@@ -98,9 +98,9 @@ public class ExpertSearchExperiment {
     IntCoopIndex target = new IntCoopIndex(indexDir);
     PhraseHitsReader eIndex = new PhraseHitsReader(target, target.baseDir, "experts");
     PhrasePositionsIndex entitiesIndex = new PhrasePositionsIndex(eIndex, target.getTermVocabulary(), eIndex.getPhraseVocab(), eIndex.getDocumentsByPhrase());
-    IOMap<Integer, IntList> ambiguous = eIndex.getAmbiguousPhrases();
+    IOMap<Integer, IntList> mentionToEntities = eIndex.getAmbiguousPhrases();
 
-    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", method+".expert.n"+fbDocs+".trecrun"))) {
+    try (PrintWriter trecrun = IO.openPrintWriter(argp.get("output", method+".expert20"+year+".n"+fbDocs+".trecrun"))) {
       for (Map.Entry<String, String> kv : queries.entrySet()) {
         String qid = kv.getKey();
         String text = kv.getValue();
@@ -120,7 +120,6 @@ public class ExpertSearchExperiment {
           topDocIds.add(docIdPair.getValue());
           idToName.put(docIdPair.getValue(), docIdPair.getKey());
         }
-
 
         long start = System.currentTimeMillis();
         List<Pair<Integer, PhraseHitList>> inBulk = eIndex.getDocumentHits().getInBulk(topDocIds);
@@ -146,37 +145,38 @@ public class ExpertSearchExperiment {
         end = System.currentTimeMillis();
         System.out.println("Pull efrequencies: " + (end - start) + "ms.");
 
+        TObjectIntHashMap<String> entityTimesScored = new TObjectIntHashMap<>();
         TIntObjectHashMap<List<String>> mentionIdToStringNames = new TIntObjectHashMap<>();
-        Set<String> allWikiEntities = new HashSet<>();
         for (int eid : allEntities) {
-          IntList ids = ambiguous.get(eid);
+          IntList ids = mentionToEntities.get(eid);
           if (ids == null) {
-            ids = new IntList();
-            ids.push(eid);
+            throw new RuntimeException();
           }
-          List<String> names = new ArrayList<>();
+          HashSet<String> names = new HashSet<>();
           for (Integer id : ids) {
             ExpertCandidate cc = kb.get(id);
             if (cc == null) continue;
             names.add(cc.id);
           }
           if (names.isEmpty()) continue;
-          allWikiEntities.addAll(names);
-          mentionIdToStringNames.put(eid, names);
+          mentionIdToStringNames.put(eid, new ArrayList<>(names));
         }
         double clen = entitiesIndex.getCollectionLength();
 
-
         final TopKHeap<ScoredDocument> topEntities = new TopKHeap<>(1000);
 
-        mentionIdToStringNames.forEachEntry((eid, names) -> {
+        Map<String, Double> entityWeights = new HashMap<>();
+
+        mentionIdToStringNames.forEachEntry((mid, names) -> {
           double score = 0;
-          double cf = freq.get(eid);
+          double cf = freq.get(mid);
           for (int i = 0; i < topDocIds.size(); i++) {
             int docId = topDocIds.getQuick(i);
-            int count = countsByDoc.get(docId).get(eid);
+            TIntIntHashMap bagOfEntities = countsByDoc.get(docId);
+            if(bagOfEntities == null) continue;
+            int count = bagOfEntities.get(mid);
             if (count == 0) continue;
-            double length = countsByDoc.get(docId).get(-1);
+            double length = bagOfEntities.get(-1);
             double docProb = logstoposteriors.get(idToName.get(docId));
 
             switch (method) {
@@ -211,11 +211,21 @@ public class ExpertSearchExperiment {
 
           assert (score != 0);
           for (String name : names) {
-            topEntities.offer(new ScoredDocument(name, -1, score));
+            double before = entityWeights.getOrDefault(name, 0.0);
+            entityWeights.put(name, before + score);
+            entityTimesScored.adjustOrPutValue(name, 1, 1);
+            //topEntities.offer(new ScoredDocument(name, -1, score));
           }
 
           return true;
         });
+
+        for (Map.Entry<String, Double> enameScore : entityWeights.entrySet()) {
+          String name = enameScore.getKey();
+          double score = enameScore.getValue();
+          int n = entityTimesScored.get(name);
+          topEntities.offer(new ScoredDocument(name, -1, score  / ((double) n)));
+        }
 
         // print results
         List<ScoredDocument> scoredEntities = topEntities.getSorted();
