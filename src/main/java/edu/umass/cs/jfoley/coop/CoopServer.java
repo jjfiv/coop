@@ -7,6 +7,7 @@ import ciir.jfoley.chai.web.WebServer;
 import ciir.jfoley.chai.web.json.JSONAPI;
 import ciir.jfoley.chai.web.json.JSONMethod;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.search.Query;
@@ -16,10 +17,7 @@ import org.lemurproject.galago.utility.Parameters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author jfoley
@@ -56,13 +54,20 @@ public class CoopServer {
     int n = p.get("n", 20);
     int minTF = p.get("min", 2);
     int minDF = p.get("minDF", 5);
+    boolean documents = !p.get("sentences", false);
+
+    CoopIndex target = documents ? docs : sentences;
+    Set<String> fields = new HashSet<>(Arrays.asList("id", "facets", "time"));
+    if(!documents) {
+      fields.add("index");
+    }
 
     // structures to fill:
     TObjectIntHashMap<String> overall = new TObjectIntHashMap<>();
     List<Parameters> results = new ArrayList<>();
 
     long startSearch = System.currentTimeMillis();
-    TopDocs docResults = docs.searcher.search(lq, limit);
+    TopDocs docResults = target.searcher.search(lq, limit);
     long endSearch = System.currentTimeMillis();
     output.put("searchTime", (endSearch - startSearch));
 
@@ -70,10 +75,18 @@ public class CoopServer {
     for (ScoreDoc scoreDoc : docResults.scoreDocs) {
       Parameters out = Parameters.create();
       out.put("score", scoreDoc.score);
-      out.put("id", docs.getField(scoreDoc.doc, "id"));
+
+      Document document = target.reader.document(scoreDoc.doc, fields);
+
+      out.put("id", document.get("id"));
+      out.put("time", document.getField("time").numericValue());
+      if(!documents) {
+        out.put("index", document.getField("index").numericValue());
+      }
+
       Parameters forJSON = Parameters.create();
 
-      TObjectIntHashMap<String> facets = TroveFrequencyCoder.read(docs.getRawField(scoreDoc.doc, "facets").binaryValue());
+      TObjectIntHashMap<String> facets = TroveFrequencyCoder.read(document.getBinaryValue("facets"));
       facets.forEachEntry((phrase, count) -> {
         if(perDocAllPhrases && count > minTF) {
           forJSON.put(phrase, count);
@@ -93,7 +106,7 @@ public class CoopServer {
     TopKHeap<PhraseFacet> topTerms = new TopKHeap<>(n);
     overall.forEachEntry((phrase, count) -> {
       if(count >= minTF) {
-        CountStats fstats = docs.getTermStatistics("facet-phrase", phrase.replace(' ', '_'));
+        CountStats fstats = target.getTermStatistics("facet-phrase", phrase.replace(' ', '_'));
         if(fstats.documentFrequency >= minDF) {
           topTerms.offer(new PhraseFacet(phrase, count, fstats));
         }
@@ -104,7 +117,7 @@ public class CoopServer {
     output.put("rankTermsTime", (rankTermsEnd - rankTermsStart));
 
     output.put("terms", ListFns.map(topTerms.getSorted(), PhraseFacet::toJSON));
-    output.put("docs", results);
+    output.put(documents ? "docs" : "sentences", results);
     return output;
   }
 
