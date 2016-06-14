@@ -20,7 +20,7 @@ import static org.apache.lucene.document.Field.Store.YES;
 /**
  * @author jfoley
  */
-public class Main {
+public class ConstructCoopIndex {
   static final DateTimeFormatter datePattern = DateTimeFormatter.ofPattern("yyyyMMdd");
   public static LocalDate parseNYTDate(String input) {
     return LocalDate.parse(input, datePattern);

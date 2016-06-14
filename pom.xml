@@ -13,7 +13,7 @@
     <javaVersion>1.8</javaVersion>
     <luceneVersion>6.0.1</luceneVersion>
     <chaiVersion>0.9-SNAPSHOT</chaiVersion>
-    <mainClass>edu.umass.cs.jfoley.coop.Main</mainClass>
+    <mainClass>edu.umass.cs.jfoley.coop.ConstructCoopIndex</mainClass>
   </properties>
 
   <scm>
