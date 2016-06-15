@@ -55,11 +55,15 @@ public class CoopServer {
     int minTF = p.get("min", 2);
     int minDF = p.get("minDF", 5);
     boolean documents = !p.get("sentences", false);
+    boolean json = !documents && p.get("json", false);
 
     CoopIndex target = documents ? docs : sentences;
     Set<String> fields = new HashSet<>(Arrays.asList("id", "facets", "time"));
     if(!documents) {
       fields.add("index");
+    }
+    if(json) {
+      fields.add("json");
     }
 
     // structures to fill:
@@ -94,6 +98,9 @@ public class CoopServer {
         overall.adjustOrPutValue(phrase, count, count);
         return true;
       });
+      if(json) {
+        out.put("json", Parameters.parseString(document.get("json")));
+      }
       if(perDocAllPhrases) {
         out.put("phrases", forJSON);
       }
