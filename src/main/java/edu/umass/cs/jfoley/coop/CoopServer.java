@@ -38,14 +38,15 @@ public class CoopServer {
     this.methods.put("/rookie", this::rookie);
   }
 
-  public void run() {
-    WebServer api = JSONAPI.start(1235, methods);
+  public void run(Parameters argp) {
+    WebServer api = JSONAPI.start(argp.get("port", 1235), methods);
     api.join();
   }
 
   public static void main(String[] args) throws IOException {
-    CoopServer server = new CoopServer(Directory.Read("."), "test_anno");
-    server.run();
+    Parameters argp = Parameters.parseArgs(args);
+    CoopServer server = new CoopServer(Directory.Read(argp.get("baseDir", ".")), argp.get("index", "test_anno"));
+    server.run(argp);
   }
 
   /**
@@ -81,18 +82,18 @@ public class CoopServer {
     TObjectIntHashMap<Term> docTermToIndex = new TObjectIntHashMap<>();
     TObjectIntHashMap<String> overall = new TObjectIntHashMap<>();
 
-    List<String> results = new ArrayList<>();
+    List<Parameters> results = new ArrayList<>();
     long startDocumentDecorationTime = System.currentTimeMillis();
     for (int docId : docResults) {
       Document document = docs.reader.document(docId, fields);
 
-      final String name = document.get("id");
-      long time = (long) document.getField("time").numericValue();
-      final String docData = name + "\t" + time;
-      results.add(docData);
+      Parameters docP = Parameters.create();
+      docP.put("id", document.get("id"));
+      docP.put("time", document.getField("time").numericValue());
+      results.add(docP);
 
       // add this to our sentence-search query:
-      final Term docAsTerm = new Term("id", name);
+      final Term docAsTerm = new Term("id", document.get("id"));
       docTermToIndex.put(docAsTerm, documentsAsTerms.size());
       documentsAsTerms.add(docAsTerm);
       sentencesPerDoc.add(null); // put a null here for now.
@@ -148,7 +149,7 @@ public class CoopServer {
       }
       return true;
     });
-    output.put("terms", ListFns.map(topTerms.getSorted(), PhraseFacet::toTSV));
+    output.put("terms", ListFns.map(topTerms.getSorted(), PhraseFacet::toJSON));
 
     long rankTermsEnd = System.currentTimeMillis();
     output.put("rankTermsTime", (rankTermsEnd - rankTermsStart));
