@@ -21,11 +21,14 @@ import org.lemurproject.galago.utility.Parameters;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author jfoley
  */
 public class CoopServer {
+  private final Logger logger = Logger.getLogger("CoopServer");
   private final CoopIndex docs;
   private final CoopIndex sentences;
   StandardQueryParser qp = new StandardQueryParser();
@@ -55,6 +58,7 @@ public class CoopServer {
    * @return JSON output
    */
   public Parameters rookie(Parameters p) throws IOException {
+    logger.log(Level.INFO, "rookie: {0}", p.toString());
     Parameters output = Parameters.create();
     int minTF = p.get("min", 2);
     int minDF = p.get("minDF", 5);
@@ -157,6 +161,7 @@ public class CoopServer {
   }
 
   public Parameters search(Parameters p) throws QueryNodeException, IOException {
+    logger.log(Level.INFO, "search: {0}", p.toString());
     Parameters output = Parameters.create();
 
     // pull out data we need:
